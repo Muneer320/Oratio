@@ -1,13 +1,14 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight } from 'lucide-react';
+import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap } from 'lucide-react';
 
 function Home() {
   const canvasRef = useRef(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const { scrollY } = useScroll();
-  const parallax1 = useTransform(scrollY, [0, 500], [0, -100]);
-  const parallax2 = useTransform(scrollY, [0, 500], [0, 50]);
+  const parallax1 = useTransform(scrollY, [0, 500], [0, -80]);
+  const parallax2 = useTransform(scrollY, [0, 500], [0, 40]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -23,16 +24,20 @@ function Home() {
     resize();
     window.addEventListener('resize', resize);
 
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
     let time = 0;
     
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Layered voice waveforms with Bézier curves
       const waves = [
-        { amplitude: 60, frequency: 0.008, phase: 0, opacity: 0.12, color: '#D67C56', lineWidth: 2.5 },
-        { amplitude: 45, frequency: 0.012, phase: Math.PI / 3, opacity: 0.09, color: '#4A9A9F', lineWidth: 2 },
-        { amplitude: 35, frequency: 0.015, phase: Math.PI / 2, opacity: 0.07, color: '#F0C674', lineWidth: 1.5 },
+        { amplitude: 70, frequency: 0.006, phase: 0, opacity: 0.15, color: '#D67C56', lineWidth: 3 },
+        { amplitude: 50, frequency: 0.009, phase: Math.PI / 3, opacity: 0.1, color: '#4A9A9F', lineWidth: 2.5 },
+        { amplitude: 40, frequency: 0.012, phase: Math.PI / 2, opacity: 0.08, color: '#F0C674', lineWidth: 2 },
       ];
 
       waves.forEach(wave => {
@@ -40,20 +45,22 @@ function Home() {
         ctx.globalAlpha = wave.opacity;
         ctx.lineWidth = wave.lineWidth;
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         ctx.beginPath();
 
-        const centerY = canvas.height * 0.4;
+        const centerY = canvas.height * 0.35;
         const points = [];
         
-        for (let x = 0; x < canvas.width; x += 3) {
+        for (let x = 0; x < canvas.width; x += 2) {
+          const mouseInfluence = Math.max(0, 1 - Math.abs(x - mousePos.x) / 300) * 20;
           const baseY = centerY + 
             Math.sin(x * wave.frequency + time + wave.phase) * wave.amplitude +
             Math.sin(x * wave.frequency * 2.3 + time * 1.3) * (wave.amplitude * 0.4) +
-            Math.sin(x * wave.frequency * 0.7 + time * 0.8) * (wave.amplitude * 0.6);
+            Math.sin(x * wave.frequency * 0.7 + time * 0.8) * (wave.amplitude * 0.6) +
+            mouseInfluence;
           points.push({ x, y: baseY });
         }
 
-        // Smooth Bézier curve through points
         ctx.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length - 2; i++) {
           const xc = (points[i].x + points[i + 1].x) / 2;
@@ -64,7 +71,7 @@ function Home() {
       });
 
       ctx.globalAlpha = 1;
-      time += 0.012;
+      time += 0.01;
       animationId = requestAnimationFrame(animate);
     };
     
@@ -72,114 +79,139 @@ function Home() {
 
     return () => {
       window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
       if (animationId) cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [mousePos.x]);
 
   return (
     <div className="min-h-screen bg-dark-base text-text-primary relative overflow-hidden texture-grain">
-      {/* Voice Wave Canvas Background */}
       <canvas 
         ref={canvasRef} 
         className="fixed inset-0 pointer-events-none z-0" 
-        style={{ opacity: 0.6 }}
+        style={{ opacity: 0.7 }}
       />
 
-      {/* Hero Section - Asymmetric Layout */}
-      <section className="relative min-h-screen flex items-center px-6 lg:px-12 py-20 z-10">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-12 gap-8 lg:gap-16">
-            {/* Left Column - 7/12 */}
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center px-6 lg:px-16 py-20 z-10">
+        <div className="max-w-[1400px] mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+            {/* Left - Content (8 cols) */}
             <motion.div 
-              className="col-span-12 lg:col-span-7"
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-8"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-dark-elevated border border-accent-rust/30 rounded-full mb-8">
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-gradient-to-r from-accent-rust/10 to-accent-teal/10 border border-accent-rust/20 rounded-full mb-10 backdrop-blur-sm">
                 <Scale className="w-4 h-4 text-accent-rust" />
-                <span className="text-sm font-medium text-text-secondary">AI-Powered Judging System</span>
+                <span className="text-sm font-medium text-text-secondary">AI-Powered Judging</span>
               </div>
 
-              {/* Display Headline - Mixed Typography */}
-              <h1 className="mb-8 leading-[0.95]">
-                <span className="block text-5xl md:text-7xl lg:text-8xl font-bold text-text-primary mb-2">
+              <h1 className="mb-8 font-display leading-[0.9]">
+                <span className="block text-6xl md:text-7xl lg:text-[7rem] font-bold text-text-primary mb-3">
                   Debate with
                 </span>
-                <span className="block text-5xl md:text-7xl lg:text-8xl font-serif italic text-accent-rust glow-text">
-                  Precision
+                <span className="block text-6xl md:text-7xl lg:text-[7rem] font-bold bg-gradient-to-r from-accent-rust via-accent-saffron to-accent-teal bg-clip-text text-transparent">
+                  Intelligence
                 </span>
               </h1>
 
-              {/* Description */}
-              <p className="text-xl md:text-2xl text-text-secondary mb-12 max-w-lg leading-relaxed">
-                Master the art of argumentation with real-time AI feedback on your 
-                <span className="text-accent-saffron font-semibold"> logic</span>,
-                <span className="text-accent-teal font-semibold"> credibility</span>, and
-                <span className="text-accent-rust font-semibold"> rhetoric</span>.
+              <p className="text-xl md:text-2xl text-text-secondary mb-14 max-w-2xl leading-relaxed font-light">
+                Master argumentation with real-time AI scoring across{' '}
+                <span className="text-accent-saffron font-semibold">logic</span>,{' '}
+                <span className="text-accent-teal font-semibold">credibility</span>, and{' '}
+                <span className="text-accent-rust font-semibold">rhetoric</span>
               </p>
 
-              {/* CTAs */}
-              <div className="flex gap-4 flex-wrap">
+              <div className="flex gap-5 flex-wrap">
                 <Link to="/host">
                   <motion.button
-                    className="group px-8 py-4 bg-accent-rust text-white rounded-custom-md font-semibold shadow-glow hover:shadow-xl transition-all duration-200 flex items-center gap-2"
-                    whileHover={{ y: -3, scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
+                    className="group relative px-10 py-5 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-2xl font-semibold text-lg overflow-hidden"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    Host Debate
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="relative flex items-center gap-2.5">
+                      Host Debate
+                      <motion.div
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </motion.div>
+                    </span>
+                    <div className="absolute inset-0 shadow-[0_0_30px_rgba(214,124,86,0.4)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </motion.button>
                 </Link>
                 
                 <Link to="/join">
                   <motion.button
-                    className="px-8 py-4 bg-dark-elevated border-2 border-accent-teal text-accent-teal rounded-custom-md font-semibold hover:bg-dark-warm transition-all duration-200"
-                    whileHover={{ y: -3, scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
+                    className="group relative px-10 py-5 bg-dark-elevated border-2 border-accent-teal/40 text-accent-teal rounded-2xl font-semibold text-lg overflow-hidden"
+                    whileHover={{ scale: 1.03, borderColor: 'rgba(74, 154, 159, 0.8)' }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    Join Room
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/0 to-accent-teal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="relative">Join Room</span>
                   </motion.button>
                 </Link>
               </div>
             </motion.div>
 
-            {/* Right Column - 5/12 - Decorative Element */}
+            {/* Right - Scorecard Visual (4 cols) */}
             <motion.div 
-              className="col-span-12 lg:col-span-5 relative"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.9, delay: 0.3 }}
+              className="lg:col-span-4 relative"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
               style={{ y: parallax2 }}
             >
-              <div className="relative aspect-square lg:aspect-auto lg:h-96">
-                {/* Podium Visual */}
-                <div className="absolute inset-0 bg-gradient-to-br from-accent-rust/10 to-accent-teal/10 rounded-custom-lg backdrop-blur-sm border border-dark-warm">
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-8 space-y-6">
-                    {/* Microphone Icon */}
-                    <div className="w-24 h-24 bg-dark-surface rounded-custom-lg flex items-center justify-center shadow-soft border border-dark-warm">
-                      <Mic2 className="w-12 h-12 text-accent-rust" />
+              <div className="relative">
+                {/* Custom Card with Diagonal Cut */}
+                <div className="relative bg-gradient-to-br from-dark-surface to-dark-elevated rounded-3xl p-8 shadow-[0_8px_40px_rgba(0,0,0,0.4)] border border-dark-warm"
+                     style={{ clipPath: 'polygon(0 0, 100% 0, 100% 92%, 92% 100%, 0 100%)' }}>
+                  
+                  {/* Gradient Accent Line */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-rust via-accent-saffron to-accent-teal rounded-t-3xl" />
+                  
+                  <div className="flex flex-col items-center space-y-8">
+                    {/* Icon */}
+                    <div className="relative w-20 h-20 bg-gradient-to-br from-accent-rust/20 to-accent-teal/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-accent-rust/30">
+                      <Mic2 className="w-10 h-10 text-accent-rust" />
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent-saffron rounded-full animate-pulse" />
                     </div>
                     
-                    {/* Score Indicators */}
-                    <div className="space-y-3 w-full max-w-xs">
+                    {/* Live Scores */}
+                    <div className="w-full space-y-5">
                       {[
-                        { label: 'Logic', value: 85, color: 'saffron' },
-                        { label: 'Credibility', value: 92, color: 'teal' },
-                        { label: 'Rhetoric', value: 78, color: 'rust' }
-                      ].map((score, i) => (
-                        <div key={i} className="space-y-1.5">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-text-muted font-medium">{score.label}</span>
-                            <span className={`text-accent-${score.color} font-bold`}>{score.value}</span>
+                        { label: 'Logic', value: 85, color: '#F0C674', icon: TrendingUp },
+                        { label: 'Credibility', value: 92, color: '#4A9A9F', icon: Scale },
+                        { label: 'Rhetoric', value: 78, color: '#D67C56', icon: Zap }
+                      ].map((metric, i) => (
+                        <div key={i} className="space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <metric.icon className="w-4 h-4" style={{ color: metric.color }} />
+                              <span className="text-text-secondary font-medium text-sm">{metric.label}</span>
+                            </div>
+                            <span className="text-2xl font-bold font-display" style={{ color: metric.color }}>
+                              {metric.value}
+                            </span>
                           </div>
-                          <div className="h-2 bg-dark-surface rounded-full overflow-hidden">
+                          <div className="relative h-2.5 bg-dark-base rounded-full overflow-hidden">
                             <motion.div
-                              className={`h-full bg-accent-${score.color} rounded-full`}
+                              className="h-full rounded-full"
+                              style={{ 
+                                background: `linear-gradient(90deg, ${metric.color}, ${metric.color}DD)`,
+                                boxShadow: `0 0 10px ${metric.color}80`
+                              }}
                               initial={{ width: 0 }}
-                              animate={{ width: `${score.value}%` }}
-                              transition={{ duration: 1.5, delay: 0.5 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                              animate={{ width: `${metric.value}%` }}
+                              transition={{ 
+                                duration: 1.2, 
+                                delay: 0.4 + i * 0.15, 
+                                ease: [0.16, 1, 0.3, 1] 
+                              }}
                             />
                           </div>
                         </div>
@@ -193,88 +225,113 @@ function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative px-6 lg:px-12 py-24 z-10">
+      {/* Features Section - Asymmetric Cards */}
+      <section className="relative px-6 lg:px-16 py-32 z-10">
         <motion.div 
-          className="max-w-7xl mx-auto"
+          className="max-w-[1400px] mx-auto"
           style={{ y: parallax1 }}
         >
-          {/* Section Header */}
-          <div className="mb-16 max-w-2xl">
-            <h2 className="text-4xl md:text-5xl font-bold text-text-primary mb-4">
-              Three Pillars of <span className="text-accent-rust font-serif italic">Excellence</span>
+          <div className="mb-20 max-w-3xl">
+            <h2 className="text-5xl md:text-6xl font-bold font-display text-text-primary mb-5">
+              Three Pillars of{' '}
+              <span className="bg-gradient-to-r from-accent-rust to-accent-saffron bg-clip-text text-transparent">
+                Excellence
+              </span>
             </h2>
-            <p className="text-lg text-text-secondary">
-              Our AI evaluates every argument across three critical dimensions
+            <p className="text-xl text-text-secondary font-light">
+              Advanced AI evaluates every argument across critical dimensions
             </p>
           </div>
 
-          {/* Feature Cards - Irregular Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Custom Card Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { 
                 icon: TrendingUp, 
                 title: 'Logic Analysis', 
                 desc: 'Structural coherence and reasoning strength evaluated with advanced language models',
-                color: 'saffron',
+                gradient: 'from-accent-saffron/10 via-accent-saffron/5 to-transparent',
+                iconBg: 'from-accent-saffron/20 to-accent-saffron/10',
+                iconColor: 'text-accent-saffron',
                 delay: 0 
               },
               { 
                 icon: Scale, 
                 title: 'Credibility Check', 
                 desc: 'Real-time fact verification and source validation powered by web search',
-                color: 'teal',
+                gradient: 'from-accent-teal/10 via-accent-teal/5 to-transparent',
+                iconBg: 'from-accent-teal/20 to-accent-teal/10',
+                iconColor: 'text-accent-teal',
                 delay: 0.15 
               },
               { 
                 icon: Mic2, 
                 title: 'Rhetoric Scoring', 
                 desc: 'Persuasiveness and delivery effectiveness measured through linguistic analysis',
-                color: 'rust',
+                gradient: 'from-accent-rust/10 via-accent-rust/5 to-transparent',
+                iconBg: 'from-accent-rust/20 to-accent-rust/10',
+                iconColor: 'text-accent-rust',
                 delay: 0.3 
               }
             ].map((feature, i) => (
               <motion.div
                 key={i}
-                className="group bg-dark-surface border border-dark-warm rounded-custom-lg p-8 shadow-soft hover:border-accent-rust/40 hover:shadow-glow transition-all duration-300"
-                initial={{ opacity: 0, y: 40 }}
+                className="group relative"
+                initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ delay: feature.delay, duration: 0.7 }}
-                whileHover={{ y: -6 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ delay: feature.delay, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -8 }}
               >
-                <div 
-                  className={`w-14 h-14 bg-accent-${feature.color}/10 rounded-custom-md flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
-                >
-                  <feature.icon className={`w-7 h-7 text-accent-${feature.color}`} />
+                {/* Custom Shape Card */}
+                <div className={`relative bg-gradient-to-br ${feature.gradient} backdrop-blur-sm rounded-3xl p-8 shadow-[0_4px_30px_rgba(0,0,0,0.3)] border border-dark-warm group-hover:border-${feature.iconColor.split('-')[1]}-${feature.iconColor.split('-')[2]}/30 transition-all duration-500`}
+                     style={{ 
+                       clipPath: i === 1 ? 'polygon(0 0, 100% 0, 100% 90%, 90% 100%, 0 100%)' : undefined,
+                       transform: i === 0 ? 'rotate(-0.5deg)' : i === 2 ? 'rotate(0.5deg)' : undefined
+                     }}>
+                  
+                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.iconBg} rounded-2xl flex items-center justify-center mb-7 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg`}>
+                    <feature.icon className={`w-8 h-8 ${feature.iconColor}`} />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold font-display text-text-primary mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-text-primary group-hover:to-text-secondary group-hover:bg-clip-text transition-all duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-text-secondary leading-relaxed font-light">
+                    {feature.desc}
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-text-primary mb-3">{feature.title}</h3>
-                <p className="text-text-secondary leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
         </motion.div>
       </section>
 
-      {/* Stats Section - Dark Elevated Card */}
-      <section className="relative px-6 lg:px-12 py-24 z-10">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-gradient-to-br from-dark-elevated to-dark-warm rounded-custom-lg p-12 md:p-16 shadow-soft border border-dark-warm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+      {/* Stats - Elevated Panel */}
+      <section className="relative px-6 lg:px-16 py-32 z-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="relative bg-gradient-to-br from-dark-elevated via-dark-surface to-dark-elevated rounded-[2.5rem] p-12 md:p-20 shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-dark-warm overflow-hidden">
+            {/* Accent Glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-accent-rust/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent-teal/10 rounded-full blur-3xl" />
+            
+            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
               {[
-                { icon: Users, value: '50K+', label: 'Active Debaters' },
-                { icon: Trophy, value: '200K+', label: 'Debates Hosted' },
-                { icon: Scale, value: '99.9%', label: 'AI Accuracy' }
+                { icon: Users, value: '50K+', label: 'Active Debaters', color: 'accent-rust' },
+                { icon: Trophy, value: '200K+', label: 'Debates Hosted', color: 'accent-saffron' },
+                { icon: Scale, value: '99.9%', label: 'AI Accuracy', color: 'accent-teal' }
               ].map((stat, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.12, duration: 0.6 }}
+                  transition={{ delay: i * 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <stat.icon className="w-12 h-12 mx-auto mb-4 text-accent-rust" />
-                  <div className="text-5xl md:text-6xl font-bold text-text-primary mb-2">{stat.value}</div>
+                  <stat.icon className={`w-12 h-12 mx-auto mb-5 text-${stat.color}`} />
+                  <div className={`text-6xl md:text-7xl font-bold font-display text-${stat.color} mb-3`}>
+                    {stat.value}
+                  </div>
                   <div className="text-text-secondary font-medium">{stat.label}</div>
                 </motion.div>
               ))}
@@ -284,27 +341,32 @@ function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative px-6 lg:px-12 py-32 z-10">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="relative px-6 lg:px-16 py-40 z-10">
+        <div className="max-w-5xl mx-auto text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-5xl md:text-6xl font-bold text-text-primary mb-6">
-              Ready to step up to the <span className="font-serif italic text-accent-rust glow-text">podium?</span>
+            <h2 className="text-5xl md:text-7xl font-bold font-display text-text-primary mb-7 leading-tight">
+              Ready to take the{' '}
+              <span className="bg-gradient-to-r from-accent-rust via-accent-saffron to-accent-teal bg-clip-text text-transparent">
+                podium?
+              </span>
             </h2>
-            <p className="text-xl text-text-secondary mb-12 max-w-2xl mx-auto">
-              Join thousands of debaters improving their skills with instant AI feedback
+            <p className="text-2xl text-text-secondary mb-14 max-w-2xl mx-auto font-light">
+              Join thousands mastering debate with instant AI feedback
             </p>
             <Link to="/host">
               <motion.button
-                className="px-12 py-5 bg-accent-rust text-white rounded-custom-md font-semibold text-lg shadow-glow hover:shadow-xl transition-all duration-200"
-                whileHover={{ scale: 1.05, y: -3 }}
+                className="group relative px-14 py-6 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-2xl font-semibold text-xl overflow-hidden"
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Start Debating Now
+                <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="relative">Start Debating Now</span>
+                <div className="absolute inset-0 shadow-[0_0_40px_rgba(214,124,86,0.6)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </motion.button>
             </Link>
           </motion.div>

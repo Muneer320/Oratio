@@ -1,258 +1,238 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { gsap } from 'gsap';
+import { Brain, CheckCircle2, Mic, Trophy, Zap, Users, Target, ArrowRight } from 'lucide-react';
 
 function Home() {
-  const floatingRef = useRef(null);
-  const glowRef = useRef(null);
-
-  useEffect(() => {
-    // GSAP floating animation
-    if (floatingRef.current) {
-      gsap.to(floatingRef.current, {
-        y: -20,
-        duration: 2,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power1.inOut'
-      });
-    }
-
-    // Pulsing glow effect
-    if (glowRef.current) {
-      gsap.to(glowRef.current, {
-        scale: 1.1,
-        opacity: 0.8,
-        duration: 1.5,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power1.inOut'
-      });
-    }
-  }, []);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Animated grid background */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
-      
-      {/* Neon glow effect */}
-      <div 
-        ref={glowRef}
-        className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-green-500 rounded-full filter blur-3xl opacity-20"
-      ></div>
-
-      <motion.div 
-        className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-16"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Hero Section */}
-        <div className="text-center mb-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-6 pt-20 pb-32">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
           <motion.div
-            ref={floatingRef}
-            className="mb-8"
-            variants={itemVariants}
+            className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium mb-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
           >
-            <h1 className="text-8xl font-bold mb-4 neon-text" style={{
-              textShadow: '0 0 10px #00FF00, 0 0 20px #00FF00, 0 0 30px #00FF00, 0 0 40px #00FF00'
-            }}>
-              ORATIO
-            </h1>
-            <div className="text-2xl text-green-400 font-mono tracking-wider mb-2">
-              {'>'} AI DEBATE PLATFORM {'<'}
-            </div>
+            <Zap className="w-4 h-4" />
+            AI-Powered Debate Platform
           </motion.div>
           
-          <motion.p 
-            className="text-xl text-gray-400 max-w-3xl mx-auto mb-10 font-mono"
-            variants={itemVariants}
-          >
-            Master the art of debate with real-time AI judging.
-            <br/>
-            <span className="text-green-500">Logic | Credibility | Rhetoric</span>
-          </motion.p>
+          <h1 className="text-6xl md:text-7xl font-bold text-slate-900 mb-6 leading-tight">
+            Master the Art of
+            <br />
+            <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+              Intelligent Debate
+            </span>
+          </h1>
+          
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Real-time AI judging with Logic, Credibility, and Rhetoric scoring.
+            Elevate your argumentation skills with instant feedback.
+          </p>
 
-          <motion.div 
-            className="flex gap-6 justify-center"
-            variants={itemVariants}
-          >
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link 
               to="/host" 
-              className="group relative px-8 py-4 bg-black border-2 border-green-500 text-green-500 font-bold text-lg overflow-hidden hover:text-black transition-colors duration-300"
-              style={{
-                boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)',
-                clipPath: 'polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%)'
-              }}
+              className="group inline-flex items-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all duration-300"
             >
-              <span className="relative z-10">HOST DEBATE</span>
-              <div className="absolute inset-0 bg-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+              Host Debate
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             
             <Link 
               to="/join" 
-              className="group relative px-8 py-4 bg-green-500 text-black font-bold text-lg overflow-hidden hover:bg-green-400 transition-colors duration-300"
-              style={{
-                boxShadow: '0 0 20px rgba(0, 255, 0, 0.5)',
-                clipPath: 'polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%)'
-              }}
+              className="inline-flex items-center gap-2 bg-white text-slate-900 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200"
             >
-              JOIN DEBATE
+              Join Debate
             </Link>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
 
-        {/* 3D Feature Cards */}
+        {/* Feature Grid */}
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20"
-          variants={containerVariants}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         >
           {[
-            { icon: '🧠', title: 'LOGIC', desc: 'AI-powered argument analysis' },
-            { icon: '✓', title: 'CREDIBILITY', desc: 'Real-time fact verification' },
-            { icon: '🎭', title: 'RHETORIC', desc: 'Persuasion mastery system' },
-            { icon: '🎙️', title: 'VOICE', desc: 'Speech-to-text powered' }
+            { icon: Brain, title: 'Logic Analysis', desc: 'AI-powered argument structure evaluation', color: 'indigo' },
+            { icon: CheckCircle2, title: 'Credibility Check', desc: 'Real-time fact verification and sourcing', color: 'blue' },
+            { icon: Target, title: 'Rhetoric Scoring', desc: 'Measure persuasive effectiveness', color: 'purple' },
+            { icon: Mic, title: 'Voice-to-Text', desc: 'Speak naturally, we transcribe instantly', color: 'cyan' }
           ].map((feature, i) => (
             <motion.div
               key={i}
-              className="feature-card relative bg-black border border-green-500 p-6 cursor-pointer"
-              variants={itemVariants}
-              whileHover={{ 
-                scale: 1.05,
-                rotateY: 5,
-                boxShadow: '0 0 30px rgba(0, 255, 0, 0.5)'
-              }}
-              style={{
-                transformStyle: 'preserve-3d',
-                perspective: '1000px',
-                boxShadow: '0 0 15px rgba(0, 255, 0, 0.2)'
-              }}
+              className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-slate-200 transition-all duration-300 group"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              whileHover={{ y: -4 }}
             >
-              <div className="text-5xl mb-4 filter drop-shadow-[0_0_10px_rgba(0,255,0,0.8)]">
-                {feature.icon}
+              <div className={`w-12 h-12 bg-${feature.color}-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <feature.icon className={`w-6 h-6 text-${feature.color}-600`} />
               </div>
-              <h3 className="text-xl font-bold text-green-400 mb-2 font-mono">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 {feature.title}
               </h3>
-              <p className="text-gray-500 font-mono text-sm">{feature.desc}</p>
-              
-              {/* Corner decorations */}
-              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-green-500"></div>
-              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-green-500"></div>
-              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-green-500"></div>
-              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-green-500"></div>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                {feature.desc}
+              </p>
             </motion.div>
           ))}
         </motion.div>
+      </div>
 
-        {/* 3D Showcase Panels */}
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20"
-          variants={containerVariants}
-        >
-          <motion.div
-            className="relative bg-black border-2 border-green-500 p-8"
-            variants={itemVariants}
-            whileHover={{ rotateY: 5, scale: 1.02 }}
-            style={{
-              transformStyle: 'preserve-3d',
-              boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)'
-            }}
+      {/* Features Section */}
+      <div className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div 
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="absolute top-4 right-4 text-green-500 font-mono text-sm">
-              [SYSTEM_ACTIVE]
+            <div>
+              <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                <Zap className="w-4 h-4" />
+                Real-time Analysis
+              </div>
+              <h2 className="text-4xl font-bold text-slate-900 mb-6">
+                Instant AI-Powered Feedback
+              </h2>
+              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+                Our advanced AI evaluates every argument in real-time, providing comprehensive
+                LCR scores that help you understand your strengths and areas for improvement.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  'Logic scoring for argument structure',
+                  'Credibility verification with sources',
+                  'Rhetoric analysis for persuasiveness'
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    <span className="text-slate-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="text-5xl mb-4">⚡</div>
-            <h3 className="text-2xl font-bold text-green-400 mb-3 font-mono">
-              REAL-TIME ANALYSIS
-            </h3>
-            <p className="text-gray-400 font-mono leading-relaxed">
-              Instant LCR scoring after every turn. AI processes arguments in milliseconds,
-              providing actionable feedback during live debates.
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="relative bg-black border-2 border-green-500 p-8"
-            variants={itemVariants}
-            whileHover={{ rotateY: -5, scale: 1.02 }}
-            style={{
-              transformStyle: 'preserve-3d',
-              boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)'
-            }}
-          >
-            <div className="absolute top-4 right-4 text-green-500 font-mono text-sm">
-              [AI_READY]
+            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-3xl p-12 border border-indigo-100">
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium text-slate-600">Logic Score</span>
+                    <span className="text-2xl font-bold text-indigo-600">92</span>
+                  </div>
+                  <div className="bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="bg-indigo-600 h-full rounded-full"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '92%' }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1, delay: 0.2 }}
+                    />
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium text-slate-600">Credibility</span>
+                    <span className="text-2xl font-bold text-blue-600">88</span>
+                  </div>
+                  <div className="bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="bg-blue-600 h-full rounded-full"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '88%' }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1, delay: 0.4 }}
+                    />
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium text-slate-600">Rhetoric</span>
+                    <span className="text-2xl font-bold text-purple-600">95</span>
+                  </div>
+                  <div className="bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="bg-purple-600 h-full rounded-full"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '95%' }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1, delay: 0.6 }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="text-5xl mb-4">🏆</div>
-            <h3 className="text-2xl font-bold text-green-400 mb-3 font-mono">
-              TRAINING MODE
-            </h3>
-            <p className="text-gray-400 font-mono leading-relaxed">
-              Battle AI opponents, track XP, unlock achievements. Personalized
-              recommendations to improve your debate skills.
-            </p>
           </motion.div>
-        </motion.div>
+        </div>
+      </div>
 
-        {/* CTA Section */}
-        <motion.div 
-          className="relative bg-black border-2 border-green-500 p-12 text-center"
-          variants={itemVariants}
-          style={{
-            boxShadow: '0 0 40px rgba(0, 255, 0, 0.4), inset 0 0 20px rgba(0, 255, 0, 0.1)'
-          }}
-        >
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent"></div>
-          <h2 className="text-4xl font-bold text-green-400 mb-4 font-mono">
-            READY TO ENGAGE?
+      {/* Stats Section */}
+      <div className="bg-slate-900 py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            {[
+              { icon: Users, value: '10K+', label: 'Active Debaters' },
+              { icon: Trophy, value: '50K+', label: 'Debates Hosted' },
+              { icon: Target, value: '98%', label: 'Accuracy Rate' }
+            ].map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="text-white"
+              >
+                <stat.icon className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+                <div className="text-4xl font-bold mb-2">{stat.value}</div>
+                <div className="text-slate-400">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-gradient-to-br from-indigo-600 to-blue-600 py-20">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Ready to Start Debating?
           </h2>
-          <p className="text-xl text-gray-400 mb-8 font-mono">
-            Join the next generation of debaters
+          <p className="text-xl text-indigo-100 mb-10">
+            Join thousands of debaters improving their skills with AI-powered feedback
           </p>
-          <div className="flex gap-6 justify-center">
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link 
               to="/host" 
-              className="px-8 py-4 bg-green-500 text-black font-bold text-lg hover:bg-green-400 transition-all duration-300 font-mono"
-              style={{
-                boxShadow: '0 0 20px rgba(0, 255, 0, 0.5)',
-                clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
-              }}
+              className="inline-flex items-center gap-2 bg-white text-indigo-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
             >
-              START NOW
+              Create Room
+              <ArrowRight className="w-5 h-5" />
             </Link>
             <Link 
               to="/trainer" 
-              className="px-8 py-4 bg-black border-2 border-green-500 text-green-500 font-bold text-lg hover:bg-green-500 hover:text-black transition-all duration-300 font-mono"
-              style={{
-                boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)',
-                clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
-              }}
+              className="inline-flex items-center gap-2 bg-indigo-500 text-white px-8 py-4 rounded-xl font-semibold text-lg border-2 border-white/20 hover:bg-indigo-400 transition-all duration-300"
             >
-              TRAIN AI
+              <Trophy className="w-5 h-5" />
+              Start Training
             </Link>
           </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent"></div>
-        </motion.div>
-      </motion.div>
-
+        </div>
+      </div>
     </div>
   );
 }

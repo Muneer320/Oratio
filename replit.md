@@ -104,18 +104,24 @@ Preferred communication style: Simple, everyday language.
 
 **State Management**: React hooks (useState, useEffect) with custom hooks for WebSocket connections
 
-**Styling**: TailwindCSS v3 with modern gradient design system
-- Purple/pink/blue gradient backgrounds inspired by HypeAPP template
-- Glassmorphism effects (backdrop blur, transparency)
-- Responsive design utilities
-- Component-based CSS classes
+**Styling**: TailwindCSS v3 with cyberpunk theme
+- Black background (#000000) with neon green (#00FF00, #39FF14) accents
+- Grid pattern background with green glow effects
+- 3D CSS transforms for depth and perspective
+- Framer Motion for smooth animations
+- GSAP for complex animations (floating, orbiting, pulsing)
+- Glassmorphic elements with green borders
+- Mono-spaced font (font-mono) for terminal aesthetic
 
 **Design System**:
-- Primary gradient: `from-purple-900 via-pink-800 to-blue-900`
-- Glassmorphic cards: `bg-white bg-opacity-10 backdrop-blur-md`
-- Accent gradients: Purple-to-pink, blue-to-purple
-- Rounded corners: Large radius (2xl, 3xl) for modern look
-- Interactive elements: Hover effects, transitions
+- Background: Pure black (#000000)
+- Primary accent: Neon green (#00FF00)
+- Secondary green: #39FF14, #00CC00, #00FF66
+- Text shadows: Multiple green glows for neon effect
+- Borders: 2px-4px green borders with box shadows
+- Buttons: Angled clip-path for futuristic look
+- Animations: Flicker effect, floating, pulsing, orbiting
+- Corner decorations: Green border accents on cards
 
 **Project Structure**:
 - `pages/` - Route components

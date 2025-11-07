@@ -316,14 +316,6 @@ function Trainer() {
         </div>
       </div>
 
-      <style jsx>{`
-        .bg-grid-pattern {
-          background-image: 
-            linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
-          background-size: 50px 50px;
-        }
-      `}</style>
     </div>
   );
 }

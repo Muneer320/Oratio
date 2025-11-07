@@ -228,3 +228,41 @@ code {
   border-radius: 4px;
   font-family: "Monaco", "Courier New", monospace;
 }
+
+/* Cyberpunk Theme - Black & Neon Green */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.neon-text {
+  color: #00FF00;
+  animation: flicker 3s infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  41.99% { opacity: 1; }
+  42% { opacity: 0.8; }
+  43% { opacity: 1; }
+  45.99% { opacity: 1; }
+  46% { opacity: 0.9; }
+  46.5% { opacity: 1; }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000;
+  border: 1px solid #00FF00;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #00FF00;
+  box-shadow: 0 0 10px #00FF00;
+}

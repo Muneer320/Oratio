@@ -253,29 +253,6 @@ function Home() {
         </motion.div>
       </motion.div>
 
-      <style jsx>{`
-        .bg-grid-pattern {
-          background-image: 
-            linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
-          background-size: 50px 50px;
-        }
-        
-        .neon-text {
-          color: #00FF00;
-          animation: flicker 3s infinite;
-        }
-        
-        @keyframes flicker {
-          0%, 100% { opacity: 1; }
-          41.99% { opacity: 1; }
-          42% { opacity: 0.8; }
-          43% { opacity: 1; }
-          45.99% { opacity: 1; }
-          46% { opacity: 0.9; }
-          46.5% { opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 }

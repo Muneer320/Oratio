@@ -276,28 +276,6 @@ function Debate() {
         </div>
       </div>
 
-      <style jsx>{`
-        .bg-grid-pattern {
-          background-image: 
-            linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
-          background-size: 50px 50px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #000;
-          border: 1px solid #00FF00;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #00FF00;
-          box-shadow: 0 0 10px #00FF00;
-        }
-      `}</style>
     </div>
   );
 }

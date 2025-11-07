@@ -7,6 +7,9 @@ from app.replit_db import connect_db, disconnect_db, REPLIT_DB_AVAILABLE
 from app.replit_ai import REPLIT_AI_AVAILABLE
 from app.replit_auth import REPLIT_AUTH_AVAILABLE
 
+from app.routers import auth, rooms, participants, spectators, debate, ai, trainer, uploads, utils
+from app.websockets import debate as ws_debate, spectator as ws_spectator, trainer as ws_trainer
+
 # Create FastAPI app
 app = FastAPI(
     title="Oratio - AI Debate Platform (Replit Edition)",
@@ -22,6 +25,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(rooms.router)
+app.include_router(participants.router)
+app.include_router(spectators.router)
+app.include_router(debate.router)
+app.include_router(ai.router)
+app.include_router(trainer.router)
+app.include_router(uploads.router)
+app.include_router(utils.router)
+
+# Include WebSocket routers
+app.include_router(ws_debate.router)
+app.include_router(ws_spectator.router)
+app.include_router(ws_trainer.router)
 
 
 # Startup and shutdown events

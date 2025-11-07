@@ -104,24 +104,23 @@ Preferred communication style: Simple, everyday language.
 
 **State Management**: React hooks (useState, useEffect) with custom hooks for WebSocket connections
 
-**Styling**: TailwindCSS v3 with cyberpunk theme
-- Black background (#000000) with neon green (#00FF00, #39FF14) accents
-- Grid pattern background with green glow effects
-- 3D CSS transforms for depth and perspective
+**Styling**: TailwindCSS v3 with modern professional design system
+- Clean gradient backgrounds (slate, blue, indigo)
+- Lucide React icons throughout
+- Subtle shadows and borders
 - Framer Motion for smooth animations
-- GSAP for complex animations (floating, orbiting, pulsing)
-- Glassmorphic elements with green borders
-- Mono-spaced font (font-mono) for terminal aesthetic
+- Card-based layouts
+- Responsive design with mobile-first approach
 
 **Design System**:
-- Background: Pure black (#000000)
-- Primary accent: Neon green (#00FF00)
-- Secondary green: #39FF14, #00CC00, #00FF66
-- Text shadows: Multiple green glows for neon effect
-- Borders: 2px-4px green borders with box shadows
-- Buttons: Angled clip-path for futuristic look
-- Animations: Flicker effect, floating, pulsing, orbiting
-- Corner decorations: Green border accents on cards
+- **Colors**: Indigo (#4F46E5) primary, Blue (#3B82F6) secondary, Slate for text
+- **Backgrounds**: Gradient from slate-50 via blue-50 to indigo-50
+- **Typography**: System font stack, clear hierarchy, generous spacing
+- **Components**: Rounded-2xl cards, subtle shadows, border-slate-200
+- **Buttons**: Rounded-xl with shadow-lg, indigo gradient for CTAs
+- **Animations**: Smooth transitions, hover effects, entrance animations
+- **Icons**: Lucide React icons (Brain, Trophy, Target, etc.)
+- **Spacing**: Generous whitespace, clean layouts, organized sections
 
 **Project Structure**:
 - `pages/` - Route components
@@ -212,6 +211,11 @@ Preferred communication style: Simple, everyday language.
 - `react@^18.2.0` - UI framework
 - `react-dom@^18.2.0` - DOM rendering
 - `react-router-dom@^6.20.0` - Routing
+
+**UI & Animation**:
+- `lucide-react` - Modern icon library
+- `framer-motion` - Smooth animations
+- `gsap` - Advanced animations (not actively used but available)
 
 **Build Tools**:
 - `vite@^5.0.0` - Build tool and dev server

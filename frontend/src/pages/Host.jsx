@@ -1,20 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, AlertCircle } from 'lucide-react';
+import api from '../services/api';
 
 function Host() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     topic: '',
-    timeLimit: 300,
-    maxParticipants: 2,
-    description: ''
+    description: '',
+    scheduled_time: new Date(Date.now() + 60000).toISOString().slice(0, 16),
+    duration_minutes: 30,
+    mode: 'TEXT',
+    type: 'INDIVIDUAL',
+    visibility: 'PUBLIC',
+    rounds: 3,
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Creating room:', formData);
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const roomData = {
+        ...formData,
+        scheduled_time: new Date(formData.scheduled_time).toISOString(),
+      };
+
+      const response = await api.post('/api/rooms/create', roomData, true);
+      
+      navigate(`/debate/${response.room_code}`);
+    } catch (err) {
+      setError(err.message || 'Failed to create room');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -52,10 +75,17 @@ function Host() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50"
           >
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Debate Topic
+                  Debate Topic *
                 </label>
                 <input
                   type="text"
@@ -79,45 +109,91 @@ function Host() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Start Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.scheduled_time}
+                  onChange={(e) => setFormData({...formData, scheduled_time: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                  required
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-900 mb-2">
-                    Time per Turn
+                    Duration (min)
                   </label>
                   <select
-                    value={formData.timeLimit}
-                    onChange={(e) => setFormData({...formData, timeLimit: parseInt(e.target.value)})}
+                    value={formData.duration_minutes}
+                    onChange={(e) => setFormData({...formData, duration_minutes: parseInt(e.target.value)})}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
                   >
-                    <option value={60}>1 min</option>
-                    <option value={120}>2 min</option>
-                    <option value={180}>3 min</option>
-                    <option value={300}>5 min</option>
+                    <option value={15}>15 min</option>
+                    <option value={30}>30 min</option>
+                    <option value={45}>45 min</option>
+                    <option value={60}>60 min</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-900 mb-2">
-                    Participants
+                    Rounds
                   </label>
                   <select
-                    value={formData.maxParticipants}
-                    onChange={(e) => setFormData({...formData, maxParticipants: parseInt(e.target.value)})}
+                    value={formData.rounds}
+                    onChange={(e) => setFormData({...formData, rounds: parseInt(e.target.value)})}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
                   >
-                    <option value={2}>2 (1v1)</option>
-                    <option value={4}>4 (2v2)</option>
+                    <option value={3}>3 rounds</option>
+                    <option value={5}>5 rounds</option>
+                    <option value={7}>7 rounds</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-900 mb-2">
+                    Mode
+                  </label>
+                  <select
+                    value={formData.mode}
+                    onChange={(e) => setFormData({...formData, mode: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                  >
+                    <option value="TEXT">Text</option>
+                    <option value="VOICE">Voice</option>
+                    <option value="HYBRID">Hybrid</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-900 mb-2">
+                    Type
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                  >
+                    <option value="INDIVIDUAL">1v1</option>
+                    <option value="TEAM">Team</option>
                   </select>
                 </div>
               </div>
 
               <motion.button
                 type="submit"
-                className="w-full px-6 py-4 bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-900/10"
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={isLoading}
+                className="w-full px-6 py-4 bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: isLoading ? 1 : 1.02, y: isLoading ? 0 : -1 }}
+                whileTap={{ scale: isLoading ? 1 : 0.98 }}
               >
-                Create Room
+                {isLoading ? 'Creating Room...' : 'Create Room'}
               </motion.button>
             </form>
           </motion.div>

@@ -1,16 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogIn, ArrowRight } from 'lucide-react';
+import { LogIn, ArrowRight, AlertCircle } from 'lucide-react';
+import api from '../services/api';
 
 function Join() {
   const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState('');
-  const [username, setUsername] = useState('');
+  const [team, setTeam] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleJoin = (e) => {
+  const handleJoin = async (e) => {
     e.preventDefault();
-    console.log('Joining room:', roomCode, 'as', username);
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const joinData = {
+        room_code: roomCode.toUpperCase(),
+        team: team || null,
+      };
+
+      await api.post('/api/participants/join', joinData, true);
+      
+      navigate(`/debate/${roomCode.toUpperCase()}`);
+    } catch (err) {
+      setError(err.message || 'Failed to join room');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -30,24 +49,17 @@ function Join() {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handleJoin} className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-slate-900 mb-2">
-                Your Name
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
-                placeholder="Enter your name"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
-                Room Code
+                Room Code *
               </label>
               <input
                 type="text"
@@ -60,14 +72,29 @@ function Join() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 mb-2">
+                Team (Optional)
+              </label>
+              <input
+                type="text"
+                value={team}
+                onChange={(e) => setTeam(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
+                placeholder="e.g., Team A"
+              />
+              <p className="mt-2 text-xs text-slate-500">Only needed for team debates</p>
+            </div>
+
             <motion.button
               type="submit"
-              className="w-full group px-6 py-4 bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2"
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98 }}
+              disabled={isLoading}
+              className="w-full group px-6 py-4 bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={{ scale: isLoading ? 1 : 1.02, y: isLoading ? 0 : -1 }}
+              whileTap={{ scale: isLoading ? 1 : 0.98 }}
             >
-              Join Now
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              {isLoading ? 'Joining...' : 'Join Now'}
+              {!isLoading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
             </motion.button>
 
             <button

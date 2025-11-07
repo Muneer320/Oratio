@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Eye, Hash, Users, Clock, Flame, ArrowLeft } from 'lucide-react';
 
 function Spectate() {
   const navigate = useNavigate();
@@ -15,59 +16,55 @@ function Spectate() {
     console.log('Sending reaction:', emoji);
   };
 
-  return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+  const reactions = ['🔥', '👏', '💡', '🎯', '💪', '🏆'];
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
-        <motion.div 
-          className="flex justify-between items-center mb-8"
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-        >
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-green-400 font-mono"
-              style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
-              [SPECTATOR_MODE]
-            </h1>
-            <p className="text-gray-400 font-mono">OBSERVE • REACT • SUPPORT</p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                <Eye className="w-6 h-6 text-purple-600" />
+              </div>
+              <h1 className="text-4xl font-bold text-slate-900">Spectator Mode</h1>
+            </div>
+            <p className="text-slate-600">Watch debates and support your favorite debater</p>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="bg-black border-2 border-green-500 text-green-500 px-6 py-2 font-bold font-mono hover:bg-green-500 hover:text-black transition-all duration-300"
-            style={{ boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)' }}
+            className="inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-white rounded-xl transition-all border border-slate-200"
           >
-            EXIT
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </button>
-        </motion.div>
+        </div>
 
         {/* Join Input */}
         <motion.div
-          className="bg-black border-2 border-green-500 p-6 mb-8"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8"
         >
           <form onSubmit={handleJoinSpectate} className="flex gap-4">
-            <input
-              type="text"
-              value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-              className="flex-1 px-4 py-3 bg-black border-2 border-green-500 text-green-400 placeholder-gray-600 focus:outline-none focus:border-green-300 font-mono text-center text-xl tracking-[0.5em]"
-              placeholder="ROOM_CODE"
-              maxLength={6}
-              style={{ boxShadow: 'inset 0 0 10px rgba(0, 255, 0, 0.1)' }}
-            />
+            <div className="flex-1 relative">
+              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-xl font-mono tracking-widest text-center transition-all"
+                placeholder="ROOM CODE"
+                maxLength={6}
+              />
+            </div>
             <button
               type="submit"
-              className="bg-green-500 text-black px-8 py-3 font-bold hover:bg-green-400 transition-all duration-300 font-mono"
-              style={{
-                boxShadow: '0 0 20px rgba(0, 255, 0, 0.5)',
-                clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
-              }}
+              className="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-purple-200 hover:bg-purple-700 transition-all"
             >
-              CONNECT
+              <Eye className="w-5 h-5" />
+              Watch
             </button>
           </form>
         </motion.div>
@@ -75,171 +72,121 @@ function Spectate() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Live Feed */}
           <div className="lg:col-span-2">
-            <motion.div
-              className="bg-black border-2 border-green-500 p-6"
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
-            >
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-green-400 font-mono">
-                  [LIVE_FEED]
-                </h2>
+                <h2 className="text-2xl font-bold text-slate-900">Live Feed</h2>
                 <motion.span
-                  className="flex items-center gap-2 bg-red-500 bg-opacity-20 text-red-400 px-3 py-1 border border-red-500 font-mono text-sm"
-                  animate={{
-                    opacity: [1, 0.5, 1]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity
-                  }}
+                  className="inline-flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold"
+                  animate={{ opacity: [1, 0.7, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-red-600 rounded-full"></span>
                   LIVE
                 </motion.span>
               </div>
 
               {/* Topic */}
-              <div className="bg-gray-900 border border-green-500 p-4 mb-6">
-                <p className="text-sm font-bold text-green-500 mb-1 font-mono">TOPIC:</p>
-                <p className="text-xl font-bold text-green-400 font-mono">
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 rounded-xl p-4 mb-6">
+                <p className="text-sm font-semibold text-purple-600 mb-1">Topic</p>
+                <p className="text-lg font-bold text-slate-900">
                   AI will replace most jobs by 2030
                 </p>
               </div>
 
               {/* Stream */}
-              <div className="space-y-4 h-96 overflow-y-auto custom-scrollbar">
-                <motion.div
-                  className="bg-gray-900 bg-opacity-50 border border-green-500 p-4"
-                  initial={{ x: -50, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                >
+              <div className="space-y-4 h-96 overflow-y-auto">
+                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
                   <div className="flex items-start gap-3">
-                    <div className="bg-green-500 w-10 h-10 flex items-center justify-center text-black font-bold font-mono">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
                       P1
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-green-400 font-mono">Player_1</span>
-                        <div className="flex gap-1 text-xs">
-                          <span className="bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 border border-green-500 font-mono">
-                            L:85
-                          </span>
-                          <span className="bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 border border-green-500 font-mono">
-                            C:78
-                          </span>
-                          <span className="bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 border border-green-500 font-mono">
-                            R:92
-                          </span>
+                        <span className="font-semibold text-slate-900">Player 1</span>
+                        <div className="flex gap-1">
+                          <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-semibold">L:85</span>
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">C:78</span>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded font-semibold">R:92</span>
                         </div>
                       </div>
-                      <p className="text-gray-300 font-mono text-sm">
+                      <p className="text-sm text-slate-700 leading-relaxed">
                         AI automation is already transforming industries...
                       </p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Panel */}
+          {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Reactions */}
-            <motion.div
-              className="bg-black border-2 border-green-500 p-6"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
-            >
-              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
-                [REACTIONS]
-              </h3>
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {['🔥', '👏', '💡', '🎯', '💪', '🏆'].map((emoji) => (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Send Reaction</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {reactions.map((emoji) => (
                   <motion.button
                     key={emoji}
                     onClick={() => sendReaction(emoji)}
-                    className="text-4xl p-3 bg-gray-900 border border-green-500 hover:bg-green-500 hover:border-green-400 transition-all duration-300"
+                    className="text-4xl p-3 bg-slate-50 rounded-xl border border-slate-200 hover:bg-purple-50 hover:border-purple-200 transition-all"
                     whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    style={{ boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)' }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     {emoji}
                   </motion.button>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
             {/* Stats */}
-            <motion.div
-              className="bg-black border-2 border-green-500 p-6"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
-            >
-              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
-                [STATS]
-              </h3>
-              <div className="space-y-3">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Stats</h3>
+              <div className="space-y-4">
                 {[
-                  { label: 'WATCHING', value: '127', icon: '👥' },
-                  { label: 'REACTIONS', value: '523', icon: '🔥' },
-                  { label: 'DURATION', value: '12:34', icon: '⏱️' }
+                  { label: 'Watching', value: '127', icon: Users },
+                  { label: 'Reactions', value: '523', icon: Flame },
+                  { label: 'Duration', value: '12:34', icon: Clock }
                 ].map((stat) => (
-                  <div key={stat.label} className="flex justify-between items-center">
-                    <span className="text-gray-400 font-mono text-sm">
-                      {stat.icon} {stat.label}
-                    </span>
-                    <span className="text-green-400 font-bold text-xl font-mono"
-                      style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
-                      {stat.value}
-                    </span>
+                  <div key={stat.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <stat.icon className="w-5 h-5 text-slate-400" />
+                      <span className="text-sm font-medium text-slate-600">{stat.label}</span>
+                    </div>
+                    <span className="text-xl font-bold text-slate-900">{stat.value}</span>
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
             {/* Support */}
-            <motion.div
-              className="bg-black border-2 border-green-500 p-6"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
-            >
-              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
-                [SUPPORT]
-              </h3>
-              <div className="space-y-3">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Audience Support</h3>
+              <div className="space-y-4">
                 {[
-                  { player: 'P1', percent: 65 },
-                  { player: 'P2', percent: 35 }
+                  { player: 'Player 1', percent: 65 },
+                  { player: 'Player 2', percent: 35 }
                 ].map((data) => (
                   <div key={data.player}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-green-400 font-bold font-mono">{data.player}</span>
-                      <span className="text-green-400 font-bold font-mono">{data.percent}%</span>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-semibold text-slate-900">{data.player}</span>
+                      <span className="font-bold text-indigo-600">{data.percent}%</span>
                     </div>
-                    <div className="bg-gray-900 h-2">
+                    <div className="bg-slate-100 h-2 rounded-full overflow-hidden">
                       <motion.div 
-                        className="h-2 bg-green-500"
+                        className="bg-indigo-600 h-full rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${data.percent}%` }}
                         transition={{ duration: 1 }}
-                        style={{ boxShadow: '0 0 10px #00FF00' }}
-                      ></motion.div>
+                      />
                     </div>
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

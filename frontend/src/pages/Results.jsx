@@ -1,39 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { gsap } from 'gsap';
+import { Trophy, Home, Plus, Target, Users, Clock, Brain, CheckCircle2 } from 'lucide-react';
 
 function Results() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
-  const trophyRef = useRef(null);
-
-  useEffect(() => {
-    if (trophyRef.current) {
-      gsap.to(trophyRef.current, {
-        y: -20,
-        duration: 2,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power1.inOut'
-      });
-      
-      gsap.to(trophyRef.current, {
-        rotation: 10,
-        duration: 1.5,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power1.inOut'
-      });
-    }
-  }, []);
 
   const results = {
     topic: 'AI will replace most jobs by 2030',
     winner: 'Player 1',
     scores: {
-      player1: { name: 'Player_1', total: 87, logic: 85, credibility: 82, rhetoric: 94 },
-      player2: { name: 'Player_2', total: 81, logic: 88, credibility: 75, rhetoric: 80 }
+      player1: { name: 'Player 1', total: 87, logic: 85, credibility: 82, rhetoric: 94 },
+      player2: { name: 'Player 2', total: 81, logic: 88, credibility: 75, rhetoric: 80 }
     },
     turns: 6,
     duration: '18:42',
@@ -41,167 +20,123 @@ function Results() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-      
-      {/* Victory glow */}
-      <motion.div
-        className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-green-500 rounded-full filter blur-3xl opacity-20"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.2, 0.4, 0.2]
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity
-        }}
-      ></motion.div>
-
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="max-w-5xl mx-auto px-6 py-16">
         {/* Winner Announcement */}
         <motion.div 
           className="text-center mb-12"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', duration: 1 }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', duration: 0.8 }}
         >
-          <motion.div 
-            ref={trophyRef}
-            className="text-8xl mb-4"
-            style={{
-              filter: 'drop-shadow(0 0 30px rgba(0, 255, 0, 0.8))'
-            }}
-          >
-            🏆
-          </motion.div>
-          <h1 className="text-6xl font-bold text-green-400 mb-4 font-mono"
-            style={{ textShadow: '0 0 20px rgba(0, 255, 0, 1)' }}>
-            [DEBATE_COMPLETE]
-          </h1>
           <motion.div
-            className="inline-block bg-green-500 text-black px-8 py-3 text-3xl font-bold font-mono"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            style={{
-              boxShadow: '0 0 40px rgba(0, 255, 0, 0.8)',
-              clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
+            animate={{ 
+              y: [0, -10, 0],
+              rotate: [0, 5, -5, 0]
             }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+            className="inline-block mb-6"
           >
-            WINNER: {results.winner.toUpperCase()}
+            <Trophy className="w-24 h-24 text-yellow-500 drop-shadow-lg" />
           </motion.div>
+          
+          <h1 className="text-5xl font-bold text-slate-900 mb-4">
+            Debate Complete!
+          </h1>
+          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-8 py-4 rounded-2xl shadow-xl">
+            <Trophy className="w-6 h-6" />
+            <span className="text-2xl font-bold">Winner: {results.winner}</span>
+          </div>
         </motion.div>
 
         {/* Topic */}
         <motion.div
-          className="bg-black border-2 border-green-500 p-6 mb-8 text-center"
-          initial={{ y: 50, opacity: 0 }}
+          initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-2xl p-6 mb-8 text-center border border-slate-200 shadow-sm"
         >
-          <p className="text-sm font-bold text-green-500 mb-2 font-mono">[TOPIC]</p>
-          <p className="text-2xl font-bold text-green-400 font-mono">
-            {results.topic}
-          </p>
+          <p className="text-sm font-semibold text-slate-600 mb-2">Topic</p>
+          <p className="text-2xl font-bold text-slate-900">{results.topic}</p>
         </motion.div>
 
         {/* Final Scores */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {Object.entries(results.scores).map(([key, player], index) => (
             <motion.div
               key={key}
-              className={`bg-black border-4 p-8 ${
-                results.winner === player.name.replace('_', ' ')
-                  ? 'border-green-500'
-                  : 'border-gray-700'
-              }`}
-              initial={{ x: index === 0 ? -100 : 100, opacity: 0 }}
+              initial={{ x: index === 0 ? -50 : 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 1 + index * 0.2 }}
-              style={{
-                boxShadow: results.winner === player.name.replace('_', ' ')
-                  ? '0 0 40px rgba(0, 255, 0, 0.6)'
-                  : '0 0 10px rgba(0, 255, 0, 0.1)',
-                transformStyle: 'preserve-3d'
-              }}
+              transition={{ delay: 0.3 + index * 0.1 }}
+              className={`bg-white rounded-2xl p-8 border-2 shadow-lg ${
+                results.winner === player.name
+                  ? 'border-indigo-600 shadow-indigo-200'
+                  : 'border-slate-200'
+              }`}
             >
-              {results.winner === player.name.replace('_', ' ') && (
-                <div className="text-5xl text-center mb-4"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(0, 255, 0, 0.8))' }}>
-                  👑
+              {results.winner === player.name && (
+                <div className="text-center mb-4">
+                  <div className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-semibold">
+                    <Trophy className="w-4 h-4" />
+                    Winner
+                  </div>
                 </div>
               )}
+              
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-green-400 mb-2 font-mono">
-                  {player.name}
-                </h3>
-                <motion.div 
-                  className="text-7xl font-bold text-green-400 font-mono"
-                  style={{ textShadow: '0 0 20px rgba(0, 255, 0, 0.8)' }}
-                  animate={{
-                    scale: results.winner === player.name.replace('_', ' ') ? [1, 1.1, 1] : 1
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity
-                  }}
-                >
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{player.name}</h3>
+                <div className="text-6xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-2">
                   {player.total}
-                </motion.div>
-                <p className="text-gray-400 font-mono">FINAL_SCORE</p>
+                </div>
+                <p className="text-slate-600 font-medium">Final Score</p>
               </div>
-              <div className="space-y-3">
+              
+              <div className="space-y-4">
                 {[
-                  { label: 'LOGIC', value: player.logic },
-                  { label: 'CREDIBILITY', value: player.credibility },
-                  { label: 'RHETORIC', value: player.rhetoric }
+                  { label: 'Logic', value: player.logic, icon: Brain },
+                  { label: 'Credibility', value: player.credibility, icon: CheckCircle2 },
+                  { label: 'Rhetoric', value: player.rhetoric, icon: Target }
                 ].map((stat) => (
-                  <div key={stat.label} className="flex justify-between items-center">
-                    <span className="text-gray-400 font-mono">{stat.label}</span>
-                    <span className="text-green-400 font-bold text-xl font-mono">
-                      {stat.value}
-                    </span>
+                  <div key={stat.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <stat.icon className="w-5 h-5 text-slate-400" />
+                      <span className="text-slate-700 font-medium">{stat.label}</span>
+                    </div>
+                    <span className="text-xl font-bold text-slate-900">{stat.value}</span>
                   </div>
                 ))}
               </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Stats */}
         <motion.div
-          className="bg-black border-2 border-green-500 p-6 mb-8"
-          initial={{ y: 50, opacity: 0 }}
+          initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
+          transition={{ delay: 0.5 }}
+          className="bg-white rounded-2xl p-8 mb-8 border border-slate-200 shadow-sm"
         >
-          <h3 className="text-xl font-bold text-green-400 mb-4 text-center font-mono">
-            [DEBATE_STATISTICS]
-          </h3>
-          <div className="grid grid-cols-3 gap-6 text-center">
+          <h3 className="text-xl font-bold text-slate-900 mb-6 text-center">Debate Statistics</h3>
+          <div className="grid grid-cols-3 gap-8 text-center">
             {[
-              { label: 'TURNS', value: results.turns },
-              { label: 'DURATION', value: results.duration },
-              { label: 'SPECTATORS', value: results.spectators }
+              { label: 'Total Turns', value: results.turns, icon: Target },
+              { label: 'Duration', value: results.duration, icon: Clock },
+              { label: 'Spectators', value: results.spectators, icon: Users }
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 1.7 + i * 0.1 }}
+                transition={{ delay: 0.6 + i * 0.1, type: 'spring' }}
               >
-                <div className="text-5xl font-bold text-green-400 mb-2 font-mono"
-                  style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
-                  {stat.value}
-                </div>
-                <p className="text-gray-400 font-mono">{stat.label}</p>
+                <stat.icon className="w-8 h-8 mx-auto mb-3 text-indigo-600" />
+                <div className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</div>
+                <p className="text-sm text-slate-600">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -209,38 +144,34 @@ function Results() {
 
         {/* Actions */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-          initial={{ y: 50, opacity: 0 }}
+          initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 2 }}
+          transition={{ delay: 0.7 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center"
         >
           <button
             onClick={() => navigate('/host')}
-            className="bg-green-500 text-black px-8 py-4 font-bold text-lg hover:bg-green-400 transition-all duration-300 font-mono"
-            style={{
-              boxShadow: '0 0 30px rgba(0, 255, 0, 0.6)',
-              clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
-            }}
+            className="inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all"
           >
-            NEW_DEBATE
+            <Plus className="w-5 h-5" />
+            New Debate
           </button>
           <button
             onClick={() => navigate('/trainer')}
-            className="bg-black border-2 border-green-500 text-green-500 px-8 py-4 font-bold text-lg hover:bg-green-500 hover:text-black transition-all duration-300 font-mono"
-            style={{ boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)' }}
+            className="inline-flex items-center justify-center gap-2 bg-white text-slate-700 px-8 py-4 rounded-xl font-semibold border-2 border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 transition-all"
           >
-            TRAIN_MODE
+            <Trophy className="w-5 h-5" />
+            Training Mode
           </button>
           <button
             onClick={() => navigate('/')}
-            className="bg-black border-2 border-green-500 text-green-500 px-8 py-4 font-bold text-lg hover:bg-green-500 hover:text-black transition-all duration-300 font-mono"
-            style={{ boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)' }}
+            className="inline-flex items-center justify-center gap-2 bg-white text-slate-700 px-8 py-4 rounded-xl font-semibold border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
           >
-            HOME
+            <Home className="w-5 h-5" />
+            Home
           </button>
         </motion.div>
       </div>
-
     </div>
   );
 }

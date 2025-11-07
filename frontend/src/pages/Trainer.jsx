@@ -1,23 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { gsap } from 'gsap';
+import { Trophy, Target, TrendingUp, Sparkles, ArrowLeft, Play, Award } from 'lucide-react';
 
 function Trainer() {
   const navigate = useNavigate();
   const [selectedTopic, setSelectedTopic] = useState('');
-  const orbitRef = useRef(null);
-
-  useEffect(() => {
-    if (orbitRef.current) {
-      gsap.to(orbitRef.current, {
-        rotation: 360,
-        duration: 20,
-        repeat: -1,
-        ease: 'none'
-      });
-    }
-  }, []);
 
   const topics = [
     'AI Ethics and Regulation',
@@ -28,9 +16,9 @@ function Trainer() {
   ];
 
   const challenges = [
-    { id: 1, title: 'LOGIC_MASTER', description: 'Achieve 90+ Logic score in 3 debates', progress: 67, xp: 250 },
-    { id: 2, title: 'CRED_EXPERT', description: 'Perfect fact-check score', progress: 40, xp: 300 },
-    { id: 3, title: 'RHET_PRO', description: 'Win with 95+ Rhetoric score', progress: 85, xp: 400 }
+    { id: 1, title: 'Logic Master', description: 'Achieve 90+ Logic score in 3 debates', progress: 67, xp: 250 },
+    { id: 2, title: 'Credibility Expert', description: 'Perfect fact-check score', progress: 40, xp: 300 },
+    { id: 3, title: 'Rhetoric Pro', description: 'Win with 95+ Rhetoric score', progress: 85, xp: 400 }
   ];
 
   const stats = {
@@ -44,278 +32,210 @@ function Trainer() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-      
-      {/* Orbiting element */}
-      <div ref={orbitRef} className="absolute top-1/2 left-1/2 w-64 h-64" style={{ transformOrigin: 'center' }}>
-        <div className="absolute top-0 left-1/2 w-2 h-2 bg-green-500 rounded-full"
-          style={{ boxShadow: '0 0 20px #00FF00' }}></div>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
-        <motion.div 
-          className="flex justify-between items-center mb-8"
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-        >
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-green-400 font-mono"
-              style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
-              [AI_TRAINER]
-            </h1>
-            <p className="text-gray-400 font-mono">LEVEL_UP • TRAIN • DOMINATE</p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-indigo-600" />
+              </div>
+              <h1 className="text-4xl font-bold text-slate-900">AI Trainer</h1>
+            </div>
+            <p className="text-slate-600">Improve your skills with AI-powered training</p>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="bg-black border-2 border-green-500 text-green-500 px-6 py-2 font-bold font-mono hover:bg-green-500 hover:text-black transition-all duration-300"
-            style={{ boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)' }}
+            className="inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-white rounded-xl transition-all border border-slate-200"
           >
-            EXIT
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </button>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Stats Panel */}
           <div className="lg:col-span-1 space-y-6">
             {/* Level Card */}
             <motion.div
-              className="bg-black border-2 border-green-500 p-6 relative overflow-hidden"
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              style={{
-                boxShadow: '0 0 40px rgba(0, 255, 0, 0.5), inset 0 0 30px rgba(0, 255, 0, 0.1)'
-              }}
+              className="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl p-8 text-white shadow-xl shadow-indigo-200"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500 opacity-10 rounded-full filter blur-3xl"></div>
-              <div className="text-center relative z-10">
-                <motion.div 
-                  className="text-7xl font-bold text-green-400 mb-2 font-mono"
-                  animate={{
-                    textShadow: [
-                      '0 0 20px rgba(0, 255, 0, 0.8)',
-                      '0 0 40px rgba(0, 255, 0, 1)',
-                      '0 0 20px rgba(0, 255, 0, 0.8)'
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  {stats.level}
-                </motion.div>
-                <p className="text-green-500 font-bold mb-4 font-mono">
-                  LEVEL {stats.level} DEBATER
-                </p>
-                <div className="bg-gray-900 h-3 mb-2">
+              <div className="text-center">
+                <Trophy className="w-12 h-12 mx-auto mb-4 opacity-80" />
+                <div className="text-6xl font-bold mb-2">{stats.level}</div>
+                <p className="text-indigo-100 font-semibold mb-6">Level {stats.level} Debater</p>
+                <div className="bg-white/20 h-3 rounded-full overflow-hidden mb-2">
                   <motion.div
-                    className="bg-green-500 h-3"
+                    className="bg-white h-full rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: '73%' }}
                     transition={{ duration: 1 }}
-                    style={{ boxShadow: '0 0 10px #00FF00' }}
-                  ></motion.div>
+                  />
                 </div>
-                <p className="text-sm text-gray-400 font-mono">
+                <p className="text-sm text-indigo-100">
                   {stats.totalXP} / 5000 XP
                 </p>
               </div>
             </motion.div>
 
-            {/* Stats */}
-            <motion.div
-              className="bg-black border-2 border-green-500 p-6"
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
-            >
-              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
-                [YOUR_STATS]
-              </h3>
+            {/* Personal Stats */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Your Stats</h3>
               <div className="space-y-4">
                 {[
-                  { label: 'LOGIC', value: stats.avgLogic, color: '#00FF00' },
-                  { label: 'CREDIBILITY', value: stats.avgCredibility, color: '#00CC00' },
-                  { label: 'RHETORIC', value: stats.avgRhetoric, color: '#00FF66' }
+                  { label: 'Logic', value: stats.avgLogic, color: 'indigo' },
+                  { label: 'Credibility', value: stats.avgCredibility, color: 'blue' },
+                  { label: 'Rhetoric', value: stats.avgRhetoric, color: 'purple' }
                 ].map((stat) => (
                   <div key={stat.label}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-gray-400 font-mono text-sm">{stat.label}</span>
-                      <span className="text-green-400 font-bold font-mono">{stat.value}</span>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium text-slate-700">{stat.label}</span>
+                      <span className="text-sm font-bold text-slate-900">{stat.value}</span>
                     </div>
-                    <div className="bg-gray-900 h-2">
+                    <div className="bg-slate-100 h-2 rounded-full overflow-hidden">
                       <motion.div 
-                        className="h-2"
+                        className={`bg-${stat.color}-600 h-full rounded-full`}
                         initial={{ width: 0 }}
                         animate={{ width: `${stat.value}%` }}
-                        transition={{ duration: 1, delay: 0.5 }}
-                        style={{ 
-                          backgroundColor: stat.color,
-                          boxShadow: `0 0 10px ${stat.color}`
-                        }}
-                      ></motion.div>
+                        transition={{ duration: 1, delay: 0.2 }}
+                      />
                     </div>
                   </div>
                 ))}
-                <div className="pt-4 border-t border-green-500 space-y-2">
-                  <div className="flex justify-between font-mono">
-                    <span className="text-gray-400">TOTAL_DEBATES</span>
-                    <span className="text-green-400 font-bold">{stats.totalDebates}</span>
+                <div className="pt-4 border-t border-slate-200 space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-slate-600">Total Debates</span>
+                    <span className="font-bold text-slate-900">{stats.totalDebates}</span>
                   </div>
-                  <div className="flex justify-between font-mono">
-                    <span className="text-gray-400">WIN_RATE</span>
-                    <span className="text-green-400 font-bold">{stats.winRate}%</span>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-slate-600">Win Rate</span>
+                    <span className="font-bold text-indigo-600">{stats.winRate}%</span>
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Main Area */}
           <div className="lg:col-span-2 space-y-6">
             {/* Training Session */}
-            <motion.div
-              className="bg-black border-2 border-green-500 p-8"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
-            >
-              <h2 className="text-2xl font-bold text-green-400 mb-6 font-mono">
-                [TRAINING_SESSION]
-              </h2>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <Target className="w-6 h-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-slate-900">Start Training Session</h2>
+              </div>
               
               <div className="mb-6">
-                <label className="block text-green-400 font-bold mb-3 font-mono">
-                  SELECT_TOPIC:
+                <label className="block text-sm font-semibold text-slate-900 mb-3">
+                  Select Topic
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   {topics.map((topic) => (
                     <motion.button
                       key={topic}
                       onClick={() => setSelectedTopic(topic)}
-                      className={`p-4 text-left transition-all duration-300 font-mono ${
+                      className={`p-4 text-left rounded-xl transition-all border-2 ${
                         selectedTopic === topic
-                          ? 'bg-green-500 text-black border-2 border-green-400'
-                          : 'bg-black text-green-400 border-2 border-green-500 hover:bg-green-500 hover:bg-opacity-20'
+                          ? 'bg-indigo-50 border-indigo-600 text-indigo-900'
+                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                       }`}
-                      whileHover={{ x: 5 }}
-                      style={{
-                        boxShadow: selectedTopic === topic 
-                          ? '0 0 20px rgba(0, 255, 0, 0.6)' 
-                          : '0 0 10px rgba(0, 255, 0, 0.2)'
-                      }}
+                      whileHover={{ x: 4 }}
                     >
-                      {'>'} {topic}
+                      <span className="font-medium">{topic}</span>
                     </motion.button>
                   ))}
                 </div>
               </div>
 
-              <motion.button
+              <button
                 disabled={!selectedTopic}
-                className={`w-full py-4 font-bold text-lg transition-all duration-300 font-mono ${
+                className={`w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold transition-all ${
                   selectedTopic
-                    ? 'bg-green-500 text-black hover:bg-green-400'
-                    : 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
-                whileHover={selectedTopic ? { scale: 1.02 } : {}}
-                whileTap={selectedTopic ? { scale: 0.98 } : {}}
-                style={{
-                  boxShadow: selectedTopic ? '0 0 30px rgba(0, 255, 0, 0.6)' : 'none',
-                  clipPath: 'polygon(3% 0%, 100% 0%, 97% 100%, 0% 100%)'
-                }}
               >
-                INITIALIZE_TRAINING
-              </motion.button>
-            </motion.div>
+                <Play className="w-5 h-5" />
+                Start Training
+              </button>
+            </div>
 
-            {/* Challenges */}
-            <motion.div
-              className="bg-black border-2 border-green-500 p-6"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
-            >
-              <h2 className="text-2xl font-bold text-green-400 mb-6 font-mono">
-                [ACTIVE_CHALLENGES]
-              </h2>
+            {/* Active Challenges */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <Award className="w-6 h-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-slate-900">Active Challenges</h2>
+              </div>
               <div className="space-y-4">
                 {challenges.map((challenge) => (
                   <motion.div
                     key={challenge.id}
-                    className="bg-gray-900 bg-opacity-50 border border-green-500 p-5"
-                    whileHover={{ x: 5 }}
-                    style={{ boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)' }}
+                    className="bg-slate-50 border border-slate-200 rounded-xl p-5 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all"
+                    whileHover={{ x: 4 }}
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h3 className="text-lg font-bold text-green-400 font-mono">
+                        <h3 className="text-lg font-bold text-slate-900 mb-1">
                           {challenge.title}
                         </h3>
-                        <p className="text-gray-400 text-sm font-mono">
+                        <p className="text-sm text-slate-600">
                           {challenge.description}
                         </p>
                       </div>
-                      <div className="bg-green-500 text-black px-3 py-1 font-bold text-sm font-mono">
-                        +{challenge.xp}XP
+                      <div className="bg-indigo-600 text-white px-3 py-1 rounded-lg font-bold text-sm whitespace-nowrap">
+                        +{challenge.xp} XP
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-gray-900 h-2">
+                      <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
                         <motion.div 
-                          className="bg-green-500 h-2"
+                          className="bg-indigo-600 h-full rounded-full"
                           initial={{ width: 0 }}
                           animate={{ width: `${challenge.progress}%` }}
-                          transition={{ duration: 1, delay: 0.5 }}
-                          style={{ boxShadow: '0 0 10px #00FF00' }}
-                        ></motion.div>
+                          transition={{ duration: 1, delay: 0.2 }}
+                        />
                       </div>
-                      <span className="text-green-400 font-bold text-sm font-mono">
+                      <span className="text-sm font-bold text-slate-900 min-w-[50px] text-right">
                         {challenge.progress}%
                       </span>
                     </div>
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
             {/* AI Recommendations */}
-            <motion.div
-              className="bg-black border-2 border-green-500 p-6"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.4)' }}
-            >
-              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
-                [AI_RECOMMENDATIONS]
-              </h3>
+            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-6 h-6 text-indigo-600" />
+                <h3 className="text-xl font-bold text-slate-900">AI Recommendations</h3>
+              </div>
               <div className="space-y-3">
                 {[
-                  { title: 'IMPROVE_CREDIBILITY', text: 'Include more specific statistics and sources in your arguments.' },
-                  { title: 'STRENGTHEN_LOGIC', text: 'Practice connecting premises to conclusions more explicitly.' }
+                  { title: 'Improve Credibility', text: 'Include more specific statistics and sources in your arguments.' },
+                  { title: 'Strengthen Logic', text: 'Practice connecting premises to conclusions more explicitly.' }
                 ].map((rec, i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    className="bg-gray-900 bg-opacity-50 border border-green-500 p-4"
-                    whileHover={{ x: 5 }}
-                    style={{ boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)' }}
+                    className="bg-white rounded-xl p-4 border border-indigo-100"
                   >
-                    <p className="text-green-500 font-bold mb-1 font-mono text-sm">
-                      {'>'} {rec.title}:
-                    </p>
-                    <p className="text-gray-300 font-mono text-sm">
-                      {rec.text}
-                    </p>
-                  </motion.div>
+                    <div className="flex items-start gap-3">
+                      <TrendingUp className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-slate-900 mb-1 text-sm">{rec.title}</p>
+                        <p className="text-slate-600 text-sm">{rec.text}</p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

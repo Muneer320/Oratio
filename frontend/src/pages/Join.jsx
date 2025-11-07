@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { LogIn, User, Hash, ArrowRight, Eye } from 'lucide-react';
 
 function Join() {
   const navigate = useNavigate();
@@ -13,171 +14,121 @@ function Join() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
-      {/* Animated grid */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
-      
-      {/* Glowing orb */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-6">
       <motion.div
-        className="absolute w-96 h-96 bg-green-500 rounded-full filter blur-3xl opacity-20"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.2, 0.3, 0.2]
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: 'easeInOut'
-        }}
-        style={{ top: '20%', left: '50%', transform: 'translateX(-50%)' }}
-      ></motion.div>
-
-      <div className="relative z-10 max-w-md w-full mx-6">
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         {/* Header */}
-        <motion.div 
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-6xl font-bold text-green-400 mb-4 font-mono"
-            style={{ textShadow: '0 0 20px rgba(0, 255, 0, 0.8)' }}>
-            JOIN
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
+            <LogIn className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">
+            Join Debate
           </h1>
-          <p className="text-xl text-gray-400 font-mono">
-            {'>'} ENTER ACCESS CODE {'<'}
+          <p className="text-slate-600">
+            Enter your room code to participate
           </p>
-        </motion.div>
+        </div>
 
-        {/* Join Card */}
+        {/* Join Form */}
         <motion.div
-          className="relative bg-black border-2 border-green-500 p-8"
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          style={{
-            boxShadow: '0 0 40px rgba(0, 255, 0, 0.4), inset 0 0 30px rgba(0, 255, 0, 0.05)',
-            transformStyle: 'preserve-3d'
-          }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8"
         >
-          {/* Corner accents */}
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-500"></div>
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-500"></div>
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-500"></div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-500"></div>
-
           <form onSubmit={handleJoin} className="space-y-6">
             {/* Username */}
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <label className="block text-green-400 font-bold mb-2 text-lg font-mono">
-                [USERNAME]
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 mb-2">
+                Your Name
               </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-black border-2 border-green-500 text-green-400 placeholder-gray-600 focus:outline-none focus:border-green-300 font-mono"
-                placeholder="Enter your name"
-                style={{ boxShadow: 'inset 0 0 10px rgba(0, 255, 0, 0.1)' }}
-                required
-              />
-            </motion.div>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+            </div>
 
             {/* Room Code */}
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <label className="block text-green-400 font-bold mb-2 text-lg font-mono">
-                [ROOM_CODE]
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 mb-2">
+                Room Code
               </label>
-              <input
-                type="text"
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                className="w-full px-4 py-3 bg-black border-2 border-green-500 text-green-400 text-3xl font-mono text-center placeholder-gray-600 focus:outline-none focus:border-green-300 tracking-[0.5em]"
-                placeholder="ABC123"
-                maxLength={6}
-                style={{ 
-                  boxShadow: 'inset 0 0 10px rgba(0, 255, 0, 0.1)',
-                  textShadow: '0 0 10px rgba(0, 255, 0, 0.5)'
-                }}
-                required
-              />
-            </motion.div>
+              <div className="relative">
+                <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                  className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-2xl font-mono tracking-widest text-center transition-all"
+                  placeholder="ABC123"
+                  maxLength={6}
+                  required
+                />
+              </div>
+            </div>
 
-            {/* Join Button */}
-            <motion.button
-              type="submit"
-              className="w-full bg-green-500 text-black px-8 py-4 font-bold text-lg hover:bg-green-400 transition-all duration-300 font-mono"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              style={{
-                boxShadow: '0 0 30px rgba(0, 255, 0, 0.6)',
-                clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
-              }}
-            >
-              {'>'} CONNECT {'<'}
-            </motion.button>
+            {/* Buttons */}
+            <div className="space-y-3">
+              <button
+                type="submit"
+                className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all duration-300"
+              >
+                Join Now
+                <ArrowRight className="w-5 h-5" />
+              </button>
 
-            <motion.button
-              type="button"
-              onClick={() => navigate('/')}
-              className="w-full px-8 py-3 bg-black border-2 border-green-500 text-green-500 font-bold hover:bg-green-500 hover:text-black transition-all duration-300 font-mono"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              style={{ boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)' }}
-            >
-              BACK
-            </motion.button>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="w-full px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-all duration-300"
+              >
+                Back
+              </button>
+            </div>
           </form>
         </motion.div>
 
-        {/* Quick Links */}
+        {/* Additional Options */}
         <motion.div 
-          className="mt-6 text-center"
+          className="mt-6 space-y-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.2 }}
         >
-          <p className="text-gray-500 mb-4 font-mono text-sm">
-            {'>'} NO ACCESS CODE?
-          </p>
-          <button
-            onClick={() => navigate('/host')}
-            className="text-green-400 hover:text-green-300 font-mono font-bold underline"
-          >
-            CREATE YOUR OWN ROOM →
-          </button>
-        </motion.div>
+          <div className="text-center">
+            <p className="text-sm text-slate-600 mb-3">
+              Don't have a room code?
+            </p>
+            <button
+              onClick={() => navigate('/host')}
+              className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors"
+            >
+              Create Your Own Room →
+            </button>
+          </div>
 
-        {/* Spectate Option */}
-        <motion.div 
-          className="mt-8 bg-black border border-green-500 p-6 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          style={{ boxShadow: '0 0 20px rgba(0, 255, 0, 0.2)' }}
-        >
-          <p className="text-green-400 mb-3 font-mono">SPECTATOR MODE AVAILABLE</p>
-          <button
-            onClick={() => navigate('/spectate')}
-            className="text-gray-400 hover:text-green-400 font-mono"
-          >
-            {'>'} WATCH DEBATES 👁️ {'<'}
-          </button>
+          <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+            <button
+              onClick={() => navigate('/spectate')}
+              className="inline-flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              <span className="text-sm font-medium">Watch as Spectator</span>
+            </button>
+          </div>
         </motion.div>
-      </div>
-
+      </motion.div>
     </div>
   );
 }

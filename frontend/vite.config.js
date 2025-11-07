@@ -11,5 +11,17 @@ export default defineConfig({
       "all",
       "1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev",
     ],
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+        ws: true,
+      },
+      "/ws": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+        ws: true,
+      },
+    },
   },
 });

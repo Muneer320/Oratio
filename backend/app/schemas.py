@@ -103,7 +103,7 @@ class ParticipantResponse(BaseModel):
     is_ready: bool
     score: Dict[str, Any]
     xp_earned: int
-    joined_at: datetime
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -225,7 +225,7 @@ class UploadResponse(BaseModel):
     file_path: str
     file_type: str
     file_size: Optional[int]
-    uploaded_at: datetime
+    created_at: datetime
 
     class Config:
         from_attributes = True

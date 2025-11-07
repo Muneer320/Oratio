@@ -2,6 +2,20 @@
 
 Oratio is an AI-powered debate platform that enables real-time voice and text debates with AI-based judging. The platform allows users to host debate rooms, participate in structured debates, spectate ongoing debates, and receive personalized training feedback. The system uses the LCR (Logic, Credibility, Rhetoric) model for debate evaluation and provides gamified learning experiences with XP, badges, and improvement tracking.
 
+**Status**: ✅ Production-ready (November 7, 2025)
+
+# Recent Changes
+
+**November 7, 2025** - Production Readiness Achieved
+- ✅ Implemented JWT-based authentication with automatic participant detection
+- ✅ Fixed participant tracking: Now derives `isParticipant` from API instead of localStorage
+- ✅ Integrated AI-powered turn analysis via backend `/api/debate/{room_id}/submit-turn` endpoint
+- ✅ Added graceful 401/403 error handling with user-friendly messages
+- ✅ Configured autoscale deployment for production publishing
+- ✅ Complete end-to-end debate flow: Host → Join → Debate → Results
+- ✅ Real-time debate state tracking with round/turn progression
+- ✅ Clear spectator vs participant UI distinction
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

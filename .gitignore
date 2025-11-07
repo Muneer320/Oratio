@@ -1,0 +1,81 @@
+# Python
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+*.egg-info/
+dist/
+build/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+.replit_db/
+replit.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/.vite/
+/frontend/.cache/
+
+# Backend
+/backend/.venv/
+/backend/__pycache__/
+/backend/*.db
+/backend/uploads/
+/backend/temp/
+
+# Replit
+.replit_db
+.upm/
+.cache/
+.config/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/

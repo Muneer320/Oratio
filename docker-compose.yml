@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  oratio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - API_ENV=${API_ENV:-development}
+      - DATABASE_URL=${DATABASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend/dist:/app/frontend/dist
+    restart: unless-stopped
+    networks:
+      - oratio-network
+
+  # Optional: Database service (uncomment if using PostgreSQL)
+  # db:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     - POSTGRES_USER=${DB_USER:-oratio}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD:-oratio}
+  #     - POSTGRES_DB=${DB_NAME:-oratio_db}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - oratio-network
+
+networks:
+  oratio-network:
+    driver: bridge
+# volumes:
+#   postgres_data:

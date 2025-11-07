@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     REPL_SLUG: str = os.getenv("REPL_SLUG", "oratio")
     REPL_OWNER: str = os.getenv("REPL_OWNER", "")
 
+    # Database URL (fallback for SQLAlchemy models)
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./oratio.db")
+    
     # Use Replit Database (no need for DATABASE_URL)
     USE_REPLIT_DB: bool = True
 

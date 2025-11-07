@@ -1,0 +1,308 @@
+### 🧠 Build Prompt — **Oratio: The AI Debate Platform**
+
+**Project Summary:**
+Build **Oratio**, a unified web platform where users can host, join, and spectate AI-judged debates with **voice and text**. The app includes **real-time speech transcription**, **AI judging (Logic, Credibility, Rhetoric model)**, **audience reactions**, and an **AI trainer** that helps users improve communication and debating skills. Everything runs in a single modern web app, accessible via Replit hosting.
+
+---
+
+### 🔧 **Core Functionalities**
+
+#### 1. Authentication & Entry
+
+* Single **hero page** with login/signup (Replit Auth or Google OAuth).
+* After login, user lands on a **home dashboard** (no separate modes).
+
+#### 2. Home Dashboard
+
+* Sections: **Ongoing**, **Upcoming**, **Past Debates**.
+* Each debate is shown as a card with title, topic, participants, mode (text/audio/team), time, and host.
+* Clicking a debate:
+
+  * **Ongoing:** opens Live Debate Arena (join as spectator).
+  * **Upcoming:** shows details (topic, participants, time, description, resources, join/reminder buttons).
+  * **Past:** shows AI-generated result, replayable transcript/audio, feedback summary.
+
+#### 3. Add Debate Page
+
+* Accessible via “+ Add Debate” button.
+* Form to host a debate:
+
+  * name, description, time, duration
+  * type: individual / team
+  * rounds
+  * mode: text / audio / both
+  * visibility: public / private
+  * upload resources (PDFs, URLs, podcasts)
+* Once created, visible to everyone in “Upcoming Debates.”
+
+#### 4. Tabs on Home
+
+* **Learn:** AI Trainer feedback (grammar, logic, pace, etc.) from all previous debates.
+* **About Me:** Profile, XP, badges, stats, improvement graph.
+* **Settings:** Theme, preferences, notifications.
+
+---
+
+### ⚔️ **Debate Arena (Shared Environment)**
+
+#### Host View:
+
+* See participants & spectators list.
+* Live color-coded transcripts (for/against or team color).
+* Spectator support bar.
+* Inline basic AI feedback after each line (“good logic”, “unsupported claim”).
+* Mute/unmute controls.
+* End debate → triggers final AI judging.
+* After debate → shows full AI result & review (winner, feedback, team/player scores).
+
+#### Debater View:
+
+* See transcript and audio feed (color-coded by team).
+* Can send arguments via **voice or text**.
+* Inline feedback for their own team’s turns.
+* After debate → three layers of results:
+
+  1. Debate-level summary
+  2. Team-level feedback
+  3. Player-level review (grammar, speed, factuality, logic, rhetoric, etc.)
+
+#### Spectator View:
+
+* See live transcript/audio for both sides.
+* React to individual players using 👏 🔥 ❤️.
+* View crowd sentiment and support bars.
+* No inline AI feedback during debate.
+* After debate → see AI’s final result & review.
+
+---
+
+### 🧑‍🏫 **Learn Page (AI Trainer)**
+
+* Pulls user’s past debate data.
+* Generates personalized training:
+
+  * Strengths/weaknesses (logic, rhetoric, credibility).
+  * AI exercises: “Refute this”, “Make this factual”, “Rephrase persuasively”.
+* XP system, badges, and leaderboard.
+* `/api/trainer/analyze`, `/api/trainer/progress/{user_id}` manage XP and progress.
+
+---
+
+### 🤖 **AI Judge**
+
+Implements **LCR Model**:
+
+| Criterion   | Description              | Weight |
+| ----------- | ------------------------ | ------ |
+| Logic       | Reasoning, consistency   | 40%    |
+| Credibility | Evidence, fact-checking  | 35%    |
+| Rhetoric    | Delivery, persuasiveness | 25%    |
+
+Uses:
+
+* **GPT API / Replit AI** for evaluation.
+* **Web Search API (Serper/Tavily)** for fact checks.
+* **Uploaded resources** as extra context.
+
+Each turn triggers `/api/ai/analyze-turn` for partial feedback; end of debate calls `/api/ai/final-score` for final results.
+
+---
+
+### 🧩 **Architecture**
+
+```
+Frontend (React + Tailwind + WebSockets + Web Speech API)
+      ↓
+Backend (FastAPI)
+      ↓
+AI Layer (OpenAI GPT / Replit AI + Whisper + Search API)
+      ↓
+Database (Supabase / Replit DB)
+```
+
+---
+
+### 🧱 **API Endpoints (Finalized)**
+
+**Auth**
+
+```
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
+PUT  /api/auth/update
+DELETE /api/auth/logout
+```
+
+**Rooms**
+
+```
+POST /api/rooms/create
+GET  /api/rooms/list
+GET  /api/rooms/{room_id}
+PUT  /api/rooms/{room_id}/update
+DELETE /api/rooms/{room_id}
+```
+
+**Participants**
+
+```
+POST /api/participants/join
+GET  /api/participants/{participant_id}
+PUT  /api/participants/{participant_id}/ready
+DELETE /api/participants/{participant_id}/leave
+```
+
+**Spectators**
+
+```
+POST /api/spectators/join
+POST /api/spectators/{room_id}/reward
+GET  /api/spectators/{room_id}/stats
+DELETE /api/spectators/{spectator_id}/leave
+```
+
+**Debate Flow**
+
+```
+POST /api/debate/{room_id}/submit-turn
+POST /api/debate/{room_id}/submit-audio
+GET  /api/debate/{room_id}/transcript
+POST /api/debate/{room_id}/end
+GET  /api/debate/{room_id}/status
+```
+
+**AI Judging**
+
+```
+POST /api/ai/analyze-turn
+POST /api/ai/fact-check
+POST /api/ai/final-score
+GET  /api/ai/summary/{room_id}
+GET  /api/ai/report/{room_id}
+```
+
+**AI Trainer**
+
+```
+POST /api/trainer/analyze
+GET  /api/trainer/recommendations/{user_id}
+POST /api/trainer/challenge/start
+POST /api/trainer/challenge/submit
+GET  /api/trainer/progress/{user_id}
+PUT  /api/trainer/progress/{user_id}
+```
+
+**Uploads**
+
+```
+POST /api/uploads/pdf
+POST /api/uploads/audio
+POST /api/uploads/url
+GET  /api/uploads/{room_id}
+DELETE /api/uploads/{file_id}
+```
+
+**Utility**
+
+```
+GET  /api/utils/health
+GET  /api/utils/config
+POST /api/utils/feedback
+GET  /api/utils/leaderboard
+GET  /api/utils/search-topics
+```
+
+**WebSockets**
+
+```
+ws://<host>/ws/debate/{room_id}
+ws://<host>/ws/spectator/{room_id}
+ws://<host>/ws/trainer/{user_id}
+```
+
+---
+
+### 💾 **Database Schema**
+
+**Rooms**
+
+```
+id, topic, description, time, mode, type, visibility, host_id, resources[], status
+```
+
+**Participants**
+
+```
+id, user_id, room_id, team, role, score, xp
+```
+
+**Turns**
+
+```
+id, room_id, speaker_id, content, audio_url, timestamp
+```
+
+**SpectatorVotes**
+
+```
+id, room_id, spectator_id, target_id, reaction_type
+```
+
+**Results**
+
+```
+room_id, winner_id, scores_json, feedback_json, summary, report_url
+```
+
+**TrainerFeedback**
+
+```
+user_id, metrics_json, xp, badges
+```
+
+---
+
+### 🧮 **Core Libraries**
+
+* **Frontend:** React, TailwindCSS, Framer Motion, Web Speech API, WebSockets
+* **Backend:** FastAPI, Uvicorn, Supabase Client, Whisper API
+* **AI Integration:** OpenAI API / Replit AI, Tavily Search API
+* **DB:** Supabase
+* **File Processing:** PyMuPDF, BeautifulSoup
+* **Deployment:** Replit (full-stack single project)
+
+---
+
+### 🎨 **Design Guidelines**
+
+* **UI:** Glassmorphic dark theme (black/gold/gray)
+* **Typography:** Inter / Space Grotesk
+* **Layout:** 3-pane dashboard for debates, floating reaction buttons, live transcript stream.
+* **Animations:** Framer Motion fade-ins and real-time updates on debate progress bars.
+* **Audio UI:** Waveform visualizer when users speak.
+
+---
+
+### 🚀 **Deliverables**
+
+* Fully functional web app with real-time debate features.
+* AI scoring and feedback system.
+* Replayable debates and analytics.
+* Learn tab with gamified trainer.
+* XP and leaderboard system.
+
+---
+
+### 🧩 **System Behavior Summary**
+
+| User             | Actions                                         | Outcome                            |
+| ---------------- | ----------------------------------------------- | ---------------------------------- |
+| **Host**         | Create debates, manage participants, end debate | AI result, download report         |
+| **Debater**      | Join debate, speak/type, receive feedback       | Personal & team-level review       |
+| **Spectator**    | Watch live, react, support                      | Audience influence + final results |
+| **Trainer (AI)** | Analyze past data, create challenges            | XP + improved debate skills        |
+
+---
+
+Please only work on the backend for now.

@@ -137,6 +137,7 @@ class Collections:
     TRAINER_FEEDBACK = "trainer_feedback"
     UPLOADED_FILES = "uploaded_files"
     SESSIONS = "sessions"  # For auth sessions
+    FEEDBACK = "feedback"  # For user feedback
 
 
 # Initialize database

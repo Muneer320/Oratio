@@ -99,7 +99,9 @@ class ReplitAuth:
             return None
 
         user_id = session.get("user_id")
-        return ReplitDB.get(Collections.USERS, user_id)
+        if not user_id:
+            return None
+        return ReplitDB.get(Collections.USERS, str(user_id))
 
     @staticmethod
     def simple_auth_register(username: str, email: str, password: str) -> Dict[str, Any]:

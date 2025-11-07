@@ -14,13 +14,12 @@ from app.websockets import debate as ws_debate, spectator as ws_spectator, train
 app = FastAPI(
     title="Oratio - AI Debate Platform (Replit Edition)",
     description="Backend API for Oratio debate platform with Replit AI judging",
-    version="1.0.0-replit"
-)
+    version="1.0.0-replit")
 
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,9 +55,11 @@ async def startup():
 
     # Check Replit features availability
     features = {
-        "Replit Database": "✅" if REPLIT_DB_AVAILABLE else "⚠️  (using fallback)",
+        "Replit Database":
+        "✅" if REPLIT_DB_AVAILABLE else "⚠️  (using fallback)",
         "Replit AI": "✅" if REPLIT_AI_AVAILABLE else "⚠️  (using fallback)",
-        "Replit Auth": "✅" if REPLIT_AUTH_AVAILABLE else "⚠️  (using simple auth)",
+        "Replit Auth":
+        "✅" if REPLIT_AUTH_AVAILABLE else "⚠️  (using simple auth)",
         "Environment": settings.API_ENV,
         "REPL ID": settings.REPL_ID,
     }

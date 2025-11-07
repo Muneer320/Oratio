@@ -1,5 +1,7 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import PageTransition from "../components/PageTransition";
 import Home from "../pages/Home";
 import Host from "../pages/Host";
 import Join from "../pages/Join";
@@ -9,16 +11,20 @@ import Trainer from "../pages/Trainer";
 import Results from "../pages/Results";
 
 function AppRoutes() {
+  const location = useLocation();
+
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/host" element={<Host />} />
-      <Route path="/join" element={<Join />} />
-      <Route path="/debate/:roomCode" element={<Debate />} />
-      <Route path="/spectate" element={<Spectate />} />
-      <Route path="/trainer" element={<Trainer />} />
-      <Route path="/results/:roomCode" element={<Results />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+        <Route path="/host" element={<PageTransition><Host /></PageTransition>} />
+        <Route path="/join" element={<PageTransition><Join /></PageTransition>} />
+        <Route path="/debate/:roomCode" element={<PageTransition><Debate /></PageTransition>} />
+        <Route path="/spectate" element={<PageTransition><Spectate /></PageTransition>} />
+        <Route path="/trainer" element={<PageTransition><Trainer /></PageTransition>} />
+        <Route path="/results/:roomCode" element={<PageTransition><Results /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
   );
 }
 

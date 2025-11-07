@@ -6,18 +6,30 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  cursor: none;
 }
 
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
-  background: #f7fafc;
-  color: #1a202c;
+  background: #0f172a;
+  color: #ffffff;
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 .app {
   min-height: 100vh;
+}
+
+@media (pointer: coarse) {
+  * {
+    cursor: auto;
+  }
+  .custom-cursor,
+  .custom-cursor-dot {
+    display: none;
+  }
 }
 
 /* Buttons */

@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogIn, User, Hash, ArrowRight, Eye } from 'lucide-react';
+import { gsap } from 'gsap';
+import { LogIn, User, Hash, ArrowRight, Eye, Sparkles } from 'lucide-react';
 
 function Join() {
   const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState('');
   const [username, setUsername] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    gsap.from('.join-container', {
+      scale: 0.8,
+      opacity: 0,
+      duration: 1,
+      ease: 'back.out(1.7)'
+    });
+
+    gsap.to('.floating-element', {
+      y: -20,
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: 'power1.inOut',
+      stagger: 0.2
+    });
+  }, []);
 
   const handleJoin = async (e) => {
     e.preventDefault();
@@ -14,84 +34,147 @@ function Join() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 opacity-20">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-600 animate-gradient"></div>
+      </div>
+
+      {/* Floating Elements */}
       <motion.div
-        className="w-full max-w-md"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        className="floating-element fixed w-64 h-64 bg-blue-500 rounded-full filter blur-3xl opacity-20"
+        style={{ top: '20%', left: '10%' }}
+      />
+      <motion.div
+        className="floating-element fixed w-80 h-80 bg-purple-500 rounded-full filter blur-3xl opacity-20"
+        style={{ bottom: '20%', right: '10%' }}
+      />
+
+      <motion.div
+        className="join-container w-full max-w-2xl relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
+        {/* Glow Circle */}
+        <motion.div
+          className="absolute -top-32 -left-32 w-64 h-64 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full filter blur-3xl opacity-30"
+          animate={{
+            scale: isFocused ? 1.5 : 1,
+            opacity: isFocused ? 0.5 : 0.3
+          }}
+          transition={{ duration: 0.8 }}
+        />
+
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
-            <LogIn className="w-8 h-8 text-white" />
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ y: -30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl mb-6 relative">
+            <LogIn className="w-10 h-10 text-white" />
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl blur-xl opacity-50"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">
-            Join Debate
+          <h1 className="text-6xl font-black text-white mb-4">
+            JOIN <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">DEBATE</span>
           </h1>
-          <p className="text-slate-600">
+          <p className="text-xl text-white/60">
             Enter your room code to participate
           </p>
-        </div>
+        </motion.div>
 
-        {/* Join Form */}
+        {/* Join Card */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8"
+          className="relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 overflow-hidden"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
         >
-          <form onSubmit={handleJoin} className="space-y-6">
+          {/* Animated Border Glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 animate-pulse-slow rounded-[2.5rem]"></div>
+
+          <form onSubmit={handleJoin} className="relative space-y-8">
             {/* Username */}
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
+              <label className="block text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
+                <User className="w-4 h-4 text-blue-400" />
                 Your Name
               </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <motion.div
+                whileFocus={{ scale: 1.02 }}
+              >
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  className="w-full px-6 py-5 bg-white/5 border-2 border-white/10 rounded-2xl text-white text-lg placeholder-white/30 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all"
                   placeholder="Enter your name"
                   required
                 />
-              </div>
+              </motion.div>
             </div>
 
             {/* Room Code */}
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
+              <label className="block text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
+                <Hash className="w-4 h-4 text-purple-400" />
                 Room Code
               </label>
-              <div className="relative">
-                <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <motion.div
+                className="relative"
+                whileFocus={{ scale: 1.02 }}
+              >
                 <input
                   type="text"
                   value={roomCode}
                   onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                  className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-2xl font-mono tracking-widest text-center transition-all"
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  className="w-full px-6 py-6 bg-white/5 border-2 border-white/10 rounded-2xl text-white text-4xl font-bold text-center tracking-[0.5em] placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
                   placeholder="ABC123"
                   maxLength={6}
                   required
                 />
-              </div>
+                {roomCode.length === 6 && (
+                  <motion.div
+                    className="absolute right-6 top-1/2 transform -translate-y-1/2"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                  >
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
             </div>
 
             {/* Buttons */}
-            <div className="space-y-3">
-              <button
+            <div className="space-y-4">
+              <motion.button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl transition-all duration-300"
+                className="w-full group relative px-8 py-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl font-bold text-xl text-white overflow-hidden"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Join Now
-                <ArrowRight className="w-5 h-5" />
-              </button>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <span className="relative flex items-center justify-center gap-3">
+                  Join Now
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </motion.button>
 
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="w-full px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-all duration-300"
+                className="w-full px-8 py-4 bg-white/5 border-2 border-white/10 rounded-2xl font-semibold text-white hover:bg-white/10 transition-all"
               >
                 Back
               </button>
@@ -101,34 +184,50 @@ function Join() {
 
         {/* Additional Options */}
         <motion.div 
-          className="mt-6 space-y-4"
+          className="mt-8 space-y-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.6 }}
         >
           <div className="text-center">
-            <p className="text-sm text-slate-600 mb-3">
-              Don't have a room code?
-            </p>
+            <p className="text-white/50 mb-4">Don't have a room code?</p>
             <button
               onClick={() => navigate('/host')}
-              className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors"
+              className="text-blue-400 font-semibold hover:text-blue-300 transition-colors text-lg"
             >
               Create Your Own Room →
             </button>
           </div>
 
-          <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center">
             <button
               onClick={() => navigate('/spectate')}
-              className="inline-flex items-center gap-2 text-slate-700 hover:text-indigo-600 transition-colors"
+              className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors font-medium"
             >
-              <Eye className="w-4 h-4" />
-              <span className="text-sm font-medium">Watch as Spectator</span>
+              <Eye className="w-5 h-5" />
+              Watch as Spectator
             </button>
           </div>
         </motion.div>
       </motion.div>
+
+      <style>{`
+        @keyframes gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 15s ease infinite;
+        }
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.5; }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring } from 'framer-motion';
-import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap } from 'lucide-react';
+import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 function AnimatedCounter({ value, suffix = '', duration = 2 }) {
   const ref = useRef(null);
@@ -42,10 +43,12 @@ function AnimatedCounter({ value, suffix = '', duration = 2 }) {
 
 function Home() {
   const canvasRef = useRef(null);
+  const navigate = useNavigate();
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const { scrollY } = useScroll();
   const parallax1 = useTransform(scrollY, [0, 500], [0, -80]);
   const parallax2 = useTransform(scrollY, [0, 500], [0, 40]);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -128,6 +131,43 @@ function Home() {
         className="fixed inset-0 pointer-events-none z-0" 
         style={{ opacity: 0.7 }}
       />
+
+      <div className="absolute top-6 right-6 z-50 flex gap-3">
+        {isAuthenticated ? (
+          <div className="flex items-center gap-3 bg-dark-elevated/90 backdrop-blur-sm border border-dark-warm px-4 py-2 rounded-xl">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-text-primary">{user?.username || user?.email}</span>
+          </div>
+        ) : (
+          <>
+            <motion.button
+              onClick={() => navigate('/login')}
+              className="group relative px-5 py-2.5 bg-dark-elevated border border-accent-teal/40 text-accent-teal rounded-xl font-medium text-sm overflow-hidden backdrop-blur-sm"
+              whileHover={{ scale: 1.05, borderColor: 'rgba(74, 154, 159, 0.8)' }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/0 to-accent-teal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative flex items-center gap-2">
+                <LogIn className="w-4 h-4" />
+                Login
+              </span>
+            </motion.button>
+            
+            <motion.button
+              onClick={() => navigate('/register')}
+              className="group relative px-5 py-2.5 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-xl font-medium text-sm overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Sign Up
+              </span>
+            </motion.button>
+          </>
+        )}
+      </div>
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center px-6 lg:px-16 py-20 z-10">

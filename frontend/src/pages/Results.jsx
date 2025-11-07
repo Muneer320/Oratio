@@ -1,128 +1,201 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { gsap } from 'gsap';
-import { Trophy, Home, Plus, Target, Users, Clock, Sparkles, Star } from 'lucide-react';
+import { Trophy, Home, ArrowRight, TrendingUp } from 'lucide-react';
+import api from '../services/api';
 
 function Results() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
+  const [room, setRoom] = useState(null);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    gsap.from('.trophy-icon', {
-      rotation: -360,
-      scale: 0,
-      duration: 1.5,
-      ease: 'back.out(2)',
-      delay: 0.3
-    });
+    loadResults();
+  }, [roomCode]);
 
-    gsap.to('.trophy-icon', {
-      y: -10,
-      duration: 1.5,
-      repeat: -1,
-      yoyo: true,
-      ease: 'power1.inOut'
-    });
-  }, []);
+  const loadResults = async () => {
+    try {
+      const rooms = await api.get('/api/rooms/list', true);
+      const foundRoom = rooms.find(r => r.room_code === roomCode);
+      
+      if (!foundRoom) {
+        setError('Room not found');
+        setLoading(false);
+        return;
+      }
 
-  const results = {
-    winner: 'Player 1',
-    scores: {
-      player1: { name: 'Player 1', total: 87, logic: 85, credibility: 82, rhetoric: 94 },
-      player2: { name: 'Player 2', total: 81, logic: 88, credibility: 75, rhetoric: 80 }
+      setRoom(foundRoom);
+
+      try {
+        const summary = await api.get(`/api/ai/summary/${foundRoom.id}`, true);
+        setResult(summary.result);
+      } catch (summaryErr) {
+        if (summaryErr.status !== 401 && summaryErr.status !== 403) {
+          console.log('Results not yet available, showing room info only');
+        }
+      }
+
+      setLoading(false);
+    } catch (err) {
+      if (err.status === 401 || err.status === 403) {
+        setError('Please log in to view results');
+        setLoading(false);
+        return;
+      }
+      setError(err.message);
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      <div className="fixed inset-0 opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-600 via-purple-600 to-blue-600 animate-gradient"></div>
-      </div>
-
-      <div className="relative max-w-5xl mx-auto px-6 py-16">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', duration: 1 }}
-        >
-          <motion.div className="trophy-icon inline-block mb-6">
-            <Trophy className="w-32 h-32 text-yellow-400 drop-shadow-2xl filter" />
-          </motion.div>
-          <h1 className="text-6xl font-black text-white mb-6">DEBATE COMPLETE!</h1>
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-600 to-orange-600 px-10 py-5 rounded-3xl">
-            <Star className="w-8 h-8 text-white" />
-            <span className="text-3xl font-black text-white">WINNER: {results.winner.toUpperCase()}</span>
-            <Star className="w-8 h-8 text-white" />
-          </div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {Object.entries(results.scores).map(([key, player], i) => (
-            <motion.div
-              key={key}
-              className={`bg-white/5 backdrop-blur-2xl border-4 rounded-3xl p-8 ${results.winner === player.name ? 'border-yellow-500' : 'border-white/10'}`}
-              initial={{ x: i === 0 ? -100 : 100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.5 + i * 0.2 }}
-            >
-              {results.winner === player.name && (
-                <div className="text-center mb-4">
-                  <span className="inline-flex items-center gap-2 bg-yellow-500/20 border-2 border-yellow-500 text-yellow-400 px-6 py-2 rounded-full font-bold">
-                    <Trophy className="w-5 h-5" />
-                    WINNER
-                  </span>
-                </div>
-              )}
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-white mb-4">{player.name}</h3>
-                <div className="text-7xl font-black bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
-                  {player.total}
-                </div>
-                <p className="text-white/60 font-semibold">Final Score</p>
-              </div>
-              <div className="space-y-4">
-                {[{l:'Logic',v:player.logic},{l:'Credibility',v:player.credibility},{l:'Rhetoric',v:player.rhetoric}].map((s,i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <span className="text-white/70">{s.l}</span>
-                    <span className="text-2xl font-bold text-white">{s.v}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          ))}
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading results...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-red-200 p-8 shadow-xl">
+          <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Error</h2>
+          <p className="text-slate-600 text-center mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 noise-bg py-12 px-6">
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-6">
+            <Trophy className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-5xl font-bold text-slate-900 mb-4">Debate Complete!</h1>
+          <p className="text-xl text-slate-600">Here are the final results</p>
+        </motion.div>
 
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50 mb-6"
         >
-          {[{l:'New Debate',i:Plus,p:'/host',c:'from-purple-600 to-blue-600'},{l:'Train',i:Trophy,p:'/trainer',c:'from-yellow-600 to-orange-600'},{l:'Home',i:Home,p:'/',c:'from-slate-600 to-slate-700'}].map((b,i) => (
-            <button
-              key={i}
-              onClick={() => navigate(b.p)}
-              className={`px-10 py-5 bg-gradient-to-r ${b.c} rounded-2xl font-bold text-lg text-white flex items-center gap-2`}
-            >
-              <b.i className="w-6 h-6" />
-              {b.l}
-            </button>
-          ))}
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">Topic</h2>
+          <p className="text-lg text-slate-700">{room?.topic}</p>
+        </motion.div>
+
+        {result?.summary && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border border-purple-200 p-8 shadow-lg mb-6"
+          >
+            <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-purple-600" />
+              AI Summary
+            </h2>
+            <p className="text-slate-700 leading-relaxed">{result.summary}</p>
+          </motion.div>
+        )}
+
+        {result?.scores_json && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50 mb-6"
+          >
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">Final Scores</h2>
+            <div className="space-y-6">
+              {Object.entries(result.scores_json).map(([participantId, scores], index) => (
+                <div key={participantId} className="pb-6 border-b border-slate-200 last:border-0">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      Participant {participantId}
+                      {result.winner_id && parseInt(result.winner_id) === parseInt(participantId) && (
+                        <span className="ml-3 px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-sm font-bold rounded-full">
+                          🏆 Winner
+                        </span>
+                      )}
+                    </h3>
+                    <span className="text-3xl font-bold text-purple-600">
+                      {scores.total || 0}
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {['logic', 'credibility', 'rhetoric'].map((metric) => (
+                      <div key={metric}>
+                        <div className="flex justify-between mb-1 text-sm">
+                          <span className="text-slate-600 capitalize">{metric}</span>
+                          <span className="font-semibold text-slate-900">
+                            {scores[metric] || 0}
+                          </span>
+                        </div>
+                        <div className="bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <motion.div
+                            className="bg-purple-500 h-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${scores[metric] || 0}%` }}
+                            transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex gap-4 justify-center"
+        >
+          <motion.button
+            onClick={() => navigate('/')}
+            className="group px-8 py-4 bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-900/10 flex items-center gap-2"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Home className="w-5 h-5" />
+            Back to Home
+          </motion.button>
+          
+          <motion.button
+            onClick={() => navigate('/trainer')}
+            className="group px-8 py-4 bg-purple-600 text-white rounded-xl font-semibold shadow-lg shadow-purple-600/20 flex items-center gap-2"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Practice More
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
         </motion.div>
       </div>
-
-      <style>{`
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 15s ease infinite;
-        }
-      `}</style>
     </div>
   );
 }

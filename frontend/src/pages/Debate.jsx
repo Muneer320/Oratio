@@ -1,173 +1,303 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { gsap } from 'gsap';
 
 function Debate() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
   const [argument, setArgument] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const pulseRef = useRef(null);
+
+  useEffect(() => {
+    if (pulseRef.current && isRecording) {
+      gsap.to(pulseRef.current, {
+        scale: 1.5,
+        opacity: 0,
+        duration: 1.5,
+        repeat: -1,
+        ease: 'power1.out'
+      });
+    }
+  }, [isRecording]);
 
   const handleSubmitTurn = () => {
-    // TODO: Submit turn to backend
     console.log('Submitting turn:', argument);
     setArgument('');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-blue-900">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <motion.div 
+          className="flex justify-between items-center mb-8"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
           <div>
-            <h1 className="text-3xl font-bold text-white">Debate Arena</h1>
-            <p className="text-gray-300">Room Code: <span className="font-mono font-bold text-purple-300">{roomCode || 'ABC123'}</span></p>
+            <h1 className="text-4xl font-bold text-green-400 font-mono"
+              style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
+              DEBATE ARENA
+            </h1>
+            <p className="text-gray-400 font-mono">
+              ROOM: <span className="font-mono font-bold text-green-500">{roomCode || 'ABC123'}</span>
+            </p>
           </div>
-          <button
+          <motion.button
             onClick={() => navigate('/')}
-            className="bg-white bg-opacity-20 text-white px-6 py-2 rounded-full font-semibold border border-white border-opacity-30 hover:bg-opacity-30 transition duration-200"
+            className="bg-black border-2 border-green-500 text-green-500 px-6 py-2 font-bold font-mono hover:bg-green-500 hover:text-black transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{ boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)' }}
           >
-            Leave Debate
-          </button>
-        </div>
+            EXIT
+          </motion.button>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Scoreboard */}
           <div className="lg:col-span-1">
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 sticky top-6">
-              <h2 className="text-2xl font-bold text-white mb-6">Live Scores</h2>
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6 sticky top-6"
+              initial={{ x: -100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              style={{
+                boxShadow: '0 0 30px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.05)'
+              }}
+            >
+              <h2 className="text-2xl font-bold text-green-400 mb-6 font-mono">
+                [LIVE_SCORES]
+              </h2>
               
               {/* Player 1 */}
-              <div className="mb-6">
+              <div className="mb-6 pb-6 border-b border-green-500">
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-white font-semibold text-lg">Player 1</span>
-                  <span className="text-purple-300 font-bold text-2xl">85</span>
+                  <span className="text-green-400 font-bold text-lg font-mono">P1</span>
+                  <span className="text-green-400 font-bold text-3xl font-mono"
+                    style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
+                    85
+                  </span>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">🧠 Logic</span>
-                    <div className="flex-1 mx-3 bg-white bg-opacity-20 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full" style={{width: '85%'}}></div>
+                  {[
+                    { label: 'LOGIC', value: 85, color: '#00FF00' },
+                    { label: 'CRED', value: 78, color: '#00CC00' },
+                    { label: 'RHET', value: 92, color: '#00FF66' }
+                  ].map((stat) => (
+                    <div key={stat.label}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-400 font-mono text-sm">{stat.label}</span>
+                        <span className="text-green-400 font-bold font-mono">{stat.value}</span>
+                      </div>
+                      <div className="bg-gray-900 h-1">
+                        <motion.div 
+                          className="h-1"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${stat.value}%` }}
+                          transition={{ duration: 1, delay: 0.3 }}
+                          style={{ 
+                            backgroundColor: stat.color,
+                            boxShadow: `0 0 10px ${stat.color}`
+                          }}
+                        ></motion.div>
+                      </div>
                     </div>
-                    <span className="text-white font-semibold">85</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">✅ Credibility</span>
-                    <div className="flex-1 mx-3 bg-white bg-opacity-20 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full" style={{width: '78%'}}></div>
-                    </div>
-                    <span className="text-white font-semibold">78</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">🎭 Rhetoric</span>
-                    <div className="flex-1 mx-3 bg-white bg-opacity-20 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full" style={{width: '92%'}}></div>
-                    </div>
-                    <span className="text-white font-semibold">92</span>
-                  </div>
+                  ))}
                 </div>
               </div>
 
               {/* Player 2 */}
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-white font-semibold text-lg">Player 2</span>
-                  <span className="text-pink-300 font-bold text-2xl">82</span>
+                  <span className="text-green-400 font-bold text-lg font-mono">P2</span>
+                  <span className="text-green-400 font-bold text-3xl font-mono"
+                    style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
+                    82
+                  </span>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">🧠 Logic</span>
-                    <div className="flex-1 mx-3 bg-white bg-opacity-20 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full" style={{width: '88%'}}></div>
+                  {[
+                    { label: 'LOGIC', value: 88, color: '#00FF00' },
+                    { label: 'CRED', value: 75, color: '#00CC00' },
+                    { label: 'RHET', value: 83, color: '#00FF66' }
+                  ].map((stat) => (
+                    <div key={stat.label}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-400 font-mono text-sm">{stat.label}</span>
+                        <span className="text-green-400 font-bold font-mono">{stat.value}</span>
+                      </div>
+                      <div className="bg-gray-900 h-1">
+                        <motion.div 
+                          className="h-1"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${stat.value}%` }}
+                          transition={{ duration: 1, delay: 0.3 }}
+                          style={{ 
+                            backgroundColor: stat.color,
+                            boxShadow: `0 0 10px ${stat.color}`
+                          }}
+                        ></motion.div>
+                      </div>
                     </div>
-                    <span className="text-white font-semibold">88</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">✅ Credibility</span>
-                    <div className="flex-1 mx-3 bg-white bg-opacity-20 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full" style={{width: '75%'}}></div>
-                    </div>
-                    <span className="text-white font-semibold">75</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">🎭 Rhetoric</span>
-                    <div className="flex-1 mx-3 bg-white bg-opacity-20 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full" style={{width: '83%'}}></div>
-                    </div>
-                    <span className="text-white font-semibold">83</span>
-                  </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Main Debate Area */}
+          {/* Main Area */}
           <div className="lg:col-span-2 space-y-6">
             {/* Topic */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 border border-white border-opacity-20">
-              <h3 className="text-sm font-semibold text-purple-200 mb-2">DEBATE TOPIC</h3>
-              <p className="text-2xl font-bold text-white">AI will replace most jobs by 2030</p>
-            </div>
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6"
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              style={{
+                boxShadow: '0 0 30px rgba(0, 255, 0, 0.4)'
+              }}
+            >
+              <h3 className="text-sm font-bold text-green-500 mb-2 font-mono">
+                [TOPIC]
+              </h3>
+              <p className="text-2xl font-bold text-green-400 font-mono">
+                AI will replace most jobs by 2030
+              </p>
+            </motion.div>
 
             {/* Turn History */}
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 h-96 overflow-y-auto">
-              <h3 className="text-xl font-bold text-white mb-4">Debate Turns</h3>
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6 h-96 overflow-y-auto custom-scrollbar"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={{
+                boxShadow: '0 0 20px rgba(0, 255, 0, 0.2), inset 0 0 10px rgba(0, 255, 0, 0.05)'
+              }}
+            >
+              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
+                [TRANSMISSION_LOG]
+              </h3>
               
-              {/* Sample Turn */}
-              <div className="mb-4 bg-purple-900 bg-opacity-40 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-purple-500 rounded-full w-10 h-10 flex items-center justify-center text-white font-bold">
-                    P1
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-semibold text-white">Player 1</span>
-                      <span className="text-sm text-gray-300">2:34 ago</span>
+              <AnimatePresence>
+                <motion.div
+                  initial={{ x: -50, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  className="mb-4 bg-gray-900 bg-opacity-50 border border-green-500 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="bg-green-500 w-10 h-10 flex items-center justify-center text-black font-bold font-mono">
+                      P1
                     </div>
-                    <p className="text-gray-200">
-                      AI automation is already transforming industries. Studies show 47% of jobs 
-                      are at high risk of automation within the next two decades...
-                    </p>
-                    <div className="mt-2 flex gap-2">
-                      <span className="text-xs bg-purple-500 bg-opacity-30 text-purple-200 px-2 py-1 rounded">Logic: 85</span>
-                      <span className="text-xs bg-blue-500 bg-opacity-30 text-blue-200 px-2 py-1 rounded">Credibility: 78</span>
-                      <span className="text-xs bg-pink-500 bg-opacity-30 text-pink-200 px-2 py-1 rounded">Rhetoric: 92</span>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-green-400 font-mono">Player_1</span>
+                        <span className="text-sm text-gray-500 font-mono">2:34</span>
+                      </div>
+                      <p className="text-gray-300 font-mono text-sm leading-relaxed">
+                        AI automation is already transforming industries. Studies show 47% of jobs 
+                        are at high risk of automation within the next two decades...
+                      </p>
+                      <div className="mt-2 flex gap-2">
+                        <span className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 font-mono border border-green-500">
+                          L:85
+                        </span>
+                        <span className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 font-mono border border-green-500">
+                          C:78
+                        </span>
+                        <span className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 font-mono border border-green-500">
+                          R:92
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
 
             {/* Input Area */}
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
-              <h3 className="text-xl font-bold text-white mb-4">Your Turn</h3>
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              style={{
+                boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)'
+              }}
+            >
+              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
+                [YOUR_TURN]
+              </h3>
               <textarea
                 value={argument}
                 onChange={(e) => setArgument(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 h-32 resize-none mb-4"
-                placeholder="Type your argument or click record to speak..."
+                className="w-full px-4 py-3 bg-black border-2 border-green-500 text-green-400 placeholder-gray-600 focus:outline-none focus:border-green-300 h-32 resize-none mb-4 font-mono"
+                placeholder="> Type your argument..."
+                style={{ boxShadow: 'inset 0 0 15px rgba(0, 255, 0, 0.1)' }}
               />
               <div className="flex gap-3">
-                <button
+                <motion.button
                   onClick={handleSubmitTurn}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition duration-200"
+                  className="flex-1 bg-green-500 text-black px-6 py-3 font-bold hover:bg-green-400 transition-all duration-300 font-mono"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    boxShadow: '0 0 20px rgba(0, 255, 0, 0.5)',
+                    clipPath: 'polygon(3% 0%, 100% 0%, 97% 100%, 0% 100%)'
+                  }}
                 >
-                  Submit Turn
-                </button>
+                  TRANSMIT
+                </motion.button>
                 <button
                   onClick={() => setIsRecording(!isRecording)}
-                  className={`px-6 py-3 rounded-xl font-semibold transition duration-200 ${
+                  className={`relative px-6 py-3 font-bold transition-all duration-300 font-mono ${
                     isRecording 
-                      ? 'bg-red-500 text-white animate-pulse' 
-                      : 'bg-white bg-opacity-20 text-white border border-white border-opacity-30 hover:bg-opacity-30'
+                      ? 'bg-red-500 text-black border-2 border-red-500' 
+                      : 'bg-black text-green-500 border-2 border-green-500 hover:bg-green-500 hover:text-black'
                   }`}
+                  style={{
+                    boxShadow: isRecording ? '0 0 30px rgba(255, 0, 0, 0.6)' : '0 0 20px rgba(0, 255, 0, 0.3)'
+                  }}
                 >
-                  🎙️ {isRecording ? 'Recording...' : 'Record'}
+                  {isRecording && (
+                    <div
+                      ref={pulseRef}
+                      className="absolute inset-0 bg-red-500 rounded"
+                      style={{ zIndex: -1 }}
+                    ></div>
+                  )}
+                  {isRecording ? 'REC' : '🎙️'}
                 </button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .bg-grid-pattern {
+          background-image: 
+            linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+          background-size: 50px 50px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #000;
+          border: 1px solid #00FF00;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #00FF00;
+          box-shadow: 0 0 10px #00FF00;
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 function Join() {
   const navigate = useNavigate();
@@ -8,94 +9,183 @@ function Join() {
 
   const handleJoin = async (e) => {
     e.preventDefault();
-    // TODO: Call API to join room
     console.log('Joining room:', roomCode, 'as', username);
-    // navigate(`/debate/${roomCode}`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-blue-900 flex items-center justify-center">
-      <div className="max-w-md w-full mx-6">
+    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+      {/* Animated grid */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
+      
+      {/* Glowing orb */}
+      <motion.div
+        className="absolute w-96 h-96 bg-green-500 rounded-full filter blur-3xl opacity-20"
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.2, 0.3, 0.2]
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: 'easeInOut'
+        }}
+        style={{ top: '20%', left: '50%', transform: 'translateX(-50%)' }}
+      ></motion.div>
+
+      <div className="relative z-10 max-w-md w-full mx-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-4">Join Debate</h1>
-          <p className="text-xl text-gray-200">Enter the room code to join</p>
-        </div>
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-6xl font-bold text-green-400 mb-4 font-mono"
+            style={{ textShadow: '0 0 20px rgba(0, 255, 0, 0.8)' }}>
+            JOIN
+          </h1>
+          <p className="text-xl text-gray-400 font-mono">
+            {'>'} ENTER ACCESS CODE {'<'}
+          </p>
+        </motion.div>
 
         {/* Join Card */}
-        <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-3xl p-8 border border-white border-opacity-20">
+        <motion.div
+          className="relative bg-black border-2 border-green-500 p-8"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          style={{
+            boxShadow: '0 0 40px rgba(0, 255, 0, 0.4), inset 0 0 30px rgba(0, 255, 0, 0.05)',
+            transformStyle: 'preserve-3d'
+          }}
+        >
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-500"></div>
+          <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-500"></div>
+          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-500"></div>
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-500"></div>
+
           <form onSubmit={handleJoin} className="space-y-6">
             {/* Username */}
-            <div>
-              <label className="block text-white font-semibold mb-2 text-lg">
-                Your Name
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <label className="block text-green-400 font-bold mb-2 text-lg font-mono">
+                [USERNAME]
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="w-full px-4 py-3 bg-black border-2 border-green-500 text-green-400 placeholder-gray-600 focus:outline-none focus:border-green-300 font-mono"
                 placeholder="Enter your name"
+                style={{ boxShadow: 'inset 0 0 10px rgba(0, 255, 0, 0.1)' }}
                 required
               />
-            </div>
+            </motion.div>
 
             {/* Room Code */}
-            <div>
-              <label className="block text-white font-semibold mb-2 text-lg">
-                Room Code
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <label className="block text-green-400 font-bold mb-2 text-lg font-mono">
+                [ROOM_CODE]
               </label>
               <input
                 type="text"
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                className="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 border border-white border-opacity-30 text-white text-2xl font-mono text-center placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 tracking-widest"
+                className="w-full px-4 py-3 bg-black border-2 border-green-500 text-green-400 text-3xl font-mono text-center placeholder-gray-600 focus:outline-none focus:border-green-300 tracking-[0.5em]"
                 placeholder="ABC123"
                 maxLength={6}
+                style={{ 
+                  boxShadow: 'inset 0 0 10px rgba(0, 255, 0, 0.1)',
+                  textShadow: '0 0 10px rgba(0, 255, 0, 0.5)'
+                }}
                 required
               />
-            </div>
+            </motion.div>
 
             {/* Join Button */}
-            <button
+            <motion.button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-purple-600 hover:to-pink-600 transition duration-200"
+              className="w-full bg-green-500 text-black px-8 py-4 font-bold text-lg hover:bg-green-400 transition-all duration-300 font-mono"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                boxShadow: '0 0 30px rgba(0, 255, 0, 0.6)',
+                clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
+              }}
             >
-              Join Debate
-            </button>
+              {'>'} CONNECT {'<'}
+            </motion.button>
 
-            <button
+            <motion.button
               type="button"
               onClick={() => navigate('/')}
-              className="w-full px-8 py-3 rounded-xl font-semibold bg-white bg-opacity-20 text-white border border-white border-opacity-30 hover:bg-opacity-30 transition duration-200"
+              className="w-full px-8 py-3 bg-black border-2 border-green-500 text-green-500 font-bold hover:bg-green-500 hover:text-black transition-all duration-300 font-mono"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              style={{ boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)' }}
             >
-              Back to Home
-            </button>
+              BACK
+            </motion.button>
           </form>
-        </div>
+        </motion.div>
 
-        {/* Quick Info */}
-        <div className="mt-6 text-center">
-          <p className="text-gray-300 mb-4">Don't have a room code?</p>
+        {/* Quick Links */}
+        <motion.div 
+          className="mt-6 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <p className="text-gray-500 mb-4 font-mono text-sm">
+            {'>'} NO ACCESS CODE?
+          </p>
           <button
             onClick={() => navigate('/host')}
-            className="text-purple-300 hover:text-purple-200 font-semibold underline"
+            className="text-green-400 hover:text-green-300 font-mono font-bold underline"
           >
-            Host your own debate →
+            CREATE YOUR OWN ROOM →
           </button>
-        </div>
+        </motion.div>
 
         {/* Spectate Option */}
-        <div className="mt-8 bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 text-center">
-          <p className="text-white mb-3">Want to watch instead?</p>
+        <motion.div 
+          className="mt-8 bg-black border border-green-500 p-6 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          style={{ boxShadow: '0 0 20px rgba(0, 255, 0, 0.2)' }}
+        >
+          <p className="text-green-400 mb-3 font-mono">SPECTATOR MODE AVAILABLE</p>
           <button
             onClick={() => navigate('/spectate')}
-            className="text-pink-300 hover:text-pink-200 font-semibold"
+            className="text-gray-400 hover:text-green-400 font-mono"
           >
-            Join as Spectator 👀
+            {'>'} WATCH DEBATES 👁️ {'<'}
           </button>
-        </div>
+        </motion.div>
       </div>
+
+      <style jsx>{`
+        .bg-grid-pattern {
+          background-image: 
+            linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+          background-size: 50px 50px;
+        }
+      `}</style>
     </div>
   );
 }

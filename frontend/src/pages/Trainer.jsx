@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { gsap } from 'gsap';
 
 function Trainer() {
   const navigate = useNavigate();
   const [selectedTopic, setSelectedTopic] = useState('');
+  const orbitRef = useRef(null);
+
+  useEffect(() => {
+    if (orbitRef.current) {
+      gsap.to(orbitRef.current, {
+        rotation: 360,
+        duration: 20,
+        repeat: -1,
+        ease: 'none'
+      });
+    }
+  }, []);
 
   const topics = [
     'AI Ethics and Regulation',
@@ -14,9 +28,9 @@ function Trainer() {
   ];
 
   const challenges = [
-    { id: 1, title: 'Master Logic', description: 'Achieve 90+ Logic score in 3 debates', progress: 67, xp: 250 },
-    { id: 2, title: 'Credibility Expert', description: 'Get perfect fact-check score', progress: 40, xp: 300 },
-    { id: 3, title: 'Rhetoric Pro', description: 'Win with 95+ Rhetoric score', progress: 85, xp: 400 }
+    { id: 1, title: 'LOGIC_MASTER', description: 'Achieve 90+ Logic score in 3 debates', progress: 67, xp: 250 },
+    { id: 2, title: 'CRED_EXPERT', description: 'Perfect fact-check score', progress: 40, xp: 300 },
+    { id: 3, title: 'RHET_PRO', description: 'Win with 95+ Rhetoric score', progress: 85, xp: 400 }
   ];
 
   const stats = {
@@ -30,169 +44,286 @@ function Trainer() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-blue-900">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+      
+      {/* Orbiting element */}
+      <div ref={orbitRef} className="absolute top-1/2 left-1/2 w-64 h-64" style={{ transformOrigin: 'center' }}>
+        <div className="absolute top-0 left-1/2 w-2 h-2 bg-green-500 rounded-full"
+          style={{ boxShadow: '0 0 20px #00FF00' }}></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <motion.div 
+          className="flex justify-between items-center mb-8"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
           <div>
-            <h1 className="text-3xl font-bold text-white">AI Trainer</h1>
-            <p className="text-gray-300">Practice with AI and level up your debate skills</p>
+            <h1 className="text-4xl font-bold text-green-400 font-mono"
+              style={{ textShadow: '0 0 10px rgba(0, 255, 0, 0.8)' }}>
+              [AI_TRAINER]
+            </h1>
+            <p className="text-gray-400 font-mono">LEVEL_UP • TRAIN • DOMINATE</p>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="bg-white bg-opacity-20 text-white px-6 py-2 rounded-full font-semibold border border-white border-opacity-30 hover:bg-opacity-30 transition duration-200"
+            className="bg-black border-2 border-green-500 text-green-500 px-6 py-2 font-bold font-mono hover:bg-green-500 hover:text-black transition-all duration-300"
+            style={{ boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)' }}
           >
-            Exit
+            EXIT
           </button>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Stats & Progress */}
+          {/* Stats Panel */}
           <div className="lg:col-span-1 space-y-6">
             {/* Level Card */}
-            <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 border border-white border-opacity-20">
-              <div className="text-center">
-                <div className="text-6xl font-bold text-white mb-2">
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6 relative overflow-hidden"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={{
+                boxShadow: '0 0 40px rgba(0, 255, 0, 0.5), inset 0 0 30px rgba(0, 255, 0, 0.1)'
+              }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500 opacity-10 rounded-full filter blur-3xl"></div>
+              <div className="text-center relative z-10">
+                <motion.div 
+                  className="text-7xl font-bold text-green-400 mb-2 font-mono"
+                  animate={{
+                    textShadow: [
+                      '0 0 20px rgba(0, 255, 0, 0.8)',
+                      '0 0 40px rgba(0, 255, 0, 1)',
+                      '0 0 20px rgba(0, 255, 0, 0.8)'
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
                   {stats.level}
+                </motion.div>
+                <p className="text-green-500 font-bold mb-4 font-mono">
+                  LEVEL {stats.level} DEBATER
+                </p>
+                <div className="bg-gray-900 h-3 mb-2">
+                  <motion.div
+                    className="bg-green-500 h-3"
+                    initial={{ width: 0 }}
+                    animate={{ width: '73%' }}
+                    transition={{ duration: 1 }}
+                    style={{ boxShadow: '0 0 10px #00FF00' }}
+                  ></motion.div>
                 </div>
-                <p className="text-purple-100 font-semibold mb-4">Level {stats.level} Debater</p>
-                <div className="bg-white bg-opacity-20 rounded-full h-3 mb-2">
-                  <div className="bg-white h-3 rounded-full" style={{width: '73%'}}></div>
-                </div>
-                <p className="text-sm text-purple-100">{stats.totalXP} / 5000 XP</p>
+                <p className="text-sm text-gray-400 font-mono">
+                  {stats.totalXP} / 5000 XP
+                </p>
               </div>
-            </div>
+            </motion.div>
 
             {/* Stats */}
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
-              <h3 className="text-xl font-bold text-white mb-4">Your Stats</h3>
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6"
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
+            >
+              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
+                [YOUR_STATS]
+              </h3>
               <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-gray-300">🧠 Avg Logic</span>
-                    <span className="text-white font-bold">{stats.avgLogic}</span>
+                {[
+                  { label: 'LOGIC', value: stats.avgLogic, color: '#00FF00' },
+                  { label: 'CREDIBILITY', value: stats.avgCredibility, color: '#00CC00' },
+                  { label: 'RHETORIC', value: stats.avgRhetoric, color: '#00FF66' }
+                ].map((stat) => (
+                  <div key={stat.label}>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-gray-400 font-mono text-sm">{stat.label}</span>
+                      <span className="text-green-400 font-bold font-mono">{stat.value}</span>
+                    </div>
+                    <div className="bg-gray-900 h-2">
+                      <motion.div 
+                        className="h-2"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${stat.value}%` }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                        style={{ 
+                          backgroundColor: stat.color,
+                          boxShadow: `0 0 10px ${stat.color}`
+                        }}
+                      ></motion.div>
+                    </div>
                   </div>
-                  <div className="bg-white bg-opacity-20 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full" style={{width: `${stats.avgLogic}%`}}></div>
+                ))}
+                <div className="pt-4 border-t border-green-500 space-y-2">
+                  <div className="flex justify-between font-mono">
+                    <span className="text-gray-400">TOTAL_DEBATES</span>
+                    <span className="text-green-400 font-bold">{stats.totalDebates}</span>
                   </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-gray-300">✅ Avg Credibility</span>
-                    <span className="text-white font-bold">{stats.avgCredibility}</span>
-                  </div>
-                  <div className="bg-white bg-opacity-20 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full" style={{width: `${stats.avgCredibility}%`}}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-gray-300">🎭 Avg Rhetoric</span>
-                    <span className="text-white font-bold">{stats.avgRhetoric}</span>
-                  </div>
-                  <div className="bg-white bg-opacity-20 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-pink-400 to-purple-400 h-2 rounded-full" style={{width: `${stats.avgRhetoric}%`}}></div>
-                  </div>
-                </div>
-                <div className="pt-4 border-t border-white border-opacity-20">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">📊 Total Debates</span>
-                    <span className="text-white font-bold">{stats.totalDebates}</span>
-                  </div>
-                  <div className="flex justify-between mt-2">
-                    <span className="text-gray-300">🏆 Win Rate</span>
-                    <span className="text-white font-bold">{stats.winRate}%</span>
+                  <div className="flex justify-between font-mono">
+                    <span className="text-gray-400">WIN_RATE</span>
+                    <span className="text-green-400 font-bold">{stats.winRate}%</span>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Main Training Area */}
+          {/* Main Area */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Start Training */}
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20">
-              <h2 className="text-2xl font-bold text-white mb-6">Start AI Training Session</h2>
+            {/* Training Session */}
+            <motion.div
+              className="bg-black border-2 border-green-500 p-8"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
+            >
+              <h2 className="text-2xl font-bold text-green-400 mb-6 font-mono">
+                [TRAINING_SESSION]
+              </h2>
               
               <div className="mb-6">
-                <label className="block text-white font-semibold mb-3">Choose a Topic</label>
+                <label className="block text-green-400 font-bold mb-3 font-mono">
+                  SELECT_TOPIC:
+                </label>
                 <div className="grid grid-cols-1 gap-3">
                   {topics.map((topic) => (
-                    <button
+                    <motion.button
                       key={topic}
                       onClick={() => setSelectedTopic(topic)}
-                      className={`p-4 rounded-xl text-left transition duration-200 ${
+                      className={`p-4 text-left transition-all duration-300 font-mono ${
                         selectedTopic === topic
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                          : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                          ? 'bg-green-500 text-black border-2 border-green-400'
+                          : 'bg-black text-green-400 border-2 border-green-500 hover:bg-green-500 hover:bg-opacity-20'
                       }`}
+                      whileHover={{ x: 5 }}
+                      style={{
+                        boxShadow: selectedTopic === topic 
+                          ? '0 0 20px rgba(0, 255, 0, 0.6)' 
+                          : '0 0 10px rgba(0, 255, 0, 0.2)'
+                      }}
                     >
-                      {topic}
-                    </button>
+                      {'>'} {topic}
+                    </motion.button>
                   ))}
                 </div>
               </div>
 
-              <button
+              <motion.button
                 disabled={!selectedTopic}
-                className={`w-full py-4 rounded-xl font-semibold text-lg transition duration-200 ${
+                className={`w-full py-4 font-bold text-lg transition-all duration-300 font-mono ${
                   selectedTopic
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                    ? 'bg-green-500 text-black hover:bg-green-400'
+                    : 'bg-gray-800 text-gray-600 cursor-not-allowed'
                 }`}
+                whileHover={selectedTopic ? { scale: 1.02 } : {}}
+                whileTap={selectedTopic ? { scale: 0.98 } : {}}
+                style={{
+                  boxShadow: selectedTopic ? '0 0 30px rgba(0, 255, 0, 0.6)' : 'none',
+                  clipPath: 'polygon(3% 0%, 100% 0%, 97% 100%, 0% 100%)'
+                }}
               >
-                Start Training Session
-              </button>
-            </div>
+                INITIALIZE_TRAINING
+              </motion.button>
+            </motion.div>
 
-            {/* Active Challenges */}
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
-              <h2 className="text-2xl font-bold text-white mb-6">Active Challenges</h2>
+            {/* Challenges */}
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.3)' }}
+            >
+              <h2 className="text-2xl font-bold text-green-400 mb-6 font-mono">
+                [ACTIVE_CHALLENGES]
+              </h2>
               <div className="space-y-4">
                 {challenges.map((challenge) => (
-                  <div key={challenge.id} className="bg-white bg-opacity-10 rounded-xl p-5">
+                  <motion.div
+                    key={challenge.id}
+                    className="bg-gray-900 bg-opacity-50 border border-green-500 p-5"
+                    whileHover={{ x: 5 }}
+                    style={{ boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)' }}
+                  >
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h3 className="text-lg font-bold text-white">{challenge.title}</h3>
-                        <p className="text-gray-300 text-sm">{challenge.description}</p>
+                        <h3 className="text-lg font-bold text-green-400 font-mono">
+                          {challenge.title}
+                        </h3>
+                        <p className="text-gray-400 text-sm font-mono">
+                          {challenge.description}
+                        </p>
                       </div>
-                      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        +{challenge.xp} XP
+                      <div className="bg-green-500 text-black px-3 py-1 font-bold text-sm font-mono">
+                        +{challenge.xp}XP
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-white bg-opacity-20 rounded-full h-2">
-                        <div 
-                          className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full" 
-                          style={{width: `${challenge.progress}%`}}
-                        ></div>
+                      <div className="flex-1 bg-gray-900 h-2">
+                        <motion.div 
+                          className="bg-green-500 h-2"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${challenge.progress}%` }}
+                          transition={{ duration: 1, delay: 0.5 }}
+                          style={{ boxShadow: '0 0 10px #00FF00' }}
+                        ></motion.div>
                       </div>
-                      <span className="text-white font-semibold text-sm">{challenge.progress}%</span>
+                      <span className="text-green-400 font-bold text-sm font-mono">
+                        {challenge.progress}%
+                      </span>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* AI Recommendations */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 border border-white border-opacity-20">
-              <h3 className="text-xl font-bold text-white mb-4">💡 AI Recommendations</h3>
+            <motion.div
+              className="bg-black border-2 border-green-500 p-6"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              style={{ boxShadow: '0 0 30px rgba(0, 255, 0, 0.4)' }}
+            >
+              <h3 className="text-xl font-bold text-green-400 mb-4 font-mono">
+                [AI_RECOMMENDATIONS]
+              </h3>
               <div className="space-y-3">
-                <div className="bg-white bg-opacity-20 rounded-xl p-4">
-                  <p className="text-white">
-                    <strong>Improve Credibility:</strong> Include more specific statistics and sources in your arguments.
-                  </p>
-                </div>
-                <div className="bg-white bg-opacity-20 rounded-xl p-4">
-                  <p className="text-white">
-                    <strong>Strengthen Logic:</strong> Practice connecting premises to conclusions more explicitly.
-                  </p>
-                </div>
+                {[
+                  { title: 'IMPROVE_CREDIBILITY', text: 'Include more specific statistics and sources in your arguments.' },
+                  { title: 'STRENGTHEN_LOGIC', text: 'Practice connecting premises to conclusions more explicitly.' }
+                ].map((rec, i) => (
+                  <motion.div
+                    key={i}
+                    className="bg-gray-900 bg-opacity-50 border border-green-500 p-4"
+                    whileHover={{ x: 5 }}
+                    style={{ boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)' }}
+                  >
+                    <p className="text-green-500 font-bold mb-1 font-mono text-sm">
+                      {'>'} {rec.title}:
+                    </p>
+                    <p className="text-gray-300 font-mono text-sm">
+                      {rec.text}
+                    </p>
+                  </motion.div>
+                ))}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .bg-grid-pattern {
+          background-image: 
+            linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+          background-size: 50px 50px;
+        }
+      `}</style>
     </div>
   );
 }

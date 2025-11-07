@@ -1,7 +1,44 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring } from 'framer-motion';
 import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap } from 'lucide-react';
+
+function AnimatedCounter({ value, suffix = '', duration = 2 }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const motionValue = useMotionValue(0);
+  const springValue = useSpring(motionValue, { duration: duration * 1000, bounce: 0 });
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    if (isInView) {
+      motionValue.set(value);
+    }
+  }, [isInView, motionValue, value]);
+
+  useEffect(() => {
+    const unsubscribe = springValue.on("change", (latest) => {
+      setDisplayValue(latest);
+    });
+    return unsubscribe;
+  }, [springValue]);
+
+  const formatValue = (val) => {
+    if (suffix === '%') {
+      return val.toFixed(1);
+    }
+    if (suffix === 'K+') {
+      return Math.floor(val);
+    }
+    return Math.floor(val);
+  };
+
+  return (
+    <span ref={ref}>
+      {formatValue(displayValue)}{suffix}
+    </span>
+  );
+}
 
 function Home() {
   const canvasRef = useRef(null);
@@ -317,9 +354,9 @@ function Home() {
             
             <div className="relative grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
               {[
-                { icon: Users, value: '50K+', label: 'Active Debaters', color: 'accent-rust' },
-                { icon: Trophy, value: '200K+', label: 'Debates Hosted', color: 'accent-saffron' },
-                { icon: Scale, value: '99.9%', label: 'AI Accuracy', color: 'accent-teal' }
+                { icon: Users, value: 50, suffix: 'K+', label: 'Active Debaters', color: 'accent-rust' },
+                { icon: Trophy, value: 200, suffix: 'K+', label: 'Debates Hosted', color: 'accent-saffron' },
+                { icon: Scale, value: 99.9, suffix: '%', label: 'AI Accuracy', color: 'accent-teal' }
               ].map((stat, i) => (
                 <motion.div
                   key={i}
@@ -330,7 +367,7 @@ function Home() {
                 >
                   <stat.icon className={`w-12 h-12 mx-auto mb-5 text-${stat.color}`} />
                   <div className={`text-6xl md:text-7xl font-bold font-display text-${stat.color} mb-3`}>
-                    {stat.value}
+                    <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={2.5} />
                   </div>
                   <div className="text-text-secondary font-medium">{stat.label}</div>
                 </motion.div>

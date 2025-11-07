@@ -104,13 +104,28 @@ Preferred communication style: Simple, everyday language.
 
 **State Management**: React hooks (useState, useEffect) with custom hooks for WebSocket connections
 
-**Styling**: TailwindCSS v3 with custom theme configuration
-- Custom color palette (primary shades)
+**Styling**: TailwindCSS v3 with modern gradient design system
+- Purple/pink/blue gradient backgrounds inspired by HypeAPP template
+- Glassmorphism effects (backdrop blur, transparency)
 - Responsive design utilities
 - Component-based CSS classes
 
+**Design System**:
+- Primary gradient: `from-purple-900 via-pink-800 to-blue-900`
+- Glassmorphic cards: `bg-white bg-opacity-10 backdrop-blur-md`
+- Accent gradients: Purple-to-pink, blue-to-purple
+- Rounded corners: Large radius (2xl, 3xl) for modern look
+- Interactive elements: Hover effects, transitions
+
 **Project Structure**:
-- `pages/` - Route components (Home, Debate, Host, Spectate, Results, Trainer, Profile)
+- `pages/` - Route components
+  - `Home.jsx` - Hero landing page with features and CTAs
+  - `Host.jsx` - Create debate room with topic/settings form
+  - `Join.jsx` - Enter room code to join debate
+  - `Debate.jsx` - Live debate arena with scoreboard and turn submission
+  - `Spectate.jsx` - Watch debates with reactions and viewer stats
+  - `Trainer.jsx` - AI training mode with challenges and progress tracking
+  - `Results.jsx` - Final scores and debate statistics
 - `components/` - Reusable UI components (ScoreBoard, TurnDisplay, VoiceInput, RewardPanel)
 - `services/` - API and WebSocket service layers
 - `hooks/` - Custom React hooks (useWebSocket)

@@ -60,62 +60,113 @@ class ApiService {
     return response.json();
   }
 
-  async get(endpoint, requiresAuth = false) {
+  async get(endpoint, requiresAuth = false, timeout = 30000) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "GET",
         headers: this.getHeaders(requiresAuth),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       return await this.handleResponse(response);
     } catch (error) {
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('Request timeout - please try again');
+        timeoutError.isTimeout = true;
+        console.error(`GET ${endpoint} timed out`);
+        throw timeoutError;
+      }
       console.error(`GET ${endpoint} failed:`, error);
       throw error;
     }
   }
 
-  async post(endpoint, data, requiresAuth = false) {
+  async post(endpoint, data, requiresAuth = false, timeout = 30000) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "POST",
         headers: this.getHeaders(requiresAuth),
         body: JSON.stringify(data),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       return await this.handleResponse(response);
     } catch (error) {
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('Request timeout - please try again');
+        timeoutError.isTimeout = true;
+        console.error(`POST ${endpoint} timed out`);
+        throw timeoutError;
+      }
       console.error(`POST ${endpoint} failed:`, error);
       throw error;
     }
   }
 
-  async put(endpoint, data, requiresAuth = false) {
+  async put(endpoint, data, requiresAuth = false, timeout = 30000) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "PUT",
         headers: this.getHeaders(requiresAuth),
         body: JSON.stringify(data),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       return await this.handleResponse(response);
     } catch (error) {
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('Request timeout - please try again');
+        timeoutError.isTimeout = true;
+        console.error(`PUT ${endpoint} timed out`);
+        throw timeoutError;
+      }
       console.error(`PUT ${endpoint} failed:`, error);
       throw error;
     }
   }
 
-  async delete(endpoint, requiresAuth = false) {
+  async delete(endpoint, requiresAuth = false, timeout = 30000) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "DELETE",
         headers: this.getHeaders(requiresAuth),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       return await this.handleResponse(response);
     } catch (error) {
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('Request timeout - please try again');
+        timeoutError.isTimeout = true;
+        console.error(`DELETE ${endpoint} timed out`);
+        throw timeoutError;
+      }
       console.error(`DELETE ${endpoint} failed:`, error);
       throw error;
     }
   }
 
-  async uploadFile(endpoint, file, extraData = {}, requiresAuth = true) {
+  async uploadFile(endpoint, file, extraData = {}, requiresAuth = true, timeout = 60000) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
       const formData = new FormData();
       formData.append("file", file);
 
@@ -135,17 +186,28 @@ class ApiService {
         method: "POST",
         headers,
         body: formData,
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       return await this.handleResponse(response);
     } catch (error) {
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('Request timeout - please try again');
+        timeoutError.isTimeout = true;
+        console.error(`File upload ${endpoint} timed out`);
+        throw timeoutError;
+      }
       console.error(`File upload ${endpoint} failed:`, error);
       throw error;
     }
   }
 
-  async postFormData(endpoint, formData, requiresAuth = true) {
+  async postFormData(endpoint, formData, requiresAuth = true, timeout = 30000) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
       const headers = {};
       if (requiresAuth) {
         const token = this.getToken();
@@ -158,10 +220,18 @@ class ApiService {
         method: "POST",
         headers,
         body: formData,
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       return await this.handleResponse(response);
     } catch (error) {
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('Request timeout - please try again');
+        timeoutError.isTimeout = true;
+        console.error(`POST FormData ${endpoint} timed out`);
+        throw timeoutError;
+      }
       console.error(`POST FormData ${endpoint} failed:`, error);
       throw error;
     }

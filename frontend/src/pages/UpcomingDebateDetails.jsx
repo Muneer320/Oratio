@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, Users, Link as LinkIcon, Bell, DoorOpen, ArrowLeft, Calendar, Timer, User, Award, FileText } from 'lucide-react';
+import { Clock, Users, Link as LinkIcon, Bell, DoorOpen, ArrowLeft, Calendar, Timer, User, Award, FileText, CheckCircle } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -134,6 +134,7 @@ const UpcomingDebateDetails = () => {
 
   const maxParticipants = room?.type === 'team' ? 4 : 2;
   const currentParticipants = participants.length;
+  const isAlreadyParticipant = participants.some(p => String(p.user_id) === String(user?.id));
   const spotsAvailable = maxParticipants - currentParticipants;
   const forCount = participants.filter(p => p.team === 'for').length;
   const againstCount = participants.filter(p => p.team === 'against').length;
@@ -292,16 +293,21 @@ const UpcomingDebateDetails = () => {
 
             <div className="flex gap-4">
               <motion.button
-                onClick={handleJoinDebate}
-                disabled={isJoining || spotsAvailable === 0}
+                onClick={isAlreadyParticipant ? () => navigate(`/debate/${roomCode}`) : handleJoinDebate}
+                disabled={isJoining || (spotsAvailable === 0 && !isAlreadyParticipant)}
                 className="flex-1 px-8 py-4 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-xl font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={spotsAvailable > 0 ? { scale: 1.02 } : {}}
-                whileTap={spotsAvailable > 0 ? { scale: 0.98 } : {}}
+                whileHover={(spotsAvailable > 0 || isAlreadyParticipant) ? { scale: 1.02 } : {}}
+                whileTap={(spotsAvailable > 0 || isAlreadyParticipant) ? { scale: 0.98 } : {}}
               >
                 {isJoining ? (
                   <span className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                     Joining...
+                  </span>
+                ) : isAlreadyParticipant ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Enter Debate
                   </span>
                 ) : spotsAvailable === 0 ? (
                   'Debate Full'

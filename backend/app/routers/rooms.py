@@ -19,6 +19,14 @@ def generate_room_code() -> str:
             return code
 
 
+def enrich_room_with_host(room: Dict[str, Any]) -> Dict[str, Any]:
+    """Add host_name to room data by looking up the host user"""
+    if room and "host_id" in room:
+        host = ReplitDB.get(Collections.USERS, room["host_id"])
+        room["host_name"] = host.get("username", "Anonymous") if host else "Anonymous"
+    return room
+
+
 @router.post("/create", response_model=RoomResponse)
 async def create_room(
     room_data: RoomCreate,
@@ -45,7 +53,7 @@ async def create_room(
     }
     
     room = ReplitDB.insert(Collections.ROOMS, new_room)
-    return room
+    return enrich_room_with_host(room)
 
 
 @router.get("/list", response_model=List[RoomResponse])
@@ -61,7 +69,7 @@ async def list_rooms(
         filter_criteria["status"] = status
     
     rooms = ReplitDB.find(Collections.ROOMS, filter_criteria, limit=limit)
-    return rooms
+    return [enrich_room_with_host(room) for room in rooms]
 
 
 @router.get("/code/{room_code}", response_model=RoomResponse)
@@ -72,7 +80,7 @@ async def get_room_by_code(room_code: str):
     room = ReplitDB.find_one(Collections.ROOMS, {"room_code": room_code.upper()})
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    return room
+    return enrich_room_with_host(room)
 
 
 @router.get("/{room_id}", response_model=RoomResponse)
@@ -83,7 +91,7 @@ async def get_room(room_id: str):
     room = ReplitDB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    return room
+    return enrich_room_with_host(room)
 
 
 @router.put("/{room_id}/update", response_model=RoomResponse)

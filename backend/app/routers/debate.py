@@ -509,9 +509,9 @@ async def end_debate(
 @router.get("/{room_id}/status")
 async def get_debate_status(room_id: str):
     """
-    Get current debate status with caching for performance
+    Get current debate status with caching and optimized payload
     """
-    # Try cache first (15 second TTL for debate status)
+    # Try cache first (60 second TTL for debate status)
     cache_key = f"debate_status_{room_id}"
     cached_status = room_cache.get(cache_key)
     if cached_status:
@@ -525,25 +525,47 @@ async def get_debate_status(room_id: str):
     participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
     turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
 
-    # Enrich participants with user information (username) - cached
-    enriched_participants = []
-    for participant in participants:
-        cache_key_user = f"user_{participant['user_id']}"
+    # Batch fetch all unique users (single DB query per unique user, using cache)
+    user_ids = list(set(p["user_id"] for p in participants))
+    user_map = {}
+    for user_id in user_ids:
+        cache_key_user = f"user_{user_id}"
         user = user_cache.get(cache_key_user)
-
         if user is None:
-            user = DB.get(Collections.USERS, participant["user_id"])
+            user = DB.get(Collections.USERS, user_id)
             if user:
                 user_cache.set(cache_key_user, user)
-
         if user:
-            participant["username"] = user.get("username", "Unknown")
-            participant["name"] = user.get(
-                "full_name") or user.get("username", "Unknown")
-        enriched_participants.append(participant)
+            user_map[user_id] = user
 
+    # Enrich participants with minimal user info
+    enriched_participants = []
+    for participant in participants:
+        user = user_map.get(participant['user_id'])
+        # Only include essential fields to reduce payload size
+        enriched_participants.append({
+            "id": participant["id"],
+            "user_id": participant["user_id"],
+            "username": user.get("username", "Unknown") if user else "Unknown",
+            "name": (user.get("full_name") or user.get("username", "Unknown")) if user else "Unknown",
+            "team": participant.get("team"),
+            "role": participant["role"],
+            "is_ready": participant.get("is_ready", False),
+            "score": participant.get("score", {})
+        })
+
+    # Minimize room data in response (only essential fields)
     status_response = {
-        "room": room,
+        "room": {
+            "id": room["id"],
+            "topic": room.get("topic"),
+            "status": room["status"],
+            "rounds": room.get("rounds", 3),
+            "mode": room.get("mode"),
+            "type": room.get("type"),
+            "room_code": room.get("room_code"),
+            "host_id": room.get("host_id")
+        },
         "participants": enriched_participants,
         "turn_count": len(turns),
         "status": room["status"]

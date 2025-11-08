@@ -87,27 +87,33 @@ class ReplitAI:
             except Exception as e:
                 print(f"⚠️  Replit AI failed: {e}, trying OpenAI...")
 
-        # Strategy 2: Try OpenAI
+        # Strategy 2: Try OpenAI with retry logic
         if OPENAI_AVAILABLE and openai_client:
-            try:
-                response = await openai_client.chat.completions.create(
-                    model=settings.OPENAI_MODEL,
-                    messages=messages,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    response_format={"type": "json_object"} if any("JSON" in msg.get("content", "") for msg in messages) else None
-                )
-                result = response.choices[0].message.content
-                print("✅ Using OpenAI fallback")
-                return result
+            import asyncio
+            
+            # Try up to 3 times with exponential backoff
+            for attempt in range(3):
+                try:
+                    response = await openai_client.chat.completions.create(
+                        model=settings.OPENAI_MODEL,
+                        messages=messages,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        response_format={"type": "json_object"} if any("JSON" in msg.get("content", "") for msg in messages) else None
+                    )
+                    result = response.choices[0].message.content
+                    print(f"✅ Using OpenAI fallback (attempt {attempt + 1})")
+                    return result
 
-            except Exception as e:
-                error_type = type(e).__name__
-                error_msg = str(e)
-                print(f"⚠️  OpenAI failed ({error_type}): {error_msg}")
-                import traceback
-                traceback.print_exc()
-                print("⚠️  Using static fallback...")
+                except Exception as e:
+                    error_type = type(e).__name__
+                    if attempt < 2:  # Don't wait after the last attempt
+                        wait_time = (2 ** attempt) * 0.5  # 0.5s, 1s, 2s
+                        print(f"⚠️  OpenAI attempt {attempt + 1} failed ({error_type}), retrying in {wait_time}s...")
+                        await asyncio.sleep(wait_time)
+                    else:
+                        print(f"⚠️  OpenAI failed after 3 attempts ({error_type}): {str(e)}")
+                        print("⚠️  Using static fallback...")
 
         # Strategy 3: Static fallback (last resort)
         print("⚠️  All AI providers unavailable, using static fallback")

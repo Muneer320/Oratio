@@ -102,7 +102,12 @@ class ReplitAI:
                 return result
 
             except Exception as e:
-                print(f"⚠️  OpenAI failed: {e}, using static fallback...")
+                error_type = type(e).__name__
+                error_msg = str(e)
+                print(f"⚠️  OpenAI failed ({error_type}): {error_msg}")
+                import traceback
+                traceback.print_exc()
+                print("⚠️  Using static fallback...")
 
         # Strategy 3: Static fallback (last resort)
         print("⚠️  All AI providers unavailable, using static fallback")

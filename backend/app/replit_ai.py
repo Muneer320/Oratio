@@ -47,7 +47,11 @@ class ReplitAI:
 
                 # Call chat method with ChatSession
                 response = model_instance.chat(
-                    [ChatSession(messages=chat_messages)],
+                    [ChatSession(
+                        context="You are an expert debate judge analyzing arguments.",
+                        examples=[],
+                        messages=chat_messages
+                    )],
                     temperature=temperature
                 )
                 

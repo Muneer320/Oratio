@@ -88,9 +88,9 @@ const UpcomingDebateDetails = () => {
 
     try {
       const teamValue = room?.type === 'team' ? selectedSide : null;
-      await api.post(`/api/debate/${room.id}/join`, {
-        team: teamValue,
-        role: 'debater'
+      await api.post(`/api/participants/join`, {
+        room_code: room.room_code,
+        team: teamValue
       }, true);
       
       navigate(`/debate/${roomCode}`);

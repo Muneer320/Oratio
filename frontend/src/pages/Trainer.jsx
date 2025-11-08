@@ -50,7 +50,7 @@ function Trainer() {
         scheduled_time: now.toISOString(),
         duration_minutes: 30,
         mode: 'text',
-        type: '1v1',
+        type: 'individual',
         visibility: 'public',
         rounds: 3,
         resources: []

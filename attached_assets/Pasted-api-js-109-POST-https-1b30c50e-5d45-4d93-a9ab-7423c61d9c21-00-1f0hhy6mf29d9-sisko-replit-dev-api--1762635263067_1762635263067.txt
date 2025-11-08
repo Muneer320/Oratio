@@ -1,0 +1,44 @@
+api.js:109  POST https://1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev/api/rooms/create 422 (Unprocessable Entity)
+post @ api.js:109
+startTraining @ Trainer.jsx:59
+callCallback2 @ chunk-NUMECXU6.js?v=bf857384:3674
+invokeGuardedCallbackDev @ chunk-NUMECXU6.js?v=bf857384:3699
+invokeGuardedCallback @ chunk-NUMECXU6.js?v=bf857384:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-NUMECXU6.js?v=bf857384:3736
+executeDispatch @ chunk-NUMECXU6.js?v=bf857384:7014
+processDispatchQueueItemsInOrder @ chunk-NUMECXU6.js?v=bf857384:7034
+processDispatchQueue @ chunk-NUMECXU6.js?v=bf857384:7043
+dispatchEventsForPlugins @ chunk-NUMECXU6.js?v=bf857384:7051
+(anonymous) @ chunk-NUMECXU6.js?v=bf857384:7174
+batchedUpdates$1 @ chunk-NUMECXU6.js?v=bf857384:18913
+batchedUpdates @ chunk-NUMECXU6.js?v=bf857384:3579
+dispatchEventForPluginEventSystem @ chunk-NUMECXU6.js?v=bf857384:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-NUMECXU6.js?v=bf857384:5478
+dispatchEvent @ chunk-NUMECXU6.js?v=bf857384:5472
+dispatchDiscreteEvent @ chunk-NUMECXU6.js?v=bf857384:5449
+api.js:125 POST /api/rooms/create failed: Error: [object Object]
+    at ApiService.handleResponse (api.js:50:24)
+    at async ApiService.post (api.js:117:14)
+    at async startTraining (Trainer.jsx:59:24)
+post @ api.js:125
+await in post
+startTraining @ Trainer.jsx:59
+callCallback2 @ chunk-NUMECXU6.js?v=bf857384:3674
+invokeGuardedCallbackDev @ chunk-NUMECXU6.js?v=bf857384:3699
+invokeGuardedCallback @ chunk-NUMECXU6.js?v=bf857384:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-NUMECXU6.js?v=bf857384:3736
+executeDispatch @ chunk-NUMECXU6.js?v=bf857384:7014
+processDispatchQueueItemsInOrder @ chunk-NUMECXU6.js?v=bf857384:7034
+processDispatchQueue @ chunk-NUMECXU6.js?v=bf857384:7043
+dispatchEventsForPlugins @ chunk-NUMECXU6.js?v=bf857384:7051
+(anonymous) @ chunk-NUMECXU6.js?v=bf857384:7174
+batchedUpdates$1 @ chunk-NUMECXU6.js?v=bf857384:18913
+batchedUpdates @ chunk-NUMECXU6.js?v=bf857384:3579
+dispatchEventForPluginEventSystem @ chunk-NUMECXU6.js?v=bf857384:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-NUMECXU6.js?v=bf857384:5478
+dispatchEvent @ chunk-NUMECXU6.js?v=bf857384:5472
+dispatchDiscreteEvent @ chunk-NUMECXU6.js?v=bf857384:5449
+Trainer.jsx:65 Error creating training room: Error: [object Object]
+    at ApiService.handleResponse (api.js:50:24)
+    at async ApiService.post (api.js:117:14)
+    at async startTraining (Trainer.jsx:59:24)

@@ -1,19 +1,41 @@
 # 🔧 Oratio Backend
 
-**FastAPI + Replit Integration**
+**FastAPI + Multi-Tier Architecture**
 
 This is the backend for Oratio, an AI-powered debate platform. It provides RESTful APIs and WebSocket connections for real-time debate management, AI judging, and user authentication.
+
+**Version:** 2.0.0  
+**Last Updated:** November 8, 2025
 
 ---
 
 ## 🏗️ Architecture
 
-The backend is built with:
+The backend implements a **three-tier graceful degradation system**:
+
+### Database Layer (Multi-Tier)
+
+- **Primary:** Supabase (PostgreSQL) - Production
+- **Fallback:** Replit DB - Development
+- **Final:** In-Memory Dict - Testing
+
+### AI Layer (Multi-Tier)
+
+- **Primary:** Google Gemini AI (gemini-2.0-flash) - Production
+- **Fallback:** Replit AI (chat-bison) - Development
+- **Final:** Static responses - Testing
+
+### Hosting
+
+- **Primary:** Render - Production
+- **Fallback:** Replit - Development
+
+### Core Technologies
 
 - **FastAPI** - Modern Python web framework
-- **Replit Database** - Key-value store for data persistence
-- **Replit AI** - AI model integration for debate analysis
-- **Replit Auth** - Seamless user authentication
+- **Supabase** - PostgreSQL database with REST API
+- **Google Gemini AI** - AI model for debate analysis
+- **Replit Auth** - User authentication
 - **WebSockets** - Real-time communication
 - **Pydantic** - Data validation
 
@@ -26,23 +48,33 @@ backend/
 ├── app/
 │   ├── main.py              # FastAPI application entry
 │   ├── config.py            # Configuration settings
-│   ├── replit_db.py         # Replit Database wrapper
-│   ├── replit_ai.py         # Replit AI integration
+│   ├── supabase_db.py       # ✨ Database wrapper (multi-tier fallback)
+│   ├── gemini_ai.py         # ✨ AI integration (multi-tier fallback)
 │   ├── replit_auth.py       # Authentication system
+│   ├── database.py          # SQLAlchemy models
 │   ├── models.py            # Data models (reference)
 │   ├── schemas.py           # Pydantic validation schemas
-│   ├── routers/             # API endpoint routers (TODO)
-│   │   ├── auth.py
-│   │   ├── rooms.py
-│   │   ├── debate.py
-│   │   ├── ai.py
-│   │   └── trainer.py
-│   └── websockets/          # WebSocket handlers (TODO)
-│       ├── debate.py
-│       └── spectator.py
+│   ├── routers/             # ✅ API endpoint routers (COMPLETE)
+│   │   ├── auth.py          # User authentication
+│   │   ├── rooms.py         # Room management
+│   │   ├── participants.py  # Participant operations
+│   │   ├── debate.py        # Debate flow
+│   │   ├── ai.py            # AI judging
+│   │   ├── trainer.py       # Training feedback
+│   │   ├── spectators.py    # Spectator features
+│   │   ├── uploads.py       # File uploads
+│   │   └── utils.py         # Utility endpoints
+│   └── websockets/          # ✅ WebSocket handlers (COMPLETE)
+│       └── debate.py        # Real-time debate updates
 ├── requirements.txt         # Python dependencies
 └── README.md               # This file
 ```
+
+**Key Files:**
+
+- **supabase_db.py** (280+ lines) - Unified database interface with automatic fallback
+- **gemini_ai.py** - AI service with Gemini → Replit AI → Static fallback
+- **main.py** - Environment detection and feature status display
 
 ---
 
@@ -118,38 +150,55 @@ Configuration is managed in `app/config.py` using Pydantic Settings.
 
 ### Environment Variables
 
-Key variables (see `.env.example`):
+Key variables for `backend/.env`:
 
 ```bash
-# Application
-API_ENV=development
-DEBUG=true
+# Supabase (Primary Database)
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_KEY=your_supabase_anon_key
 
-# Replit Features (auto-detected on Replit)
-USE_REPLIT_DB=true
-USE_REPLIT_AI=true
+# Google Gemini AI (Primary)
+GEMINI_API_KEY=your_gemini_api_key
+
+# API Configuration
+API_ENV=development
+WS_PORT=8000
+CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
 
 # Security
 SECRET_KEY=your_secret_key_here
 
-# Optional APIs
-SERPER_API_KEY=your_serper_key  # For fact-checking
+# Render Detection (auto-set on Render)
+RENDER=false
 ```
 
-### Replit-Specific Settings
+### Auto-Detection
 
-When running on Replit, these are auto-detected:
+The backend automatically detects and uses the best available services:
 
-- `REPL_ID` - Unique Replit instance ID
-- `REPL_SLUG` - Repl name
-- `REPL_OWNER` - Repl owner username
-- `REPLIT_DEV_DOMAIN` - Replit domain
+**Database Priority:**
+
+1. Supabase (if SUPABASE_URL and SUPABASE_KEY set)
+2. Replit DB (if running on Replit)
+3. In-memory dict (fallback)
+
+**AI Provider Priority:**
+
+1. Google Gemini AI (if GEMINI_API_KEY set)
+2. Replit AI (if running on Replit)
+3. Static responses (fallback)
+
+**Hosting Detection:**
+
+- Render: `RENDER=true` (auto-set)
+- Replit: `REPL_ID` exists (auto-detected)
+- Local: Default development mode
 
 ---
 
 ## 📚 API Endpoints
 
-### Health & Utilities
+### Health & Utilities ✅
 
 ```
 GET  /api/utils/health      - Health check with feature detection
@@ -158,7 +207,7 @@ POST /api/utils/feedback    - Submit user feedback
 GET  /api/utils/leaderboard - Get global leaderboard
 ```
 
-### Authentication (TODO)
+### Authentication ✅
 
 ```
 POST /api/auth/register     - Register new user
@@ -168,7 +217,59 @@ PUT  /api/auth/update       - Update user profile
 POST /api/auth/logout       - Logout user
 ```
 
-### Rooms (TODO)
+### Rooms ✅
+
+```
+POST /api/rooms/create      - Create debate room
+GET  /api/rooms/{code}      - Get room by code
+GET  /api/rooms             - List all rooms
+PUT  /api/rooms/{id}        - Update room
+DELETE /api/rooms/{id}      - Delete room
+POST /api/rooms/{id}/start  - Start debate
+```
+
+### Participants ✅
+
+```
+POST /api/participants/join - Join room
+GET  /api/participants/{id} - Get participant
+PUT  /api/participants/{id} - Update participant
+POST /api/participants/{id}/ready - Mark ready
+```
+
+### Debate ✅
+
+```
+POST /api/debate/turn       - Submit debate turn
+GET  /api/debate/turns/{room_id} - Get all turns
+POST /api/debate/end        - End debate
+GET  /api/debate/result/{room_id} - Get results
+```
+
+### AI Services ✅
+
+```
+POST /api/ai/judge          - Get AI judgment
+POST /api/ai/analyze        - Analyze argument
+POST /api/ai/suggest        - Get suggestions
+```
+
+### Training ✅
+
+```
+GET  /api/trainer/feedback/{user_id} - Get training feedback
+POST /api/trainer/exercise  - Submit training exercise
+GET  /api/trainer/progress/{user_id} - Get progress
+```
+
+### Spectators ✅
+
+```
+POST /api/spectators/vote   - Submit spectator vote
+GET  /api/spectators/votes/{room_id} - Get votes
+```
+
+### File Uploads ✅
 
 ```
 POST   /api/rooms/create    - Create debate room

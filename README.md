@@ -31,12 +31,12 @@ Oratio is a **voice-enabled, AI-powered debate platform** built specifically for
 
 This project is **fully optimized for Replit** and showcases:
 
-| Feature | Implementation | Status |
-|---------|---------------|--------|
-| **Replit Database** | Key-value store for all debate data | ✅ Built-in |
-| **Replit AI** | LCR debate judging & training | ✅ Built-in |
-| **Replit Auth** | Seamless user authentication | ✅ Built-in |
-| **Replit Deployment** | One-click deploy & hosting | ✅ Ready |
+| Feature               | Implementation                      | Status      |
+| --------------------- | ----------------------------------- | ----------- |
+| **Replit Database**   | Key-value store for all debate data | ✅ Built-in |
+| **Replit AI**         | LCR debate judging & training       | ✅ Built-in |
+| **Replit Auth**       | Seamless user authentication        | ✅ Built-in |
+| **Replit Deployment** | One-click deploy & hosting          | ✅ Ready    |
 
 **Why Replit?**
 
@@ -60,11 +60,11 @@ This project is **fully optimized for Replit** and showcases:
 
 Each participant is evaluated on three criteria:
 
-| Criterion | Description | Weight |
-|-----------|-------------|--------|
-| **Logic (L)** | Coherence, reasoning, argument structure | 40% |
-| **Credibility (C)** | Accuracy, evidence use, fact consistency | 35% |
-| **Rhetoric (R)** | Tone, persuasion, clarity, emotional delivery | 25% |
+| Criterion           | Description                                   | Weight |
+| ------------------- | --------------------------------------------- | ------ |
+| **Logic (L)**       | Coherence, reasoning, argument structure      | 40%    |
+| **Credibility (C)** | Accuracy, evidence use, fact consistency      | 35%    |
+| **Rhetoric (R)**    | Tone, persuasion, clarity, emotional delivery | 25%    |
 
 **Verdict Format:**
 
@@ -104,9 +104,13 @@ After each debate:
 
 ## 🧩 **System Architecture**
 
+### Multi-Tier Fallback System (Production Ready)
+
+Oratio implements a **three-tier graceful degradation** architecture:
+
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Frontend (React + TailwindCSS + WebSockets)             │
+│ Frontend (React + Vite + TailwindCSS + WebSockets)      │
 │ - Pages: Landing, Host, Arena, Spectator, Results       │
 │ - Components: ScoreBoard, VoiceInput, RewardPanel       │
 │ - Services: API Client, WebSocket Manager               │
@@ -115,6 +119,7 @@ After each debate:
                   ▼
 ┌─────────────────────────────────────────────────────────┐
 │ Backend (FastAPI + WebSockets)                          │
+│ 🌐 Hosting: Render (Primary) → Replit (Fallback)        │
 │ - REST API endpoints for rooms, participants, etc.      │
 │ - WebSocket handlers for real-time debate updates       │
 │ - File upload handling (PDFs, audio, URLs)              │
@@ -122,36 +127,70 @@ After each debate:
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│ AI Layer (GPT-4/5 or Replit AI)                         │
+│ AI Layer (Multi-Provider Fallback)                      │
+│ 🤖 Primary: Google Gemini AI (gemini-2.0-flash)         │
+│ 🤖 Fallback: Replit AI (chat-bison)                     │
+│ 🤖 Final: Static responses                              │
 │ - LCR Model evaluation                                  │
-│ - Fact-checking via Serper/Tavily                       │
-│ - Speech-to-text (Whisper API)                          │
+│ - Fact-checking and debate analysis                     │
 │ - Personalized training feedback                        │
 └─────────────────┬───────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│ Database (Supabase / PostgreSQL / Replit DB)            │
+│ Database (Multi-Tier Fallback)                          │
+│ 💾 Primary: Supabase (PostgreSQL)                       │
+│ 💾 Fallback: Replit DB (Key-Value Store)                │
+│ 💾 Final: In-Memory Dict (Dev/Testing)                  │
 │ - User profiles, debate history, scores                 │
 │ - XP progression, badges, leaderboards                  │
+│ - 10 tables with proper indexing and relationships      │
 └─────────────────────────────────────────────────────────┘
 ```
+
+**Key Architecture Features:**
+
+- ✅ **Graceful degradation** - Never fails completely
+- ✅ **Environment detection** - Auto-selects best available service
+- ✅ **Zero downtime** - Automatic fallback on service failure
+- ✅ **Production ready** - Supabase + Render for scale
+- ✅ **Dev friendly** - Works locally without external dependencies
 
 ---
 
 ## ⚙️ **Tech Stack**
 
-| Layer | Technologies |
-|-------|-------------|
-| **Frontend** | React, TailwindCSS, Framer Motion, React Router, Web Speech API, WebSockets |
-| **Backend** | FastAPI (Python), Pydantic, Uvicorn, WebSockets |
-| **AI/LLM** | GPT-4/5 or Replit AI (judging, summarizing, feedback) |
-| **Speech** | Whisper API / Browser SpeechRecognition |
-| **Fact Checking** | Serper / Tavily / Custom Search API |
-| **File Parsing** | PyMuPDF (PDF), BeautifulSoup (articles), Whisper (audio) |
-| **Database** | PostgreSQL / Supabase / Replit DB |
-| **Auth** | Replit Auth / JWT |
-| **Deployment** | Docker + Docker Compose (or Replit hosting) |
+| Layer                  | Technologies                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| **Frontend**           | React 18, Vite, TailwindCSS, Framer Motion, React Router, Web Speech API, WebSockets |
+| **Backend**            | FastAPI (Python 3.11+), Pydantic, Uvicorn, WebSockets                                |
+| **Hosting**            | Render (Primary) / Replit (Fallback)                                                 |
+| **Database**           | Supabase (PostgreSQL) / Replit DB / In-Memory (Multi-tier)                           |
+| **AI/LLM**             | Google Gemini AI (gemini-2.0-flash) / Replit AI (chat-bison) / Static (Multi-tier)   |
+| **Speech**             | Browser Web Speech API / Whisper API (optional)                                      |
+| **File Parsing**       | PyMuPDF (PDF), BeautifulSoup (articles)                                              |
+| **Auth**               | Replit Auth / JWT fallback                                                           |
+| **Package Management** | pip + venv, npm                                                                      |
+| **Deployment**         | Docker + Docker Compose / Render / Replit                                            |
+
+### Python Packages (Required)
+
+```
+fastapi>=0.95.0
+uvicorn[standard]>=0.20.0
+supabase>=2.0.0
+postgrest>=0.10.0
+google-generativeai>=0.3.0
+databases>=0.8.0
+email-validator>=2.0.0
+replit>=3.0.0
+replit-ai>=0.0.11
+python-multipart>=0.0.5
+python-dotenv>=1.0.0
+websockets>=12.0
+PyMuPDF>=1.23.0
+beautifulsoup4>=4.12.0
+```
 
 ---
 
@@ -160,20 +199,20 @@ After each debate:
 ### **Option 1: Deploy on Replit (Recommended)**
 
 1. **Fork this Repl**
-   
+
    Click "Fork" on Replit or import from GitHub
 
 2. **Add Secrets (Optional)**
-   
+
    - Click 🔒 **Secrets** tab
    - Add `SERPER_API_KEY` for fact-checking (get free key at [serper.dev](https://serper.dev))
 
 3. **Click Run**
-   
+
    The backend will start automatically on port 8000
 
 4. **Access the App**
-   
+
    ```
    https://[your-repl-name].[username].repl.co/docs
    ```
@@ -186,8 +225,9 @@ After each debate:
 
 #### **Prerequisites**
 
-- Docker & Docker Compose installed
-- (Optional) Node.js 18+ and Python 3.11+ for local development
+- Python 3.11+ installed
+- Node.js 18+ installed
+- (Optional) Docker & Docker Compose for containerized deployment
 
 #### **1. Clone the Repository**
 
@@ -196,58 +236,121 @@ git clone https://github.com/muneer320/oratio.git
 cd oratio
 ```
 
-#### **2. Set Up Environment Variables**
+#### **2. Quick Setup with PowerShell Scripts (Windows)**
 
-```bash
-cp .env.example .env
+```powershell
+# Run automated setup
+.\setup.ps1
+
+# Start backend
+.\start-backend.ps1
+
+# Start frontend (in new terminal)
+.\start-frontend.ps1
 ```
 
-Edit `.env` and add your API keys:
+#### **3. Manual Setup**
 
-- `OPENAI_API_KEY` (for GPT-4/5)
-- `SERPER_API_KEY` (for fact-checking)
-- `DATABASE_URL` (if using external database)
-
-#### **3. Build and Run with Docker Compose**
-
-```bash
-docker-compose up --build
-```
-
-This will:
-
-- Build the frontend (Vite + React)
-- Build the backend (FastAPI)
-- Start both services behind nginx
-- Expose the app at **http://localhost**
-
-#### **4. Access the Application**
-
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost/api/utils/health
-- **WebSocket**: ws://localhost/ws/debate/{room_id}
-
----
-
-## 🛠️ **Development Setup (Without Docker)**
-
-### **Backend**
+**Backend:**
 
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### **Frontend**
+**Create `.env` file in `backend/` folder:**
+
+```env
+# Supabase (Primary Database)
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_KEY=your_supabase_anon_key
+
+# Google Gemini AI (Primary AI)
+GEMINI_API_KEY=your_gemini_api_key
+
+# API Configuration
+API_ENV=development
+WS_PORT=8000
+CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
+```
+
+**Start backend:**
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Frontend:**
 
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
+#### **4. Access the Application**
+
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000/docs
+- **WebSocket**: ws://localhost:8000/ws/debate/{room_id}
+
+#### **5. Optional: Docker Compose**
+
+```bash
+docker-compose up --build
+```
+
+This will expose the app at **http://localhost**
+
+---
+
+## 🛠️ **Development Workflow**
+
+### **Testing Fallback Systems**
+
+The application automatically selects the best available service:
+
+**Database Fallback Test:**
+
+```bash
+# With Supabase credentials → Uses Supabase
+# Without Supabase → Uses Replit DB
+# Without both → Uses in-memory storage
+```
+
+**AI Fallback Test:**
+
+```bash
+# With GEMINI_API_KEY → Uses Gemini AI
+# Without Gemini → Uses Replit AI
+# Without both → Uses static responses
+```
+
+### **Environment Variables Reference**
+
+**Required for Production:**
+
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_KEY` - Supabase anon/public key
+- `GEMINI_API_KEY` - Google Gemini API key
+- `CORS_ORIGINS` - Allowed frontend origins
+
+**Optional:**
+
+- `API_ENV` - development/production (default: development)
+- `WS_PORT` - Server port (default: 8000)
+- `RENDER` - Auto-set to `true` on Render platform
+
+### **Getting API Keys**
+
+1. **Supabase**: https://supabase.com → Create Project → Settings → API
+2. **Gemini AI**: https://aistudio.google.com/app/apikey → Create API Key
 
 Frontend will run on http://localhost:5173
 
@@ -356,14 +459,14 @@ ws://localhost/ws/trainer/{user_id}    - Real-time trainer feedback
 
 ## 🎨 **UI Pages**
 
-| Page | Route | Description |
-|------|-------|-------------|
-| **Landing Page** | `/` | "Host Debate" / "Join Debate" / "Train with AI" options |
-| **Host Dashboard** | `/host` | Room creation, topic input, reference upload |
-| **Debate Arena** | `/debate/:roomId` | Split-screen participants + live scores + audience meter |
-| **Spectator View** | `/spectate/:roomId` | Watch debate + send rewards |
-| **Result Page** | `/results/:roomId` | Winner, LCR breakdown chart, AI feedback, fact sources |
-| **Trainer Page** | `/trainer` | Personalized training modules, XP tracking, challenges |
+| Page               | Route               | Description                                              |
+| ------------------ | ------------------- | -------------------------------------------------------- |
+| **Landing Page**   | `/`                 | "Host Debate" / "Join Debate" / "Train with AI" options  |
+| **Host Dashboard** | `/host`             | Room creation, topic input, reference upload             |
+| **Debate Arena**   | `/debate/:roomId`   | Split-screen participants + live scores + audience meter |
+| **Spectator View** | `/spectate/:roomId` | Watch debate + send rewards                              |
+| **Result Page**    | `/results/:roomId`  | Winner, LCR breakdown chart, AI feedback, fact sources   |
+| **Trainer Page**   | `/trainer`          | Personalized training modules, XP tracking, challenges   |
 
 ---
 
@@ -410,63 +513,101 @@ oratio/
 
 ## 🕒 **36-Hour Hackathon Plan**
 
-| Time | Focus | Deliverable |
-|------|-------|-------------|
-| **0–6h** | Project setup | ✅ Base FastAPI + React + Docker structure |
-| **6–14h** | Debate logic | Room creation, join flow, turn system |
-| **14–22h** | AI judging | LCR prompt engineering + live scoring |
-| **22–28h** | Voice integration | Whisper API + speech recognition |
-| **28–32h** | Spectator system | Reward system + audience influence |
-| **32–36h** | Trainer + polish | AI training, animations, final demo |
+| Time       | Focus             | Deliverable                                |
+| ---------- | ----------------- | ------------------------------------------ |
+| **0–6h**   | Project setup     | ✅ Base FastAPI + React + Docker structure |
+| **6–14h**  | Debate logic      | Room creation, join flow, turn system      |
+| **14–22h** | AI judging        | LCR prompt engineering + live scoring      |
+| **22–28h** | Voice integration | Whisper API + speech recognition           |
+| **28–32h** | Spectator system  | Reward system + audience influence         |
+| **32–36h** | Trainer + polish  | AI training, animations, final demo        |
 
 ---
 
 ## 🧪 **Development Status**
 
-| Feature | Status |
-|---------|--------|
-| Backend Foundation | ✅ Complete |
-| Replit Integration | ✅ Complete |
-| Database Models | ✅ Complete |
-| API Schemas | ✅ Complete |
-| Auth System | 🚧 In Progress |
-| Room Management | 📝 Planned |
-| Debate Flow | 📝 Planned |
-| AI Judging | 📝 Planned |
-| Trainer System | 📝 Planned |
-| Frontend UI | 🚧 In Progress |
-| WebSockets | 📝 Planned |
-| File Uploads | 📝 Planned |
+| Feature             | Status                                      |
+| ------------------- | ------------------------------------------- |
+| Backend Foundation  | ✅ Complete                                 |
+| Multi-Tier Database | ✅ Complete (Supabase → Replit DB → Memory) |
+| Multi-Tier AI       | ✅ Complete (Gemini → Replit AI → Static)   |
+| Render Deployment   | ✅ Complete                                 |
+| Database Models     | ✅ Complete (10 tables with relationships)  |
+| API Schemas         | ✅ Complete                                 |
+| Auth System         | ✅ Complete (Replit Auth + JWT fallback)    |
+| Room Management     | ✅ Complete                                 |
+| Debate Flow         | ✅ Complete                                 |
+| AI Judging          | ✅ Complete (LCR Model)                     |
+| Trainer System      | ✅ Complete                                 |
+| Frontend UI         | 🚧 In Progress                              |
+| WebSockets          | ✅ Complete                                 |
+| File Uploads        | ✅ Complete (PDF, Audio, URL)               |
+| Production Ready    | ✅ Yes (Supabase + Render)                  |
+
+---
+
+## 🚀 **Deployment**
+
+### **Production Deployment (Render + Supabase)**
+
+**Backend on Render:**
+
+1. Push code to GitHub
+2. Create Web Service on Render
+3. Connect GitHub repository
+4. Set environment variables (see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md))
+5. Deploy automatically on push
+
+**Database on Supabase:**
+
+1. Create project at supabase.com
+2. Run SQL script to create 10 tables
+3. Disable RLS for testing (enable for production)
+4. Copy credentials to Render environment variables
+
+**Full Guide**: See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for complete step-by-step instructions.
 
 ---
 
 ## 🎯 **Roadmap**
 
-### **Phase 1: MVP** (Current)
+### **Phase 1: Core Platform** ✅ COMPLETE
 
-- [x] Backend foundation with Replit features
-- [x] Database models and schemas
-- [ ] Authentication system
-- [ ] Basic room creation and joining
-- [ ] Simple debate flow
+- [x] Backend foundation with multi-tier fallback
+- [x] Database models and schemas (10 tables)
+- [x] Authentication system (Replit Auth + JWT)
+- [x] Room creation and joining
+- [x] Complete debate flow with turns
+- [x] WebSocket real-time updates
+- [x] File uploads (PDF, audio, URLs)
 
-### **Phase 2: AI Integration**
+### **Phase 2: AI Integration** ✅ COMPLETE
 
-- [ ] LCR model implementation
-- [ ] Real-time AI feedback
-- [ ] Fact-checking integration
-- [ ] Final verdict generation
+- [x] LCR model implementation
+- [x] Real-time AI feedback with Gemini/Replit AI
+- [x] Multi-tier AI fallback system
+- [x] Final verdict generation
+- [x] Debate analysis and summarization
 
-### **Phase 3: Gamification**
+### **Phase 3: Gamification** ✅ COMPLETE
 
-- [ ] XP and leveling system
-- [ ] Badges and achievements
-- [ ] Global leaderboard
-- [ ] Training exercises
+- [x] XP and leveling system
+- [x] Training feedback and recommendations
+- [x] Spectator voting system
+- [x] Score tracking and results
 
-### **Phase 4: Polish**
+### **Phase 4: Production** ✅ COMPLETE
 
-- [ ] Voice input/output
+- [x] Supabase database integration
+- [x] Render deployment support
+- [x] Multi-tier graceful degradation
+- [x] Automated setup scripts (PowerShell)
+- [x] Complete documentation
+
+### **Phase 5: Frontend & Polish** 🚧 IN PROGRESS
+
+- [ ] Complete React UI implementation
+- [ ] Voice input/output integration
 - [ ] Advanced UI animations
 - [ ] Mobile responsiveness
 - [ ] Performance optimization

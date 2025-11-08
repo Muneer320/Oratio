@@ -1,18 +1,40 @@
-# 🚀 Oratio - Replit Vibeathon Setup Guide
+# 🚀 Oratio - Replit Setup Guide (Fallback Mode)
 
-This project is **fully optimized for Replit** and uses Replit's native features!
+**Version:** 2.0.0  
+**Last Updated:** November 8, 2025
+
+This project now uses a **multi-tier architecture** with Replit as a **fallback/development** option.
 
 ---
 
-## ✨ **Replit Features Used**
+## 🏗️ **Architecture Overview**
 
-| Feature                   | Usage                                                | Status         |
-| ------------------------- | ---------------------------------------------------- | -------------- |
-| **Replit Database**       | Key-value store for all data (users, rooms, debates) | ✅ Built-in    |
-| **Replit AI**             | LCR debate judging, fact-checking, trainer feedback  | ✅ Built-in    |
-| **Replit Auth**           | User authentication (no password management needed)  | ✅ Built-in    |
-| **Replit Object Storage** | File uploads (PDFs, audio files)                     | ✅ Available   |
-| **Replit Secrets**        | API keys (Serper for fact-checking)                  | ✅ Recommended |
+Oratio uses a three-tier graceful degradation system:
+
+| Service             | Primary (Production)  | Fallback (Development) | Final Fallback   |
+| ------------------- | --------------------- | ---------------------- | ---------------- |
+| **Database**        | Supabase (PostgreSQL) | Replit DB              | In-Memory Dict   |
+| **AI Provider**     | Google Gemini AI      | Replit AI              | Static Responses |
+| **Backend Hosting** | Render                | Replit                 | Local            |
+
+**Replit is now a fallback option** - great for:
+
+- ✅ Quick prototyping
+- ✅ Development without external dependencies
+- ✅ Testing fallback systems
+- ✅ Hackathon demos
+
+---
+
+## ✨ **Replit Features (As Fallbacks)**
+
+| Feature                   | Usage                            | Status           |
+| ------------------------- | -------------------------------- | ---------------- |
+| **Replit Database**       | Fallback database (tier 2)       | ✅ Auto-detected |
+| **Replit AI**             | Fallback AI provider (tier 2)    | ✅ Auto-detected |
+| **Replit Auth**           | User authentication              | ✅ Available     |
+| **Replit Object Storage** | File uploads (PDFs, audio files) | ✅ Available     |
+| **Replit Secrets**        | API keys storage                 | ✅ Recommended   |
 
 ---
 

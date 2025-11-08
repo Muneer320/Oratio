@@ -49,6 +49,15 @@ async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
                     print(f"⚠️  Failed to analyze turn {turn['id']}: {e}")
         
         print(f"✅ Round {round_number} analysis complete!")
+        
+        # Check if ALL rounds are now complete and auto-end the debate
+        total_rounds = room.get("rounds", 3)
+        expected_total_turns = total_rounds * debater_count
+        
+        if len(all_turns) >= expected_total_turns and room.get("status") == "ongoing":
+            print(f"🏁 All {total_rounds} rounds complete ({len(all_turns)}/{expected_total_turns} turns)! Auto-ending debate...")
+            ReplitDB.update(Collections.ROOMS, room["id"], {"status": "completed"})
+            print("✅ Debate automatically ended")
 
 
 @router.post("/{room_id}/submit-turn", response_model=TurnResponse)

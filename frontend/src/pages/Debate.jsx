@@ -81,27 +81,6 @@ function Debate() {
     }
   }, [turns]);
 
-  // Check if debate should auto-end when all rounds are complete
-  useEffect(() => {
-    if (room && participants.length > 0 && turns.length > 0) {
-      const totalRounds = room.rounds || 3;
-      const participantCount = participants.filter(p => p.role === 'debater').length || 2;
-      const expectedTurns = totalRounds * participantCount;
-      
-      // Auto-end debate when all rounds are complete
-      if (turns.length >= expectedTurns && room.status === 'ongoing') {
-        // Only host can end, show message to others
-        if (room.host_id === user?.id) {
-          setTimeout(() => {
-            handleEndDebate();
-          }, 2000);
-        } else {
-          setError('All rounds complete. Waiting for host to end debate...');
-        }
-      }
-    }
-  }, [turns.length, room, participants]);
-
   const loadRoomData = async () => {
     try {
       const foundRoom = await api.get(`/api/rooms/code/${roomCode}`, true);
@@ -416,7 +395,7 @@ function Debate() {
                   <p className="text-text-muted text-center py-12">No arguments yet. Be the first to speak!</p>
                 ) : (
                   turns.map((turn, i) => {
-                    const speaker = participants.find(p => p.id === turn.speaker_id);
+                    const speaker = participants.find(p => String(p.id) === String(turn.speaker_id));
                     const speakerName = speaker?.username || speaker?.name || `Speaker ${turn.speaker_id}`;
                     const speakerInitial = speakerName[0]?.toUpperCase() || 'S';
                     

@@ -12,7 +12,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchRooms();
-    const interval = setInterval(fetchRooms, 5000);
+    const interval = setInterval(fetchRooms, 15000);
     return () => clearInterval(interval);
   }, []);
 

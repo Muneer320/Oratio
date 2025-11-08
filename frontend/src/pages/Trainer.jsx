@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Target, TrendingUp, Sparkles, ArrowLeft, Play, Award, Zap } from 'lucide-react';
+import { Trophy, Target, TrendingUp, Sparkles, ArrowLeft, Play, Award, Zap, History } from 'lucide-react';
 
 function Trainer() {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ function Trainer() {
             </div>
             <p className="text-white/60">Level Up • Train • Dominate</p>
           </motion.div>
-          <button onClick={() => navigate('/')} className="px-6 py-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-white hover:bg-white/10">
+          <button onClick={() => navigate('/home')} className="px-6 py-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-white hover:bg-white/10">
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>
@@ -105,11 +105,27 @@ function Trainer() {
               </div>
               <button
                 disabled={!selectedTopic}
-                className={`w-full py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 ${selectedTopic ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'bg-white/10 text-white/30 cursor-not-allowed'}`}
+                className={`w-full py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 ${selectedTopic ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all' : 'bg-white/10 text-white/30 cursor-not-allowed'}`}
               >
                 <Play className="w-5 h-5" />
                 Start Training
               </button>
+            </motion.div>
+
+            <motion.div
+              className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.25 }}
+            >
+              <button
+                onClick={() => navigate('/home')}
+                className="w-full py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-600 to-orange-600 text-white hover:from-yellow-700 hover:to-orange-700 transition-all"
+              >
+                <History className="w-5 h-5" />
+                View Past Debates
+              </button>
+              <p className="text-white/60 text-sm text-center mt-3">Review your debate history and AI feedback</p>
             </motion.div>
 
             <motion.div

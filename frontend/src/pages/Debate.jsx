@@ -416,16 +416,26 @@ function Debate() {
                     const speaker = participants.find(p => String(p.id) === String(turn.speaker_id));
                     const speakerName = speaker?.username || speaker?.name || `Speaker ${turn.speaker_id}`;
                     const speakerInitial = speakerName[0]?.toUpperCase() || 'S';
+                    const speakerTeam = speaker?.team;
+                    const teamColor = speakerTeam === 'for' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 
+                                     speakerTeam === 'against' ? 'bg-red-500/20 text-red-400 border-red-500/30' : '';
                     
                     return <div key={i} className="bg-accent-rust/10 border border-accent-rust/30 rounded-xl p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-accent-rust to-accent-saffron rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${
+                          speakerTeam ? teamColor.replace('/20', '/30') : 'bg-gradient-to-br from-accent-rust to-accent-saffron'
+                        }`}>
                           {speakerInitial}
                         </div>
                         <div className="flex-1">
-                          <div className="flex justify-between mb-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <span className="font-semibold text-text-primary">{speakerName}</span>
-                            <span className="text-text-muted text-sm">
+                            {speakerTeam && (
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${teamColor}`}>
+                                {speakerTeam === 'for' ? '✓ For' : '✗ Against'}
+                              </span>
+                            )}
+                            <span className="text-text-muted text-sm ml-auto">
                               Round {turn.round_number}, Turn {turn.turn_number}
                             </span>
                           </div>

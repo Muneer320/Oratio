@@ -26,18 +26,18 @@ except ImportError:
     SUPABASE_AVAILABLE = False
     print("⚠️  Supabase package not installed, falling back to Replit DB")
 
-# Fallback to Replit DB
-if not SUPABASE_AVAILABLE:
-    try:
-        from replit import db as replit_db
-        REPLIT_DB_AVAILABLE = True
+# Try Replit DB (fallback or for development)
+try:
+    from replit import db as replit_db
+    REPLIT_DB_AVAILABLE = True
+    if not SUPABASE_AVAILABLE:
         print("✅ Using Replit Database (Fallback)")
-    except ImportError:
-        # Final fallback to in-memory dict
-        replit_db = {}
-        REPLIT_DB_AVAILABLE = False
-        print(
-            "⚠️  Replit DB not available, using in-memory storage (data will not persist)")
+except ImportError:
+    # Final fallback to in-memory dict
+    replit_db = {}
+    REPLIT_DB_AVAILABLE = False
+    if not SUPABASE_AVAILABLE:
+        print("⚠️  Replit DB not available, using in-memory storage (data will not persist)")
 
 
 class DatabaseWrapper:

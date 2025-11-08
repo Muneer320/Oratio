@@ -41,6 +41,8 @@ async def submit_turn(
         context=room.get("topic")
     )
     
+    from datetime import datetime
+    
     new_turn = {
         "room_id": room["id"],
         "speaker_id": participant["id"],
@@ -48,7 +50,8 @@ async def submit_turn(
         "audio_url": None,
         "round_number": turn_data.round_number,
         "turn_number": turn_data.turn_number,
-        "ai_feedback": ai_feedback
+        "ai_feedback": ai_feedback,
+        "timestamp": datetime.utcnow().isoformat()
     }
     
     turn = ReplitDB.insert(Collections.TURNS, new_turn)

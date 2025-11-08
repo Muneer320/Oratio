@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Send, X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Send, X, AlertCircle, CheckCircle, Clock, Mic, Square } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,12 +20,52 @@ function Debate() {
   const [loading, setLoading] = useState(true);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentTurn, setCurrentTurn] = useState(1);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [timePerTurn, setTimePerTurn] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const timerIntervalRef = useRef(null);
+  const lastTurnKeyRef = useRef(null);
 
   useEffect(() => {
     loadRoomData();
     const interval = setInterval(loadRoomData, 5000);
     return () => clearInterval(interval);
   }, [roomCode]);
+
+  useEffect(() => {
+    if (room?.time_per_turn && timePerTurn === null) {
+      setTimePerTurn(room.time_per_turn);
+    }
+  }, [room]);
+
+  useEffect(() => {
+    const turnKey = `${currentRound}-${currentTurn}`;
+    
+    if (lastTurnKeyRef.current !== turnKey && timePerTurn) {
+      lastTurnKeyRef.current = turnKey;
+      setTimeRemaining(timePerTurn * 60);
+    }
+  }, [currentRound, currentTurn, timePerTurn]);
+
+  useEffect(() => {
+    if (timeRemaining !== null) {
+      timerIntervalRef.current = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev === null || prev <= 0) return 0;
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => {
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+        }
+      };
+    }
+  }, [timeRemaining !== null]);
 
   const loadRoomData = async () => {
     try {
@@ -80,6 +120,40 @@ function Debate() {
       }
       setError(err.message);
       setLoading(false);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      setError('Failed to access microphone. Please allow microphone access.');
+      console.error('Microphone error:', err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
@@ -219,6 +293,16 @@ function Debate() {
                   <span className="font-semibold text-slate-900">{currentRound} / {room?.rounds}</span>
                 </div>
 
+                {timeRemaining !== null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                    <span className="text-slate-600">Time Remaining:</span>
+                    <span className={`font-bold ${timeRemaining < 30 ? 'text-red-600' : 'text-slate-900'}`}>
+                      {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}
+                    </span>
+                  </div>
+                )}
+
                 <div className="pt-4 border-t border-slate-200">
                   <p className="text-xs text-slate-500 mb-2">AI Scoring Criteria:</p>
                   <div className="space-y-2">
@@ -317,6 +401,21 @@ function Debate() {
                 disabled={!isParticipant}
               />
               
+              {audioBlob && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Mic className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm text-blue-800">Audio recorded ({(audioBlob.size / 1024).toFixed(1)} KB)</span>
+                  </div>
+                  <button
+                    onClick={() => setAudioBlob(null)}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
               {isAnalyzing && (
                 <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-xl flex items-center gap-3">
                   <div className="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
@@ -325,6 +424,32 @@ function Debate() {
               )}
               
               <div className="flex gap-3">
+                {(room?.mode === 'audio' || room?.mode === 'both') && (
+                  <motion.button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    disabled={!isParticipant}
+                    className={`px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isRecording 
+                        ? 'bg-red-600 text-white' 
+                        : 'bg-blue-600 text-white'
+                    }`}
+                    whileHover={{ scale: isRecording || !isParticipant ? 1 : 1.02 }}
+                    whileTap={{ scale: isRecording || !isParticipant ? 1 : 0.98 }}
+                  >
+                    {isRecording ? (
+                      <>
+                        <Square className="w-5 h-5" />
+                        Stop Recording
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-5 h-5" />
+                        Record Audio
+                      </>
+                    )}
+                  </motion.button>
+                )}
+                
                 <motion.button
                   onClick={handleSubmitTurn}
                   disabled={isSubmitting || !argument.trim() || !isParticipant}

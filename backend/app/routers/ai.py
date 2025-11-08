@@ -125,8 +125,8 @@ async def get_ai_summary(room_id: str):
         "room_id": room_id,
         "summary": result.get("summary"),
         "winner_id": result.get("winner_id"),
-        "scores": result.get("scores_json"),
-        "feedback": result.get("feedback_json")
+        "scores": result.get("scores"),  # Use 'scores' directly
+        "feedback": result.get("feedback")  # Use 'feedback' directly
     }
 
 

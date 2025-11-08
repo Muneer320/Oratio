@@ -56,7 +56,18 @@ The backend is built with FastAPI, leveraging async support for high-performance
 
 ## AI Integration
 
-Debate analysis uses Google Gemini AI (gemini-2.5-pro) exclusively for all AI-powered features. The system evaluates debates based on logic (40%), credibility (35%), and rhetoric (25%), using context-aware analysis and JSON response validation. Static fallback responses are provided if Gemini is unavailable. Audio transcription is handled by Gemini's file upload API with non-blocking async processing to maintain server responsiveness during audio uploads. The transcription is stored as turn content and analyzed like text submissions. Fact-checking is an optional feature via Serper API for claim verification. The training system provides AI-generated personalized feedback, identifying strengths and weaknesses, and recommending improvements.
+Debate analysis uses Google Gemini AI (gemini-2.5-pro) exclusively for all AI-powered features. The system evaluates debates based on logic (40%), credibility (35%), and rhetoric (25%), using context-aware analysis and JSON response validation. 
+
+**Result Generation Process:**
+1. **Per-Turn Analysis**: Each turn is analyzed after round completion with LCR scores and feedback
+2. **Final Verdict**: When debate ends, comprehensive results are auto-generated including:
+   - Winner determination based on weighted scores
+   - Overall debate summary from Gemini AI
+   - Individual participant analysis (strengths, weaknesses, improvements)
+   - Aggregated LCR scores across all turns
+3. **Results saved to RESULTS collection** for display on results page
+
+Audio transcription is handled by Gemini's file upload API with non-blocking async processing to maintain server responsiveness during audio uploads. The transcription is stored as turn content and analyzed like text submissions. Fact-checking is an optional feature via Serper API for claim verification.
 
 ## Real-Time Communication
 

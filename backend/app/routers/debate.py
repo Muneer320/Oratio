@@ -10,6 +10,147 @@ from app.cache import user_cache, room_cache
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
 
 
+async def generate_debate_results(room_id: str):
+    """
+    Generate comprehensive AI results after debate completes
+    Calculates scores, determines winner, generates personalized feedback
+    """
+    room = ReplitDB.get(Collections.ROOMS, room_id)
+    if not room:
+        raise ValueError("Room not found")
+    
+    # Get all participants and turns
+    participants = ReplitDB.find(Collections.PARTICIPANTS, {"room_id": room_id})
+    all_turns = ReplitDB.find(Collections.TURNS, {"room_id": room_id})
+    debaters = [p for p in participants if p.get("role") == "debater"]
+    
+    # Calculate participant scores from turn feedback
+    participant_scores = {}
+    participant_feedback = {}
+    
+    for participant in debaters:
+        # Get all turns for this participant
+        participant_turns = [t for t in all_turns if t["speaker_id"] == participant["id"]]
+        
+        if not participant_turns:
+            continue
+        
+        # Aggregate scores
+        total_logic = 0
+        total_credibility = 0
+        total_rhetoric = 0
+        count = 0
+        all_strengths = []
+        all_weaknesses = []
+        
+        for turn in participant_turns:
+            feedback = turn.get("ai_feedback", {})
+            if feedback:
+                total_logic += feedback.get("logic", 0)
+                total_credibility += feedback.get("credibility", 0)
+                total_rhetoric += feedback.get("rhetoric", 0)
+                count += 1
+                
+                if feedback.get("strengths"):
+                    all_strengths.extend(feedback["strengths"])
+                if feedback.get("weaknesses"):
+                    all_weaknesses.extend(feedback["weaknesses"])
+        
+        if count > 0:
+            avg_scores = {
+                "logic": total_logic / count,
+                "credibility": total_credibility / count,
+                "rhetoric": total_rhetoric / count
+            }
+            
+            # Calculate weighted total (Logic 40%, Credibility 35%, Rhetoric 25%)
+            weighted_total = (
+                avg_scores["logic"] * 0.4 +
+                avg_scores["credibility"] * 0.35 +
+                avg_scores["rhetoric"] * 0.25
+            )
+            
+            participant_scores[participant["id"]] = {
+                **avg_scores,
+                "weighted_total": weighted_total,
+                "total": weighted_total  # Alias for compatibility
+            }
+            
+            # Store individual feedback
+            participant_feedback[participant["id"]] = {
+                "strengths": list(set(all_strengths))[:5],  # Top 5 unique strengths
+                "weaknesses": list(set(all_weaknesses))[:5],  # Top 5 unique weaknesses
+                "improvements": [
+                    "Focus on providing more evidence to support your claims",
+                    "Strengthen your logical structure and transitions",
+                    "Enhance your rhetorical techniques for greater persuasion"
+                ][:3]
+            }
+            
+            # Update participant with scores
+            ReplitDB.update(
+                Collections.PARTICIPANTS,
+                str(participant["id"]),
+                {"score": avg_scores}
+            )
+    
+    # Determine winner (highest weighted score)
+    winner_id = None
+    if participant_scores:
+        winner_id = max(participant_scores.keys(), key=lambda pid: participant_scores[pid]["weighted_total"])
+    
+    # Generate AI summary and verdict
+    try:
+        verdict = await GeminiAI.generate_final_verdict(
+            room_data=room,
+            all_turns=all_turns,
+            participant_scores=participant_scores
+        )
+        
+        summary = verdict.get("summary", "Debate completed successfully.")
+        ai_feedback = verdict.get("feedback", {})
+        
+        # Merge AI feedback with calculated feedback
+        for pid, ai_fb in ai_feedback.items():
+            if pid in participant_feedback:
+                participant_feedback[pid]["ai_insights"] = ai_fb
+    except Exception as e:
+        print(f"⚠️  AI verdict generation failed: {e}")
+        summary = f"Debate on '{room.get('topic')}' has concluded. Review individual scores below."
+    
+    # Ensure ALL debaters have entries (even if they have no turns)
+    for participant in debaters:
+        if participant["id"] not in participant_scores:
+            participant_scores[participant["id"]] = {
+                "logic": 0,
+                "credibility": 0,
+                "rhetoric": 0,
+                "weighted_total": 0,
+                "total": 0
+            }
+        if participant["id"] not in participant_feedback:
+            participant_feedback[participant["id"]] = {
+                "strengths": ["Participated in the debate"],
+                "weaknesses": ["Submit more turns to get detailed feedback"],
+                "improvements": ["Engage more actively in future debates"]
+            }
+    
+    # Create result record (use 'scores' and 'feedback' to match frontend expectations)
+    result = {
+        "room_id": room_id,
+        "winner_id": winner_id,
+        "summary": summary,
+        "scores": participant_scores,  # Changed from scores_json
+        "feedback": participant_feedback,  # Changed from feedback_json
+        "timestamp": ReplitDB._get_timestamp()
+    }
+    
+    # Save result to database
+    ReplitDB.insert(Collections.RESULTS, result)
+    
+    return result
+
+
 async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
     """
     Check if round is complete and trigger batch AI analysis
@@ -59,6 +200,13 @@ async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
             print(f"🏁 All {total_rounds} rounds complete ({len(all_turns)}/{expected_total_turns} turns)! Auto-ending debate...")
             ReplitDB.update(Collections.ROOMS, room["id"], {"status": "completed"})
             print("✅ Debate automatically ended")
+            
+            # Generate comprehensive AI results
+            try:
+                await generate_debate_results(room["id"])
+                print("✅ AI results generated successfully")
+            except Exception as e:
+                print(f"⚠️  Failed to generate results: {e}")
 
 
 @router.post("/{room_id}/submit-turn", response_model=TurnResponse)

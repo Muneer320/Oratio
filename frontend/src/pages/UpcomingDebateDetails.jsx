@@ -87,10 +87,11 @@ const UpcomingDebateDetails = () => {
     setError('');
 
     try {
+      const teamValue = room?.type === 'team' ? selectedSide : null;
       await api.post(`/api/debate/${room.id}/join`, {
-        team: selectedSide,
+        team: teamValue,
         role: 'debater'
-      });
+      }, true);
       
       navigate(`/debate/${roomCode}`);
     } catch (err) {

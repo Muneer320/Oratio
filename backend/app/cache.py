@@ -40,6 +40,6 @@ class SimpleCache:
         self.cache.clear()
 
 
-# Global cache instances (PostgreSQL is fast - reduced TTLs)
-user_cache = SimpleCache(ttl_seconds=10)  # 10 seconds for user data
-room_cache = SimpleCache(ttl_seconds=10)  # 10 seconds for room data
+# Global cache instances
+user_cache = SimpleCache(ttl_seconds=300)  # 5 minutes for user data
+room_cache = SimpleCache(ttl_seconds=30)   # 30 seconds for room data (increased for better performance)

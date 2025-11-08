@@ -63,7 +63,7 @@ const Dashboard = () => {
     return (
       <div
         onClick={handleClick}
-        className="flex-shrink-0 w-80 sm:w-96 bg-dark-elevated rounded-2xl p-6 border border-dark-warm hover:border-accent-rust hover:shadow-xl transition-all cursor-pointer group snap-start"
+        className="bg-dark-elevated rounded-2xl p-6 border border-dark-warm hover:border-accent-rust hover:shadow-xl transition-all cursor-pointer group"
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -138,7 +138,7 @@ const Dashboard = () => {
     );
   };
 
-  const Section = ({ title, icon: Icon, children, count, onViewMore, showViewMore }) => (
+  const Section = ({ title, icon: Icon, children, count }) => (
     <div className="mb-12">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-accent-rust/20 rounded-xl">
@@ -149,32 +149,8 @@ const Dashboard = () => {
           {count}
         </span>
       </div>
-      <div className="relative">
-        <div 
-          className="flex gap-6 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory"
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          <style>{`
-            .flex.gap-6.overflow-x-auto::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-          {children}
-          {showViewMore && (
-            <div 
-              onClick={onViewMore}
-              className="flex-shrink-0 w-80 sm:w-96 bg-dark-elevated rounded-2xl p-6 border-2 border-dashed border-dark-warm hover:border-accent-rust transition-all cursor-pointer flex flex-col items-center justify-center group snap-start"
-            >
-              <ChevronRight className="w-12 h-12 text-text-muted group-hover:text-accent-rust transition-colors mb-3" />
-              <p className="text-text-secondary group-hover:text-accent-rust transition-colors font-medium">View All</p>
-              <p className="text-sm text-text-muted mt-1">{count} total</p>
-            </div>
-          )}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {children}
       </div>
     </div>
   );
@@ -201,30 +177,13 @@ const Dashboard = () => {
         <JoinRoomByCode className="max-w-2xl" />
       </div>
 
-      {ongoingDebates.length > 0 ? (
-        <Section 
-          title="Ongoing Debates" 
-          icon={Flame} 
-          count={ongoingDebates.length}
-          showViewMore={ongoingDebates.length > 3}
-          onViewMore={() => {}}
-        >
-          {ongoingDebates.map(room => (
+      <Section title="Ongoing Debates" icon={Flame} count={ongoingDebates.length}>
+        {ongoingDebates.length > 0 ? (
+          ongoingDebates.map(room => (
             <DebateCard key={room.id} room={room} type="ongoing" />
-          ))}
-        </Section>
-      ) : (
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-accent-rust/20 rounded-xl">
-              <Flame className="w-6 h-6 text-accent-rust" />
-            </div>
-            <h2 className="text-2xl font-bold text-text-primary">Ongoing Debates</h2>
-            <span className="px-3 py-1 bg-dark-surface text-text-secondary rounded-full text-sm font-medium">
-              0
-            </span>
-          </div>
-          <div className="bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
+          ))
+        ) : (
+          <div className="col-span-full bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
             <Play className="w-12 h-12 text-text-muted mx-auto mb-4" />
             <p className="text-text-secondary">No ongoing debates right now.</p>
             <button
@@ -234,68 +193,34 @@ const Dashboard = () => {
               Start a Debate
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </Section>
 
-      {upcomingDebates.length > 0 ? (
-        <Section 
-          title="Upcoming Debates" 
-          icon={Clock} 
-          count={upcomingDebates.length}
-          showViewMore={upcomingDebates.length > 3}
-          onViewMore={() => {}}
-        >
-          {upcomingDebates.map(room => (
+      <Section title="Upcoming Debates" icon={Clock} count={upcomingDebates.length}>
+        {upcomingDebates.length > 0 ? (
+          upcomingDebates.map(room => (
             <DebateCard key={room.id} room={room} type="upcoming" />
-          ))}
-        </Section>
-      ) : (
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-accent-rust/20 rounded-xl">
-              <Clock className="w-6 h-6 text-accent-rust" />
-            </div>
-            <h2 className="text-2xl font-bold text-text-primary">Upcoming Debates</h2>
-            <span className="px-3 py-1 bg-dark-surface text-text-secondary rounded-full text-sm font-medium">
-              0
-            </span>
-          </div>
-          <div className="bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
+          ))
+        ) : (
+          <div className="col-span-full bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
             <Clock className="w-12 h-12 text-text-muted mx-auto mb-4" />
             <p className="text-text-secondary">No upcoming debates scheduled.</p>
           </div>
-        </div>
-      )}
+        )}
+      </Section>
 
-      {pastDebates.length > 0 ? (
-        <Section 
-          title="Past Debates" 
-          icon={Trophy} 
-          count={pastDebates.length}
-          showViewMore={pastDebates.length > 3}
-          onViewMore={() => {}}
-        >
-          {pastDebates.map(room => (
+      <Section title="Past Debates" icon={Trophy} count={pastDebates.length}>
+        {pastDebates.length > 0 ? (
+          pastDebates.slice(0, 6).map(room => (
             <DebateCard key={room.id} room={room} type="past" />
-          ))}
-        </Section>
-      ) : (
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-accent-rust/20 rounded-xl">
-              <Trophy className="w-6 h-6 text-accent-rust" />
-            </div>
-            <h2 className="text-2xl font-bold text-text-primary">Past Debates</h2>
-            <span className="px-3 py-1 bg-dark-surface text-text-secondary rounded-full text-sm font-medium">
-              0
-            </span>
-          </div>
-          <div className="bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
+          ))
+        ) : (
+          <div className="col-span-full bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
             <Trophy className="w-12 h-12 text-text-muted mx-auto mb-4" />
             <p className="text-text-secondary">No past debates yet.</p>
           </div>
-        </div>
-      )}
+        )}
+      </Section>
     </Layout>
   );
 };

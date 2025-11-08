@@ -1,11 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, List
 from app.schemas import TrainerAnalyze, TrainerProgress, ChallengeStart, ChallengeSubmit, TrainerRecommendation
 from app.replit_auth import get_current_user
-from app.database import get_db
-from app.repositories import Repository, ParticipantRepository, TrainerFeedbackRepository
-from app.models import Participant, TrainerFeedback, User
+from app.replit_db import DB, Collections
 from app.gemini_ai import GeminiAI
 import secrets
 
@@ -15,23 +12,21 @@ router = APIRouter(prefix="/api/trainer", tags=["AI Trainer"])
 @router.post("/analyze")
 async def analyze_user_performance(
     data: TrainerAnalyze,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Analyze user's debate performance and generate feedback
     """
-    if str(data.user_id) != str(current_user["id"]):
+    if data.user_id != current_user["id"]:
         raise HTTPException(
             status_code=403, detail="Can only analyze your own performance")
 
-    participations = await Repository.find_all(
-        db, Participant, {"user_id": int(data.user_id)}
-    )
+    participations = DB.find(Collections.PARTICIPANTS,
+                             {"user_id": data.user_id})
 
     if data.debate_ids:
         participations = [
-            p for p in participations if p.room_id in [int(did) for did in data.debate_ids]]
+            p for p in participations if p["room_id"] in data.debate_ids]
 
     total_logic = 0
     total_credibility = 0
@@ -42,8 +37,8 @@ async def analyze_user_performance(
     weaknesses = []
 
     for participation in participations:
-        if participation.role == "debater":
-            score = participation.score if participation.score else {}
+        if participation["role"] == "debater":
+            score = participation.get("score", {})
             if score:
                 total_logic += score.get("logic", 0)
                 total_credibility += score.get("credibility", 0)
@@ -85,10 +80,11 @@ async def analyze_user_performance(
         }
         weaknesses.append("No debate history yet")
 
-    feedback = await TrainerFeedbackRepository.get_by_user(db, int(data.user_id))
+    feedback = DB.find_one(Collections.TRAINER_FEEDBACK,
+                           {"user_id": data.user_id})
 
     if feedback:
-        await Repository.update_record(db, TrainerFeedback, feedback.id, {
+        DB.update(Collections.TRAINER_FEEDBACK, str(feedback["id"]), {
             "metrics_json": {
                 **metrics,
                 "strengths": strengths,
@@ -96,8 +92,8 @@ async def analyze_user_performance(
             }
         })
     else:
-        await Repository.create(db, TrainerFeedback, {
-            "user_id": int(data.user_id),
+        DB.insert(Collections.TRAINER_FEEDBACK, {
+            "user_id": data.user_id,
             "metrics_json": {
                 **metrics,
                 "strengths": strengths,
@@ -118,8 +114,7 @@ async def analyze_user_performance(
 @router.get("/recommendations/{user_id}")
 async def get_recommendations(
     user_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get personalized training recommendations
@@ -128,12 +123,12 @@ async def get_recommendations(
         raise HTTPException(
             status_code=403, detail="Can only view your own recommendations")
 
-    feedback = await TrainerFeedbackRepository.get_by_user(db, int(user_id))
+    feedback = DB.find_one(Collections.TRAINER_FEEDBACK, {"user_id": user_id})
 
     if not feedback:
         return {"recommendations": [], "message": "No feedback available yet"}
 
-    metrics = feedback.metrics_json if feedback.metrics_json else {}
+    metrics = feedback.get("metrics_json", {})
     recommendations = []
 
     if metrics.get("logic", 0) < 6:
@@ -157,7 +152,7 @@ async def get_recommendations(
             "difficulty": "easy"
         })
 
-    await Repository.update_record(db, TrainerFeedback, feedback.id, {
+    DB.update(Collections.TRAINER_FEEDBACK, str(feedback["id"]), {
         "recommendations": recommendations
     })
 
@@ -167,8 +162,7 @@ async def get_recommendations(
 @router.post("/challenge/start")
 async def start_challenge(
     data: ChallengeStart,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Start a training challenge
@@ -195,8 +189,7 @@ async def start_challenge(
 @router.post("/challenge/submit")
 async def submit_challenge(
     data: ChallengeSubmit,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Submit response to a training challenge
@@ -209,17 +202,18 @@ async def submit_challenge(
     xp_earned = int(analysis.get("logic", 0) +
                     analysis.get("credibility", 0) + analysis.get("rhetoric", 0))
 
-    feedback = await TrainerFeedbackRepository.get_by_user(db, int(current_user["id"]))
+    feedback = DB.find_one(Collections.TRAINER_FEEDBACK, {
+                           "user_id": current_user["id"]})
     if feedback:
-        current_xp = feedback.xp if feedback.xp else 0
-        await Repository.update_record(db, TrainerFeedback, feedback.id, {
+        current_xp = feedback.get("xp", 0)
+        DB.update(Collections.TRAINER_FEEDBACK, str(feedback["id"]), {
             "xp": current_xp + xp_earned
         })
 
-        user = await Repository.get_by_id(db, User, int(current_user["id"]))
+        user = DB.get(Collections.USERS, str(current_user["id"]))
         if user:
-            await Repository.update_record(db, User, int(current_user["id"]), {
-                "xp": user.xp + xp_earned
+            DB.update(Collections.USERS, str(current_user["id"]), {
+                "xp": user.get("xp", 0) + xp_earned
             })
 
     return {
@@ -233,8 +227,7 @@ async def submit_challenge(
 @router.get("/progress/{user_id}", response_model=TrainerProgress)
 async def get_progress(
     user_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get user's training progress
@@ -243,11 +236,11 @@ async def get_progress(
         raise HTTPException(
             status_code=403, detail="Can only view your own progress")
 
-    feedback = await TrainerFeedbackRepository.get_by_user(db, int(user_id))
+    feedback = DB.find_one(Collections.TRAINER_FEEDBACK, {"user_id": user_id})
 
     if not feedback:
         return {
-            "user_id": int(user_id),
+            "user_id": user_id,
             "metrics_json": {},
             "recommendations": [],
             "xp": 0,
@@ -261,8 +254,7 @@ async def get_progress(
 async def update_progress(
     user_id: str,
     xp_delta: int = 0,
-    current_user: Dict[str, Any] = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
     Update user's training progress
@@ -271,15 +263,16 @@ async def update_progress(
         raise HTTPException(
             status_code=403, detail="Can only update your own progress")
 
-    feedback = await TrainerFeedbackRepository.get_by_user(db, int(user_id))
+    feedback = DB.find_one(Collections.TRAINER_FEEDBACK, {"user_id": user_id})
 
     if not feedback:
         raise HTTPException(
             status_code=404, detail="No training feedback found")
 
-    current_xp = feedback.xp if feedback.xp else 0
+    current_xp = feedback.get("xp", 0)
     new_xp = current_xp + xp_delta
 
-    await Repository.update_record(db, TrainerFeedback, feedback.id, {"xp": new_xp})
+    DB.update(Collections.TRAINER_FEEDBACK,
+              str(feedback["id"]), {"xp": new_xp})
 
     return {"user_id": user_id, "xp": new_xp}

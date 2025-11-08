@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import Dict, Any, List
+import asyncio
 from app.schemas import TurnSubmit, TurnResponse
 from app.replit_auth import get_current_user
 from app.replit_db import DB, Collections
@@ -8,6 +9,10 @@ from app.models import DebateStatus
 from app.cache import user_cache, room_cache
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
+
+# Room-level locks to prevent concurrent submission races
+# (ReplitDB doesn't support atomic operations, so we use in-memory locks)
+_room_locks: Dict[str, asyncio.Lock] = {}
 
 
 async def generate_debate_results(room_id: str):
@@ -156,15 +161,65 @@ async def generate_debate_results(room_id: str):
     return result
 
 
+async def _analyze_round_background(room: Dict[str, Any], round_number: int, round_turns: List[Dict], all_turns: List[Dict], debater_count: int):
+    """
+    Background task: Analyze all turns in a round in parallel
+    PERFORMANCE FIX: Uses asyncio.gather() for parallel AI analysis
+    """
+    print(f"🎯 Round {round_number} complete! Analyzing {len(round_turns)} turns in parallel...")
+
+    # PERFORMANCE FIX: Analyze all turns in parallel using asyncio.gather()
+    async def analyze_turn(turn):
+        if turn.get("ai_feedback") is None:
+            try:
+                ai_feedback = await GeminiAI.analyze_debate_turn(
+                    turn_content=turn["content"],
+                    context=room.get("topic")
+                )
+                DB.update(
+                    Collections.TURNS,
+                    turn["id"],
+                    {"ai_feedback": ai_feedback}
+                )
+                print(f"✅ Analyzed turn {turn['id']}")
+            except Exception as e:
+                print(f"⚠️  Failed to analyze turn {turn['id']}: {e}")
+
+    # Analyze all turns in parallel
+    await asyncio.gather(*[analyze_turn(turn) for turn in round_turns])
+    print(f"✅ Round {round_number} analysis complete!")
+
+    # Check if ALL rounds are now complete and auto-end the debate
+    total_rounds = room.get("rounds", 3)
+    expected_total_turns = total_rounds * debater_count
+
+    if len(all_turns) >= expected_total_turns and room.get("status") == "ongoing":
+        print(f"🏁 All {total_rounds} rounds complete ({len(all_turns)}/{expected_total_turns} turns)! Auto-ending debate...")
+        DB.update(Collections.ROOMS, room["id"], {"status": "completed"})
+        
+        # Invalidate all caches for this room (auto-ended)
+        room_cache.delete(f"debate_status_{room['id']}")
+        room_cache.delete(f"transcript_{room['id']}")
+        room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
+        
+        print("✅ Debate automatically ended")
+
+        # Generate comprehensive AI results
+        try:
+            await generate_debate_results(room["id"])
+            print("✅ AI results generated successfully")
+        except Exception as e:
+            print(f"⚠️  Failed to generate results: {e}")
+
+
 async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
     """
-    Check if round is complete and trigger batch AI analysis
-    A round is complete when all debaters have submitted their turns
+    Check if round is complete and trigger FIRE-AND-FORGET batch AI analysis
+    PERFORMANCE FIX: Does NOT block submission response
     """
     # Get all participants who are debaters
     participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
-    debater_count = len(
-        [p for p in participants if p.get("role") == "debater"])
+    debater_count = len([p for p in participants if p.get("role") == "debater"])
 
     if debater_count == 0:
         debater_count = 2  # Default to 2 if no debaters found
@@ -175,52 +230,12 @@ async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
 
     # Check if round is complete
     if len(round_turns) >= debater_count:
-        print(
-            f"🎯 Round {round_number} complete! Analyzing {len(round_turns)} turns...")
-
-        # Analyze each turn in the round
-        for turn in round_turns:
-            if turn.get("ai_feedback") is None:  # Only analyze if not already analyzed
-                try:
-                    ai_feedback = await GeminiAI.analyze_debate_turn(
-                        turn_content=turn["content"],
-                        context=room.get("topic")
-                    )
-
-                    # Update turn with AI feedback
-                    DB.update(
-                        Collections.TURNS,
-                        turn["id"],
-                        {"ai_feedback": ai_feedback}
-                    )
-                    print(f"✅ Analyzed turn {turn['id']}")
-                except Exception as e:
-                    print(f"⚠️  Failed to analyze turn {turn['id']}: {e}")
-
-        print(f"✅ Round {round_number} analysis complete!")
-
-        # Check if ALL rounds are now complete and auto-end the debate
-        total_rounds = room.get("rounds", 3)
-        expected_total_turns = total_rounds * debater_count
-
-        if len(all_turns) >= expected_total_turns and room.get("status") == "ongoing":
-            print(
-                f"🏁 All {total_rounds} rounds complete ({len(all_turns)}/{expected_total_turns} turns)! Auto-ending debate...")
-            DB.update(Collections.ROOMS, room["id"], {"status": "completed"})
-            
-            # Invalidate all caches for this room (auto-ended)
-            room_cache.delete(f"debate_status_{room['id']}")
-            room_cache.delete(f"transcript_{room['id']}")
-            room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
-            
-            print("✅ Debate automatically ended")
-
-            # Generate comprehensive AI results
-            try:
-                await generate_debate_results(room["id"])
-                print("✅ AI results generated successfully")
-            except Exception as e:
-                print(f"⚠️  Failed to generate results: {e}")
+        # PERFORMANCE FIX: Fire-and-forget AI analysis (don't await)
+        import asyncio
+        asyncio.create_task(_analyze_round_background(
+            room, round_number, round_turns, all_turns, debater_count
+        ))
+        # Return immediately without waiting for AI analysis
 
 
 @router.post("/{room_id}/submit-turn", response_model=TurnResponse)
@@ -249,6 +264,14 @@ async def submit_turn(
     if room["status"] != DebateStatus.ONGOING.value:
         raise HTTPException(
             status_code=400, detail="Debate has ended or was cancelled")
+    
+    # VALIDATION: Reject submissions with invalid round numbers
+    total_rounds = room.get("rounds", 3)
+    if turn_data.round_number > total_rounds:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid round number. Debate has only {total_rounds} rounds."
+        )
 
     participant = DB.find_one(
         Collections.PARTICIPANTS,
@@ -258,13 +281,22 @@ async def submit_turn(
         raise HTTPException(
             status_code=403, detail="Not a participant in this debate")
 
-    # TURN-BASED ENFORCEMENT: Check if this user/team can submit now
-    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
+    # PERFORMANCE FIX: Only fetch last turn for enforcement (not all turns)
+    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+    
+    # CRITICAL VALIDATION: Reject submissions when round already has enough turns
+    participants_list = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
+    debater_count = len([p for p in participants_list if p.get("role") == "debater"])
+    round_turns = [t for t in all_turns if t.get("round_number") == turn_data.round_number]
+    
+    if len(round_turns) >= debater_count:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Round {turn_data.round_number} already has {debater_count} turns. Wait for next round."
+        )
     if all_turns:
-        # Sort by timestamp to get the most recent turn
-        sorted_turns = sorted(all_turns, key=lambda x: x.get(
-            "timestamp", ""), reverse=True)
-        last_turn = sorted_turns[0]
+        # Sort by timestamp to get the most recent turn (only need one)
+        last_turn = max(all_turns, key=lambda x: x.get("timestamp", ""))
 
         # Check if the same participant submitted the last turn
         if last_turn["speaker_id"] == participant["id"]:
@@ -285,18 +317,52 @@ async def submit_turn(
 
     from datetime import datetime
 
-    new_turn = {
-        "room_id": room["id"],
-        "speaker_id": participant["id"],
-        "content": turn_data.content,
-        "audio_url": None,
-        "round_number": turn_data.round_number,
-        "turn_number": turn_data.turn_number,
-        "ai_feedback": None,  # Will be analyzed in batch after round completion
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    # CRITICAL: Acquire room lock to prevent concurrent submission races
+    if room["id"] not in _room_locks:
+        _room_locks[room["id"]] = asyncio.Lock()
+    
+    async with _room_locks[room["id"]]:
+        # Re-validate ALL constraints immediately before insert (inside lock for atomicity)
+        all_turns_final = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+        round_turns_final = [t for t in all_turns_final if t.get("round_number") == turn_data.round_number]
+        
+        # Check round capacity
+        if len(round_turns_final) >= debater_count:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Round {turn_data.round_number} already has {debater_count} turns. Wait for next round."
+            )
+        
+        # Re-check consecutive turn enforcement (critical for fairness)
+        if all_turns_final:
+            last_turn_locked = max(all_turns_final, key=lambda x: x.get("timestamp", ""))
+            
+            if last_turn_locked["speaker_id"] == participant["id"]:
+                raise HTTPException(
+                    status_code=400,
+                    detail="You cannot submit consecutive turns. Please wait for another participant to respond."
+                )
+            
+            if room.get("format") == "team" and participant.get("team"):
+                last_speaker_locked = DB.get(Collections.PARTICIPANTS, last_turn_locked["speaker_id"])
+                if last_speaker_locked and last_speaker_locked.get("team") == participant.get("team"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
+                    )
+        
+        new_turn = {
+            "room_id": room["id"],
+            "speaker_id": participant["id"],
+            "content": turn_data.content,
+            "audio_url": None,
+            "round_number": turn_data.round_number,
+            "turn_number": turn_data.turn_number,
+            "ai_feedback": None,  # Will be analyzed in batch after round completion
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
-    turn = DB.insert(Collections.TURNS, new_turn)
+        turn = DB.insert(Collections.TURNS, new_turn)
 
     # Invalidate caches for this room (new data available)
     room_cache.delete(f"debate_status_{room_id}")
@@ -336,6 +402,14 @@ async def submit_audio(
     if room["status"] != DebateStatus.ONGOING.value:
         raise HTTPException(
             status_code=400, detail="Debate has ended or was cancelled")
+    
+    # VALIDATION: Reject submissions with invalid round numbers
+    total_rounds = room.get("rounds", 3)
+    if round_number > total_rounds:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid round number. Debate has only {total_rounds} rounds."
+        )
 
     participant = DB.find_one(
         Collections.PARTICIPANTS,
@@ -345,42 +419,17 @@ async def submit_audio(
         raise HTTPException(
             status_code=403, detail="Not a participant in this debate")
 
-    # TURN-BASED ENFORCEMENT: Check if this user/team can submit now
-    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
-    if all_turns:
-        # Sort by timestamp to get the most recent turn
-        sorted_turns = sorted(all_turns, key=lambda x: x.get(
-            "timestamp", ""), reverse=True)
-        last_turn = sorted_turns[0]
-
-        # Check if the same participant submitted the last turn
-        if last_turn["speaker_id"] == participant["id"]:
-            raise HTTPException(
-                status_code=400,
-                detail="You cannot submit consecutive turns. Please wait for another participant to respond."
-            )
-
-        # For team debates, check if same team submitted the last turn
-        if room.get("format") == "team" and participant.get("team"):
-            last_speaker = DB.get(Collections.PARTICIPANTS,
-                                  last_turn["speaker_id"])
-            if last_speaker and last_speaker.get("team") == participant.get("team"):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
-                )
-
-    # Save audio file
+    # Save audio file FIRST (before any validation that could race)
     import os
     os.makedirs("uploads/audio", exist_ok=True)
     audio_path = f"uploads/audio/{room_id}_{participant['id']}_{turn_number}.webm"
 
-    # Read and save audio file
+    # Read and save audio file (LONG OPERATION)
     audio_content = await audio.read()
     with open(audio_path, "wb") as f:
         f.write(audio_content)
 
-    # Transcribe audio using Gemini AI
+    # Transcribe audio using Gemini AI (LONG OPERATION)
     transcription = await GeminiAI.transcribe_audio(audio_path)
 
     # Use transcription as content (or combine with provided text)
@@ -388,21 +437,87 @@ async def submit_audio(
     if content.strip() and transcription and transcription not in ["[Audio transcription unavailable]", "[Audio transcription failed - please try again]"]:
         final_content = f"{content.strip()}\n\n[Transcription]: {transcription}"
 
+    # CRITICAL: Validate IMMEDIATELY BEFORE INSERT to close race window
+    # Re-fetch turns to get latest state after long audio operations
+    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+    participants_list = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
+    debater_count = len([p for p in participants_list if p.get("role") == "debater"])
+    round_turns = [t for t in all_turns if t.get("round_number") == round_number]
+    
+    # Check round capacity
+    if len(round_turns) >= debater_count:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Round {round_number} already has {debater_count} turns. Wait for next round."
+        )
+    
+    # Check consecutive turn enforcement
+    if all_turns:
+        last_turn = max(all_turns, key=lambda x: x.get("timestamp", ""))
+        
+        if last_turn["speaker_id"] == participant["id"]:
+            raise HTTPException(
+                status_code=400,
+                detail="You cannot submit consecutive turns. Please wait for another participant to respond."
+            )
+        
+        if room.get("format") == "team" and participant.get("team"):
+            last_speaker = DB.get(Collections.PARTICIPANTS, last_turn["speaker_id"])
+            if last_speaker and last_speaker.get("team") == participant.get("team"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
+                )
+
     from datetime import datetime
 
-    # Create turn with audio and transcription
-    new_turn = {
-        "room_id": room["id"],
-        "speaker_id": participant["id"],
-        "content": final_content,
-        "audio_url": audio_path,
-        "round_number": round_number,
-        "turn_number": turn_number,
-        "ai_feedback": None,  # Will be analyzed in batch after round completion
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    # CRITICAL: Acquire room lock to prevent concurrent submission races
+    if room["id"] not in _room_locks:
+        _room_locks[room["id"]] = asyncio.Lock()
+    
+    async with _room_locks[room["id"]]:
+        # Re-validate ALL constraints immediately before insert (inside lock for atomicity)
+        all_turns_final = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+        round_turns_final = [t for t in all_turns_final if t.get("round_number") == round_number]
+        
+        # Check round capacity
+        if len(round_turns_final) >= debater_count:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Round {round_number} already has {debater_count} turns. Wait for next round."
+            )
+        
+        # Re-check consecutive turn enforcement (critical for fairness)
+        if all_turns_final:
+            last_turn_locked = max(all_turns_final, key=lambda x: x.get("timestamp", ""))
+            
+            if last_turn_locked["speaker_id"] == participant["id"]:
+                raise HTTPException(
+                    status_code=400,
+                    detail="You cannot submit consecutive turns. Please wait for another participant to respond."
+                )
+            
+            if room.get("format") == "team" and participant.get("team"):
+                last_speaker_locked = DB.get(Collections.PARTICIPANTS, last_turn_locked["speaker_id"])
+                if last_speaker_locked and last_speaker_locked.get("team") == participant.get("team"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
+                    )
+        
+        # Create turn with audio and transcription
+        new_turn = {
+            "room_id": room["id"],
+            "speaker_id": participant["id"],
+            "content": final_content,
+            "audio_url": audio_path,
+            "round_number": round_number,
+            "turn_number": turn_number,
+            "ai_feedback": None,  # Will be analyzed in batch after round completion
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
-    turn = DB.insert(Collections.TURNS, new_turn)
+        turn = DB.insert(Collections.TURNS, new_turn)
 
     # Invalidate caches for this room (new data available)
     room_cache.delete(f"debate_status_{room_id}")

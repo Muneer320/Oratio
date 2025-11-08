@@ -111,6 +111,12 @@ function Debate() {
         return;
       }
 
+      // Auto-redirect to results when debate completes
+      if (foundRoom.status === 'completed') {
+        navigate(`/results/${roomCode}`);
+        return;
+      }
+
       setRoom(foundRoom);
 
       try {

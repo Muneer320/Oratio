@@ -6,7 +6,23 @@ Oratio is an AI-powered debate platform that enables real-time voice and text de
 
 # Recent Changes
 
-**November 8, 2025 (Latest)** - UX & Feature Enhancements
+**November 8, 2025 (Latest Session)** - Dark Theme & Profile Picture
+- ✅ **Applied Dark Theme Across Entire App**: Reverted all pages to match landing page's dark aesthetic
+  - Home.jsx restored with original dark theme (bg-dark-base, canvas animations, accent colors)
+  - All 11 pages updated: Dashboard, AddDebate, Profile, Settings, Debate, Results, Trainer, Login, Register, About, NotFound
+  - Shared components (Layout.jsx, BottomTabBar.jsx) use dark theme
+  - Consistent color palette: rust (#D67C56), teal (#4A9A9F), saffron (#F0C674)
+- ✅ **Enhanced Home.jsx Navigation**: Added contextual navigation buttons
+  - Authenticated users: Dashboard, Host Debate, Profile indicator
+  - Unauthenticated users: Login, Sign Up buttons
+- ✅ **Profile Picture Upload**: Added to Register.jsx signup form
+  - Optional field with image preview
+  - File validation (5MB max, images only)
+  - Remove button for selected image
+  - Dark theme styling
+- ✅ **Theme System**: Updated ThemeContext to default to dark theme with localStorage persistence
+
+**November 8, 2025** - UX & Feature Enhancements
 - ✅ **Style Consistency**: Updated Home.jsx to match light theme used across app (indigo/blue gradient)
 - ✅ **Bottom Tab Navigation**: Replaced top navbar with mobile-first bottom tab bar
   - Active tab displays icon + name, inactive tabs show icon only

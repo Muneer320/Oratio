@@ -24,7 +24,7 @@ async def upload_pdf(
     """
     Upload a PDF reference document
     """
-    if not file.filename.endswith('.pdf'):
+    if not file.filename or not file.filename.endswith('.pdf'):
         raise HTTPException(
             status_code=400, detail="Only PDF files are allowed")
 
@@ -68,6 +68,9 @@ async def upload_audio(
     """
     Upload audio file
     """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+    
     allowed_extensions = ['.mp3', '.wav', '.ogg', '.m4a']
     if not any(file.filename.endswith(ext) for ext in allowed_extensions):
         raise HTTPException(status_code=400, detail="Invalid audio format")

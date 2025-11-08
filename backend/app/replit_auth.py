@@ -13,6 +13,7 @@ try:
     REPLIT_AUTH_AVAILABLE = True
     print("✅ Replit Auth available")
 except ImportError:
+    web = None  # type: ignore
     REPLIT_AUTH_AVAILABLE = False
     print("⚠️  Replit Auth not available, using simple token auth")
 

@@ -109,7 +109,7 @@ class ReplitDB:
     @staticmethod
     def find_one(collection: str, filter: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Find single document"""
-        results = ReplitDB.find(collection, filter, limit=1)
+        results = ReplitDB.find(collection, filter, limit=1000)
         return results[0] if results else None
 
     @staticmethod

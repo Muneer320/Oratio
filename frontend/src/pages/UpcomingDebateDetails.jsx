@@ -88,14 +88,43 @@ const UpcomingDebateDetails = () => {
 
     try {
       const teamValue = room?.type === 'team' ? selectedSide : null;
-      await api.post(`/api/participants/join`, {
+      const joinResponse = await api.post(`/api/participants/join`, {
         room_code: room.room_code,
         team: teamValue
-      }, true);
+      }, true, 60000);
+      
+      // Wait for confirmation that user appears in status
+      let confirmed = false;
+      let retries = 0;
+      const maxRetries = 5;
+      
+      while (!confirmed && retries < maxRetries) {
+        try {
+          const debateStatus = await api.get(`/api/debate/${room.id}/status`, true, 60000);
+          const participantsList = debateStatus.participants || [];
+          const userInList = participantsList.some(
+            p => String(p.user_id) === String(user?.id) && p.role === 'debater'
+          );
+          
+          if (userInList) {
+            confirmed = true;
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            retries++;
+          }
+        } catch (statusErr) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          retries++;
+        }
+      }
+      
+      if (!confirmed) {
+        console.warn('Could not confirm participant status, proceeding anyway');
+      }
       
       navigate(`/debate/${roomCode}`);
     } catch (err) {
-      setError(err.details?.detail || 'Failed to join debate');
+      setError(err.message || err.details?.detail || 'Failed to join debate');
       setIsJoining(false);
     }
   };

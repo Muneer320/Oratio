@@ -22,8 +22,12 @@ async def submit_turn(
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     
+    if room["status"] == DebateStatus.UPCOMING.value:
+        ReplitDB.update(Collections.ROOMS, room_id, {"status": DebateStatus.ONGOING.value})
+        room["status"] = DebateStatus.ONGOING.value
+    
     if room["status"] != DebateStatus.ONGOING.value:
-        raise HTTPException(status_code=400, detail="Debate is not ongoing")
+        raise HTTPException(status_code=400, detail="Debate has ended or was cancelled")
     
     participant = ReplitDB.find_one(
         Collections.PARTICIPANTS,
@@ -66,8 +70,12 @@ async def submit_audio(
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     
+    if room["status"] == DebateStatus.UPCOMING.value:
+        ReplitDB.update(Collections.ROOMS, room_id, {"status": DebateStatus.ONGOING.value})
+        room["status"] = DebateStatus.ONGOING.value
+    
     if room["status"] != DebateStatus.ONGOING.value:
-        raise HTTPException(status_code=400, detail="Debate is not ongoing")
+        raise HTTPException(status_code=400, detail="Debate has ended or was cancelled")
     
     participant = ReplitDB.find_one(
         Collections.PARTICIPANTS,

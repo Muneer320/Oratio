@@ -6,6 +6,7 @@ from app.schemas import RoomCreate, RoomUpdate, RoomResponse
 from app.replit_auth import get_current_user
 from app.replit_db import ReplitDB, Collections
 from app.models import DebateStatus
+from app.cache import user_cache
 
 router = APIRouter(prefix="/api/rooms", tags=["Rooms"])
 
@@ -20,9 +21,16 @@ def generate_room_code() -> str:
 
 
 def enrich_room_with_host(room: Dict[str, Any]) -> Dict[str, Any]:
-    """Add host_name to room data by looking up the host user"""
+    """Add host_name to room data by looking up the host user (cached)"""
     if room and "host_id" in room:
-        host = ReplitDB.get(Collections.USERS, room["host_id"])
+        cache_key = f"user_{room['host_id']}"
+        host = user_cache.get(cache_key)
+        
+        if host is None:
+            host = ReplitDB.get(Collections.USERS, room["host_id"])
+            if host:
+                user_cache.set(cache_key, host)
+        
         room["host_name"] = host.get("username", "Anonymous") if host else "Anonymous"
     return room
 

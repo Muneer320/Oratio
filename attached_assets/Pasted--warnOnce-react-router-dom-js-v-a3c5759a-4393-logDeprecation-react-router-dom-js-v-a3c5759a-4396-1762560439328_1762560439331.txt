@@ -1,0 +1,84 @@
+
+warnOnce @ react-router-dom.js?v=a3c5759a:4393
+logDeprecation @ react-router-dom.js?v=a3c5759a:4396
+logV6DeprecationWarnings @ react-router-dom.js?v=a3c5759a:4402
+(anonymous) @ react-router-dom.js?v=a3c5759a:5271
+commitHookEffectListMount @ chunk-PJEEZAML.js?v=a3c5759a:16915
+commitPassiveMountOnFiber @ chunk-PJEEZAML.js?v=a3c5759a:18156
+commitPassiveMountEffects_complete @ chunk-PJEEZAML.js?v=a3c5759a:18129
+commitPassiveMountEffects_begin @ chunk-PJEEZAML.js?v=a3c5759a:18119
+commitPassiveMountEffects @ chunk-PJEEZAML.js?v=a3c5759a:18109
+flushPassiveEffectsImpl @ chunk-PJEEZAML.js?v=a3c5759a:19490
+flushPassiveEffects @ chunk-PJEEZAML.js?v=a3c5759a:19447
+(anonymous) @ chunk-PJEEZAML.js?v=a3c5759a:19328
+workLoop @ chunk-PJEEZAML.js?v=a3c5759a:197
+flushWork @ chunk-PJEEZAML.js?v=a3c5759a:176
+performWorkUntilDeadline @ chunk-PJEEZAML.js?v=a3c5759a:384
+api/participants/join:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+api.js:85 POST /api/participants/join failed: Error: Room not found
+    at ApiService.handleResponse (api.js:50:24)
+    at async ApiService.post (api.js:83:14)
+    at async handleJoin (Join.jsx:25:7)
+post @ api.js:85
+api.js:78  POST https://1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev/api/participants/join 404 (Not Found)
+post @ api.js:78
+handleJoin @ Join.jsx:25
+callCallback2 @ chunk-PJEEZAML.js?v=a3c5759a:3674
+invokeGuardedCallbackDev @ chunk-PJEEZAML.js?v=a3c5759a:3699
+invokeGuardedCallback @ chunk-PJEEZAML.js?v=a3c5759a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-PJEEZAML.js?v=a3c5759a:3736
+executeDispatch @ chunk-PJEEZAML.js?v=a3c5759a:7014
+processDispatchQueueItemsInOrder @ chunk-PJEEZAML.js?v=a3c5759a:7034
+processDispatchQueue @ chunk-PJEEZAML.js?v=a3c5759a:7043
+dispatchEventsForPlugins @ chunk-PJEEZAML.js?v=a3c5759a:7051
+(anonymous) @ chunk-PJEEZAML.js?v=a3c5759a:7174
+batchedUpdates$1 @ chunk-PJEEZAML.js?v=a3c5759a:18913
+batchedUpdates @ chunk-PJEEZAML.js?v=a3c5759a:3579
+dispatchEventForPluginEventSystem @ chunk-PJEEZAML.js?v=a3c5759a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-PJEEZAML.js?v=a3c5759a:5478
+dispatchEvent @ chunk-PJEEZAML.js?v=a3c5759a:5472
+dispatchDiscreteEvent @ chunk-PJEEZAML.js?v=a3c5759a:5449
+api.js:85 POST /api/participants/join failed: Error: Room not found
+    at ApiService.handleResponse (api.js:50:24)
+    at async ApiService.post (api.js:83:14)
+    at async handleJoin (Join.jsx:25:7)
+post @ api.js:85
+await in post
+handleJoin @ Join.jsx:25
+callCallback2 @ chunk-PJEEZAML.js?v=a3c5759a:3674
+invokeGuardedCallbackDev @ chunk-PJEEZAML.js?v=a3c5759a:3699
+invokeGuardedCallback @ chunk-PJEEZAML.js?v=a3c5759a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-PJEEZAML.js?v=a3c5759a:3736
+executeDispatch @ chunk-PJEEZAML.js?v=a3c5759a:7014
+processDispatchQueueItemsInOrder @ chunk-PJEEZAML.js?v=a3c5759a:7034
+processDispatchQueue @ chunk-PJEEZAML.js?v=a3c5759a:7043
+dispatchEventsForPlugins @ chunk-PJEEZAML.js?v=a3c5759a:7051
+(anonymous) @ chunk-PJEEZAML.js?v=a3c5759a:7174
+batchedUpdates$1 @ chunk-PJEEZAML.js?v=a3c5759a:18913
+batchedUpdates @ chunk-PJEEZAML.js?v=a3c5759a:3579
+dispatchEventForPluginEventSystem @ chunk-PJEEZAML.js?v=a3c5759a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-PJEEZAML.js?v=a3c5759a:5478
+dispatchEvent @ chunk-PJEEZAML.js?v=a3c5759a:5472
+dispatchDiscreteEvent @ chunk-PJEEZAML.js?v=a3c5759a:5449
+api.js:78  POST https://1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev/api/participants/join 404 (Not Found)
+post @ api.js:78
+handleJoin @ Join.jsx:25
+callCallback2 @ chunk-PJEEZAML.js?v=a3c5759a:3674
+invokeGuardedCallbackDev @ chunk-PJEEZAML.js?v=a3c5759a:3699
+invokeGuardedCallback @ chunk-PJEEZAML.js?v=a3c5759a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-PJEEZAML.js?v=a3c5759a:3736
+executeDispatch @ chunk-PJEEZAML.js?v=a3c5759a:7014
+processDispatchQueueItemsInOrder @ chunk-PJEEZAML.js?v=a3c5759a:7034
+processDispatchQueue @ chunk-PJEEZAML.js?v=a3c5759a:7043
+dispatchEventsForPlugins @ chunk-PJEEZAML.js?v=a3c5759a:7051
+(anonymous) @ chunk-PJEEZAML.js?v=a3c5759a:7174
+batchedUpdates$1 @ chunk-PJEEZAML.js?v=a3c5759a:18913
+batchedUpdates @ chunk-PJEEZAML.js?v=a3c5759a:3579
+dispatchEventForPluginEventSystem @ chunk-PJEEZAML.js?v=a3c5759a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-PJEEZAML.js?v=a3c5759a:5478
+dispatchEvent @ chunk-PJEEZAML.js?v=a3c5759a:5472
+dispatchDiscreteEvent @ chunk-PJEEZAML.js?v=a3c5759a:5449
+api.js:85 POST /api/participants/join failed: Error: Room not found
+    at ApiService.handleResponse (api.js:50:24)
+    at async ApiService.post (api.js:83:14)
+    at async handleJoin (Join.jsx:25:7)

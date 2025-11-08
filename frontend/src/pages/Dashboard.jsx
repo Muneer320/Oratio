@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Users, Clock, Trophy, ChevronRight, Flame, Eye } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
+import JoinRoomByCode from '../components/JoinRoomByCode';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -146,6 +147,11 @@ const Dashboard = () => {
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-text-primary mb-2">Dashboard</h1>
         <p className="text-lg text-text-secondary">Explore ongoing debates, join upcoming rooms, or review past performances.</p>
+      </div>
+
+      <div className="mb-10 bg-dark-elevated rounded-2xl p-6 border border-dark-warm">
+        <h3 className="text-lg font-semibold text-text-primary mb-4">Join Private Debate</h3>
+        <JoinRoomByCode className="max-w-2xl" />
       </div>
 
       <Section title="Ongoing Debates" icon={Flame} count={ongoingDebates.length}>

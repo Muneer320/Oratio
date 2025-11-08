@@ -108,34 +108,45 @@ class ReplitAuth:
         """
         Simple registration for local development (when Replit Auth unavailable)
         """
-        # Check if user exists
-        existing = ReplitDB.find_one(Collections.USERS, {"email": email})
-        if existing:
-            raise HTTPException(status_code=400, detail="User already exists")
+        try:
+            # Check if user exists
+            existing = ReplitDB.find_one(Collections.USERS, {"email": email})
+            if existing:
+                raise HTTPException(status_code=400, detail="User already exists")
 
-        existing_username = ReplitDB.find_one(
-            Collections.USERS, {"username": username})
-        if existing_username:
-            raise HTTPException(
-                status_code=400, detail="Username already taken")
+            existing_username = ReplitDB.find_one(
+                Collections.USERS, {"username": username})
+            if existing_username:
+                raise HTTPException(
+                    status_code=400, detail="Username already taken")
 
-        # Create user (storing password hash in real app, but simplified for demo)
-        new_user = {
-            "username": username,
-            "email": email,
-            "password_hash": password,  # In production, use proper hashing
-            "full_name": username,
-            "provider": "local",
-            "xp": 0,
-            "badges": [],
-            "avatar_url": None,
-            "bio": None
-        }
+            # Create user (storing password hash in real app, but simplified for demo)
+            new_user = {
+                "username": username,
+                "email": email,
+                "password_hash": password,  # In production, use proper hashing
+                "full_name": username,
+                "provider": "local",
+                "xp": 0,
+                "badges": [],
+                "avatar_url": None,
+                "bio": None
+            }
 
-        user = ReplitDB.insert(Collections.USERS, new_user)
-        token = ReplitAuth.create_session(user["id"])
+            user = ReplitDB.insert(Collections.USERS, new_user)
+            if not user or "id" not in user:
+                print(f"❌ Registration failed: user insert returned {user}")
+                raise Exception("Failed to create user")
+            
+            print(f"✅ User registered: {user['username']} (id: {user['id']})")
+            token = ReplitAuth.create_session(str(user["id"]))
 
-        return {"user": user, "token": token}
+            return {"user": user, "token": token}
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"❌ Registration error: {str(e)}")
+            raise Exception(f"Registration failed: {str(e)}")
 
     @staticmethod
     def simple_auth_login(email: str, password: str) -> Dict[str, Any]:

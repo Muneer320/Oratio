@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring } from 'framer-motion';
-import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap, LogIn, UserPlus, Home as HomeIcon, Plus, DoorOpen } from 'lucide-react';
+import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap, LogIn, Home as HomeIcon, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import JoinRoomByCode from '../components/JoinRoomByCode';
 
 function AnimatedCounter({ value, suffix = '', duration = 2 }) {
   const ref = useRef(null);
@@ -149,32 +150,6 @@ function Home() {
             </motion.button>
 
             <motion.button
-              onClick={() => navigate('/add')}
-              className="group relative px-5 py-2.5 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-xl font-medium text-sm overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <span className="relative flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Host Debate
-              </span>
-            </motion.button>
-
-            <motion.button
-              onClick={() => navigate('/join')}
-              className="group relative px-5 py-2.5 bg-dark-elevated border border-accent-saffron/40 text-accent-saffron rounded-xl font-medium text-sm overflow-hidden backdrop-blur-sm"
-              whileHover={{ scale: 1.05, borderColor: 'rgba(240, 198, 116, 0.8)' }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <span className="relative flex items-center gap-2">
-                <DoorOpen className="w-4 h-4" />
-                Join Room
-              </span>
-            </motion.button>
-
-            <motion.button
               onClick={() => navigate('/profile')}
               className="group relative px-5 py-2.5 bg-dark-elevated/90 backdrop-blur-sm border border-dark-warm hover:border-accent-teal/50 text-text-primary rounded-xl font-medium text-sm overflow-hidden"
               whileHover={{ scale: 1.05 }}
@@ -182,7 +157,17 @@ function Home() {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/0 to-accent-teal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span className="relative flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                {user?.avatar_url ? (
+                  <img 
+                    src={user.avatar_url} 
+                    alt={user.username} 
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent-rust to-accent-teal flex items-center justify-center text-xs font-bold">
+                    {user?.username?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
                 {user?.username || user?.email}
               </span>
             </motion.button>
@@ -235,7 +220,7 @@ function Home() {
                 <span className="text-accent-rust font-semibold">rhetoric</span>
               </p>
 
-              <div className="flex gap-5 flex-wrap">
+              <div className="space-y-6">
                 <Link to="/add">
                   <motion.button
                     className="group relative px-10 py-5 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-2xl font-semibold text-lg overflow-hidden"
@@ -244,6 +229,7 @@ function Home() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <span className="relative flex items-center gap-2.5">
+                      <Plus className="w-5 h-5" />
                       Host Debate
                       <motion.div
                         animate={{ x: [0, 4, 0] }}
@@ -256,16 +242,10 @@ function Home() {
                   </motion.button>
                 </Link>
                 
-                <Link to="/home">
-                  <motion.button
-                    className="group relative px-10 py-5 bg-dark-elevated border-2 border-accent-teal/40 text-accent-teal rounded-2xl font-semibold text-lg overflow-hidden"
-                    whileHover={{ scale: 1.03, borderColor: 'rgba(74, 154, 159, 0.8)' }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/0 to-accent-teal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <span className="relative">Join Room</span>
-                  </motion.button>
-                </Link>
+                <div className="max-w-lg">
+                  <p className="text-text-secondary text-sm mb-3 font-medium">Or join with a room code:</p>
+                  <JoinRoomByCode />
+                </div>
               </div>
             </motion.div>
 

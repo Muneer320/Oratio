@@ -15,6 +15,10 @@ async def join_room(
     """
     Join a debate room as a participant
     """
+    print(f"🔍 Looking for room with code: {join_data.room_code}")
+    all_rooms = ReplitDB.find(Collections.ROOMS, limit=10)
+    print(f"📋 All rooms: {[r.get('room_code') for r in all_rooms]}")
+    
     room = ReplitDB.find_one(Collections.ROOMS, {"room_code": join_data.room_code})
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")

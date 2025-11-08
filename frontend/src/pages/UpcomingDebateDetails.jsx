@@ -20,8 +20,26 @@ const UpcomingDebateDetails = () => {
 
   useEffect(() => {
     fetchRoomDetails();
-    const interval = setInterval(fetchRoomDetails, 15000);
-    return () => clearInterval(interval);
+    
+    // Only poll when tab is active - reduced to 30s for better performance
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchRoomDetails();
+      }
+    }, 30000);
+    
+    // Refresh when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchRoomDetails();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [roomCode]);
 
   useEffect(() => {

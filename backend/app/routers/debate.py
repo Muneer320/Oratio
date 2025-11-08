@@ -5,6 +5,7 @@ from app.replit_auth import get_current_user
 from app.replit_db import ReplitDB, Collections
 from app.gemini_ai import GeminiAI
 from app.models import DebateStatus
+from app.cache import user_cache
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
 
@@ -253,10 +254,17 @@ async def get_debate_status(room_id: str):
     participants = ReplitDB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
     turns = ReplitDB.find(Collections.TURNS, {"room_id": room["id"]})
     
-    # Enrich participants with user information (username)
+    # Enrich participants with user information (username) - cached
     enriched_participants = []
     for participant in participants:
-        user = ReplitDB.get(Collections.USERS, participant["user_id"])
+        cache_key = f"user_{participant['user_id']}"
+        user = user_cache.get(cache_key)
+        
+        if user is None:
+            user = ReplitDB.get(Collections.USERS, participant["user_id"])
+            if user:
+                user_cache.set(cache_key, user)
+        
         if user:
             participant["username"] = user.get("username", "Unknown")
             participant["name"] = user.get("full_name") or user.get("username", "Unknown")

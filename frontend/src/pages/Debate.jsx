@@ -32,8 +32,26 @@ function Debate() {
 
   useEffect(() => {
     loadRoomData();
-    const interval = setInterval(loadRoomData, 10000);
-    return () => clearInterval(interval);
+    
+    // Only poll when tab is active - 10s for debate page (needs faster updates)
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        loadRoomData();
+      }
+    }, 10000);
+    
+    // Refresh when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadRoomData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [roomCode]);
 
   useEffect(() => {

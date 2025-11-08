@@ -12,8 +12,26 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchRooms();
-    const interval = setInterval(fetchRooms, 15000);
-    return () => clearInterval(interval);
+    
+    // Only poll when tab is active - reduced to 30s for better performance
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchRooms();
+      }
+    }, 30000);
+    
+    // Refresh when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchRooms();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const fetchRooms = async () => {

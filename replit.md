@@ -28,14 +28,17 @@ Oratio is an AI-powered debate platform designed for real-time voice and text de
 **UX Improvements:**
 - Replaced "Notify me" browser alert with graceful animated UI message that auto-dismisses after 5 seconds, suggesting users bookmark the page or set a reminder
 - Added audio playback button (Play/Pause) for reviewing recorded audio before submission
-- Added "AI thinking" visual indicator that shows when AI is analyzing turns after round completion
+- Added enhanced "⚖️ AI Judging in Progress..." indicator with gradient styling that shows when AI is analyzing turns after round completion
 - Implemented strict turn-based debate system preventing consecutive submissions from same user/team
 - **Auto-redirect to results**: When all rounds complete, all users (debaters, spectators, host) automatically redirect to results page
+- **Seat-Filling Requirement**: Participants cannot submit arguments until all debate seats are filled (2 for individual, 4 for team debates)
+- **Turn Submission Lock**: Input area and buttons automatically disable after participant submits their turn for the current round
 - **Comprehensive Results Page**: Rebuilt with role-based tabs:
-  - **Overview Tab** (all users): AI summary, winner announcement, LCR score breakdown with animated progress bars for all participants, strengths/weaknesses, key insights
+  - **Overview Tab** (all users): AI summary, winner announcement, **interactive bar chart** comparing LCR scores, detailed LCR breakdown with animated progress bars for all participants, strengths/weaknesses, key insights
   - **Team Analysis Tab** (team debates only): Team performance comparison, average LCR scores per team, member breakdown, team stats
   - **My Performance Tab** (participants only): Personal LCR scores, detailed feedback (strengths, weaknesses, improvements), performance statistics
   - **Transcript Tab** (all users): Full debate replay with audio playback buttons
+- **Spectator Reactions**: Spectators can react to participants during debates with four reaction types (Agree, Strong Argument, Insightful, Support) with instant feedback
 
 **Join Flow Improvements:**
 - Join operation now waits for backend confirmation before navigating to debate page

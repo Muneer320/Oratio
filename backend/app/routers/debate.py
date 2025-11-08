@@ -136,13 +136,14 @@ async def generate_debate_results(room_id: str):
             }
     
     # Create result record (use 'scores' and 'feedback' to match frontend expectations)
+    from datetime import datetime
     result = {
         "room_id": room_id,
         "winner_id": winner_id,
         "summary": summary,
         "scores": participant_scores,  # Changed from scores_json
         "feedback": participant_feedback,  # Changed from feedback_json
-        "timestamp": ReplitDB._get_timestamp()
+        "timestamp": datetime.utcnow().isoformat()
     }
     
     # Save result to database

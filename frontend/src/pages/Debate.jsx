@@ -457,7 +457,7 @@ function Debate() {
                           )}
                         </div>
                       </div>
-                    </div>;
+                    </div>
                   })
                 )}
                 <div ref={transcriptEndRef} />

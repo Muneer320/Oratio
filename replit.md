@@ -29,6 +29,12 @@ Oratio is an AI-powered debate platform designed for real-time voice and text de
 - Added audio playback button (Play/Pause) for reviewing recorded audio before submission
 - Added "AI thinking" visual indicator that shows when AI is analyzing turns after round completion
 - Implemented strict turn-based debate system preventing consecutive submissions from same user/team
+- **Auto-redirect to results**: When all rounds complete, all users (debaters, spectators, host) automatically redirect to results page
+- **Comprehensive Results Page**: Rebuilt with role-based tabs:
+  - **Overview Tab** (all users): AI summary, winner announcement, LCR score breakdown with animated progress bars for all participants, strengths/weaknesses, key insights
+  - **Team Analysis Tab** (team debates only): Team performance comparison, average LCR scores per team, member breakdown, team stats
+  - **My Performance Tab** (participants only): Personal LCR scores, detailed feedback (strengths, weaknesses, improvements), performance statistics
+  - **Transcript Tab** (all users): Full debate replay with audio playback buttons
 
 **Join Flow Improvements:**
 - Join operation now waits for backend confirmation before navigating to debate page

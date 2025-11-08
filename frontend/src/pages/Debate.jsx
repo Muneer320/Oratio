@@ -28,6 +28,7 @@ function Debate() {
   const audioChunksRef = useRef([]);
   const timerIntervalRef = useRef(null);
   const lastTurnKeyRef = useRef(null);
+  const transcriptEndRef = useRef(null);
 
   useEffect(() => {
     loadRoomData();
@@ -54,7 +55,13 @@ function Debate() {
     if (timeRemaining !== null) {
       timerIntervalRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
-          if (prev === null || prev <= 0) return 0;
+          if (prev === null || prev <= 0) {
+            // Timer ended - show warning
+            if (prev === 0) {
+              setError('Time is up for this turn!');
+            }
+            return 0;
+          }
           return prev - 1;
         });
       }, 1000);
@@ -66,6 +73,34 @@ function Debate() {
       };
     }
   }, [timeRemaining !== null]);
+
+  // Auto-scroll to bottom when new turns are added (WhatsApp style)
+  useEffect(() => {
+    if (transcriptEndRef.current) {
+      transcriptEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [turns]);
+
+  // Check if debate should auto-end when all rounds are complete
+  useEffect(() => {
+    if (room && participants.length > 0 && turns.length > 0) {
+      const totalRounds = room.rounds || 3;
+      const participantCount = participants.filter(p => p.role === 'debater').length || 2;
+      const expectedTurns = totalRounds * participantCount;
+      
+      // Auto-end debate when all rounds are complete
+      if (turns.length >= expectedTurns && room.status === 'ongoing') {
+        // Only host can end, show message to others
+        if (room.host_id === user?.id) {
+          setTimeout(() => {
+            handleEndDebate();
+          }, 2000);
+        } else {
+          setError('All rounds complete. Waiting for host to end debate...');
+        }
+      }
+    }
+  }, [turns.length, room, participants]);
 
   const loadRoomData = async () => {
     try {
@@ -357,15 +392,20 @@ function Debate() {
                 {turns.length === 0 ? (
                   <p className="text-text-muted text-center py-12">No arguments yet. Be the first to speak!</p>
                 ) : (
-                  turns.map((turn, i) => (
+                  turns.map((turn, i) => {
+                    const speaker = participants.find(p => p.id === turn.speaker_id);
+                    const speakerName = speaker?.username || speaker?.name || `Speaker ${turn.speaker_id}`;
+                    const speakerInitial = speakerName[0]?.toUpperCase() || 'S';
+                    
+                    return (
                     <div key={i} className="bg-accent-rust/10 border border-accent-rust/30 rounded-xl p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-accent-rust rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                          {turn.speaker_id}
+                        <div className="w-10 h-10 bg-gradient-to-br from-accent-rust to-accent-saffron rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                          {speakerInitial}
                         </div>
                         <div className="flex-1">
                           <div className="flex justify-between mb-2">
-                            <span className="font-semibold text-text-primary">Speaker {turn.speaker_id}</span>
+                            <span className="font-semibold text-text-primary">{speakerName}</span>
                             <span className="text-text-muted text-sm">
                               Round {turn.round_number}, Turn {turn.turn_number}
                             </span>
@@ -396,8 +436,10 @@ function Debate() {
                         </div>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 )}
+                <div ref={transcriptEndRef} />
               </div>
             </div>
 

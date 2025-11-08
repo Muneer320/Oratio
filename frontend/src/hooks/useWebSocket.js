@@ -6,6 +6,10 @@ export function useWebSocket(endpoint) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    if (!endpoint) {
+      return;
+    }
+
     wsService.connect(endpoint, (data) => {
       setMessages((prev) => [...prev, data]);
     });

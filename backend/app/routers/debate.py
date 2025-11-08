@@ -7,6 +7,7 @@ from app.replit_db import DB, Collections
 from app.gemini_ai import GeminiAI
 from app.models import DebateStatus
 from app.cache import user_cache, room_cache
+from app.websockets import manager
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
 
@@ -172,6 +173,8 @@ async def _generate_ai_turn(room: Dict[str, Any], ai_participant: Dict[str, Any]
     Generate an AI opponent's turn using Gemini AI
     """
     try:
+        from datetime import datetime
+        
         # Get context from previous turns
         context = f"Topic: {room.get('topic')}\n\n"
         if previous_turns:
@@ -201,8 +204,17 @@ Generate a compelling debate argument (2-3 paragraphs). Be persuasive, use logic
             "is_ai": True
         }
         
-        DB.insert(Collections.TURNS, ai_turn)
+        new_turn = DB.insert(Collections.TURNS, ai_turn)
         print(f"🤖 AI Opponent submitted turn {turn_number} in round {round_number}")
+        
+        # Broadcast WebSocket notification
+        await manager.broadcast({
+            "type": "new_turn",
+            "turn": new_turn,
+            "speaker_id": ai_participant["id"],
+            "speaker_name": "AI Opponent",
+            "timestamp": new_turn.get("submitted_at")
+        }, room["id"])
         
     except Exception as e:
         print(f"⚠️  AI turn generation failed: {e}")
@@ -428,6 +440,18 @@ async def submit_turn(
     # Invalidate caches for this room (new data available)
     room_cache.delete(f"debate_status_{room_id}")
     room_cache.delete(f"transcript_{room_id}")
+    
+    # Broadcast WebSocket notification for real-time updates
+    try:
+        await manager.broadcast({
+            "type": "new_turn",
+            "turn": turn,
+            "speaker_id": participant["id"],
+            "speaker_name": current_user.get("username", "Anonymous"),
+            "timestamp": turn.get("timestamp")
+        }, room["id"])
+    except Exception as ws_error:
+        print(f"⚠️  WebSocket broadcast failed: {ws_error}")
 
     # Check if round is complete and trigger batch analysis
     await check_and_analyze_round(room, turn_data.round_number)

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Send, X, AlertCircle, CheckCircle, Clock, Mic, Square, Play, Pause, ThumbsUp, Flame, Heart, Brain } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 function Debate() {
   const { roomCode } = useParams();
@@ -33,6 +34,9 @@ function Debate() {
   const timerIntervalRef = useRef(null);
   const lastTurnKeyRef = useRef(null);
   const transcriptEndRef = useRef(null);
+  
+  // WebSocket for real-time updates
+  const { messages: wsMessages, isConnected } = useWebSocket(room?.id ? `/ws/debate/${room.id}` : null);
 
   const handleSpectatorReaction = async (participantId, reactionType) => {
     if (!room || isParticipant) return;
@@ -50,29 +54,28 @@ function Debate() {
     }
   };
 
+  // Load room data once on mount
   useEffect(() => {
     loadRoomData();
-    
-    // Only poll when tab is active - 30s for debate page (reduced to ease backend load)
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        loadRoomData();
-      }
-    }, 30000);
-    
-    // Refresh when tab becomes visible
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        loadRoomData();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, [roomCode]);
+  
+  // Handle real-time WebSocket messages
+  useEffect(() => {
+    if (!wsMessages || wsMessages.length === 0) return;
+    
+    const latestMessage = wsMessages[wsMessages.length - 1];
+    
+    if (latestMessage.type === 'new_turn') {
+      // Reload turns when a new turn is submitted
+      loadTurns();
+    } else if (latestMessage.type === 'participant_update') {
+      // Reload participants when someone joins/leaves
+      loadParticipants();
+    } else if (latestMessage.type === 'debate_status') {
+      // Reload room status
+      loadRoomData();
+    }
+  }, [wsMessages]);
 
   useEffect(() => {
     if (room?.time_per_turn && timePerTurn === null) {
@@ -119,6 +122,26 @@ function Debate() {
     }
   }, [turns]);
 
+  const loadTurns = async () => {
+    if (!room) return;
+    try {
+      const transcript = await api.get(`/api/debate/${room.id}/transcript`, true);
+      setTurns(transcript.turns || []);
+    } catch (err) {
+      console.error('Failed to load turns:', err);
+    }
+  };
+  
+  const loadParticipants = async () => {
+    if (!room) return;
+    try {
+      const debateStatus = await api.get(`/api/debate/${room.id}/status`, true);
+      setParticipants(debateStatus.participants || []);
+    } catch (err) {
+      console.error('Failed to load participants:', err);
+    }
+  };
+  
   const loadRoomData = async () => {
     try {
       const foundRoom = await api.get(`/api/rooms/code/${roomCode}`, true);

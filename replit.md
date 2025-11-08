@@ -35,6 +35,11 @@ Preferred communication style: Simple, everyday language.
     - AI generates contextual arguments in response to human debater
     - AI auto-responds after each human turn
     - AI scored using same LCR model as humans
+11. **Real-Time Chat System:** Debate rooms now use WebSocket connections for instant updates
+    - Removed 30-second polling in favor of real-time WebSocket broadcasts
+    - All debate turns (human and AI) broadcast instantly to all participants
+    - WhatsApp-style auto-scroll to latest messages
+    - Backend broadcasts events: `new_turn`, `participant_update`, `debate_status`
 
 ## System Architecture
 

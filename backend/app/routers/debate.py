@@ -12,6 +12,7 @@ from app.repositories import (
 from app.models import DebateStatus, Room, Participant, Turn, Result, User, SpectatorVote
 from app.gemini_ai import GeminiAI
 from app.cache import user_cache, room_cache
+from app.badge_service import BadgeService
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
 
@@ -180,6 +181,21 @@ async def generate_debate_results(room_id: int, db: AsyncSession):
 
     # Save result to database
     await Repository.create(db, Result, result)
+
+    # Award badges to all participants based on their performance
+    for participant in debaters:
+        try:
+            scores = participant_scores.get(participant.id, {})
+            newly_awarded = await BadgeService.check_and_award_badges(
+                db=db,
+                user_id=participant.user_id,
+                participant_id=participant.id,
+                recent_scores=scores
+            )
+            if newly_awarded:
+                print(f"🏅 User {participant.user_id} earned badges: {newly_awarded}")
+        except Exception as e:
+            print(f"⚠️ Failed to award badges to user {participant.user_id}: {e}")
 
     return result
 

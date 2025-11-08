@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import BottomTabBar from './BottomTabBar';
+import logo from '../assets/Logo.png';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -19,8 +20,8 @@ const Layout = ({ children }) => {
       <header className="bg-dark-elevated border-b border-dark-warm shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/home" className="flex items-center space-x-2">
-              <Brain className="w-8 h-8 text-accent-rust" />
+            <Link to="/home" className="flex items-center space-x-3" title="Oratio">
+              <img src={logo} alt="Oratio Logo" className="w-10 h-10" />
               <span className="text-2xl font-bold bg-gradient-to-r from-accent-rust via-accent-saffron to-accent-teal bg-clip-text text-transparent font-display">
                 Oratio
               </span>

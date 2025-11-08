@@ -32,6 +32,7 @@ const BottomTabBar = () => {
                     ? 'text-accent-rust'
                     : 'text-text-muted hover:text-text-secondary'
                 }`}
+                title={tab.name}
               >
                 <Icon className={`${active ? 'w-6 h-6' : 'w-5 h-5'} transition-all`} />
                 {active && (

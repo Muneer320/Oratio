@@ -14,7 +14,7 @@ The backend is built with FastAPI, leveraging async support for high-performance
 
 ## AI Integration
 
-Debate analysis employs a multi-provider AI cascade for reliability, starting with Replit AI ChatModel (chat-bison) and falling back to OpenAI GPT-4o mini, with static responses as a last resort. This system evaluates debates based on logic (40%), credibility (35%), and rhetoric (25%), using context-aware analysis and JSON response validation. Fact-checking is an optional feature via Serper API for claim verification. The training system provides AI-generated personalized feedback, identifying strengths and weaknesses, and recommending improvements.
+Debate analysis uses Google Gemini AI (gemini-2.0-flash) exclusively for all AI-powered features. The system evaluates debates based on logic (40%), credibility (35%), and rhetoric (25%), using context-aware analysis and JSON response validation. Static fallback responses are provided if Gemini is unavailable. Fact-checking is an optional feature via Serper API for claim verification. The training system provides AI-generated personalized feedback, identifying strengths and weaknesses, and recommending improvements.
 
 ## Real-Time Communication
 
@@ -37,19 +37,19 @@ Environment detection automatically switches between development and production 
 ## Replit Platform Services
 
 - **Replit Database**: Primary data persistence for users, rooms, participants, turns, etc.
-- **Replit AI**: Debate analysis and training feedback using ChatModel (chat-bison).
 - **Replit Auth**: User authentication and session management.
 
 ## Third-Party APIs
 
+- **Google Gemini AI**: Primary AI provider for debate analysis and training feedback using gemini-2.0-flash model (requires API key).
 - **Serper API**: Optional fact-checking via web search (requires API key).
 
 ## Python Dependencies
 
 - **Core Framework**: `fastapi`, `uvicorn`, `pydantic`, `websockets`.
-- **Replit Integration**: `replit`, `replit-ai`, `Flask`.
+- **Replit Integration**: `replit`, `Flask`.
 - **File Processing**: `python-multipart`, `aiofiles`, `PyMuPDF`, `beautifulsoup4`.
-- **AI Providers**: `openai` (for GPT-4o mini fallback).
+- **AI Providers**: `google-genai` (Google Gemini AI SDK).
 - **Utilities**: `python-dotenv`, `httpx`, `requests`.
 
 ## Frontend Dependencies

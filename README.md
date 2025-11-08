@@ -31,12 +31,12 @@ Oratio is a **voice-enabled, AI-powered debate platform** built specifically for
 
 This project is **fully optimized for Replit** and showcases:
 
-| Feature | Implementation | Status |
-|---------|---------------|--------|
-| **Replit Database** | Key-value store for all debate data | ✅ Built-in |
-| **Replit AI** | LCR debate judging & training | ✅ Built-in |
-| **Replit Auth** | Seamless user authentication | ✅ Built-in |
-| **Replit Deployment** | One-click deploy & hosting | ✅ Ready |
+| Feature               | Implementation                      | Status      |
+| --------------------- | ----------------------------------- | ----------- |
+| **Replit Database**   | Key-value store for all debate data | ✅ Built-in |
+| **Replit AI**         | LCR debate judging & training       | ✅ Built-in |
+| **Replit Auth**       | Seamless user authentication        | ✅ Built-in |
+| **Replit Deployment** | One-click deploy & hosting          | ✅ Ready    |
 
 **Why Replit?**
 
@@ -60,11 +60,11 @@ This project is **fully optimized for Replit** and showcases:
 
 Each participant is evaluated on three criteria:
 
-| Criterion | Description | Weight |
-|-----------|-------------|--------|
-| **Logic (L)** | Coherence, reasoning, argument structure | 40% |
-| **Credibility (C)** | Accuracy, evidence use, fact consistency | 35% |
-| **Rhetoric (R)** | Tone, persuasion, clarity, emotional delivery | 25% |
+| Criterion           | Description                                   | Weight |
+| ------------------- | --------------------------------------------- | ------ |
+| **Logic (L)**       | Coherence, reasoning, argument structure      | 40%    |
+| **Credibility (C)** | Accuracy, evidence use, fact consistency      | 35%    |
+| **Rhetoric (R)**    | Tone, persuasion, clarity, emotional delivery | 25%    |
 
 **Verdict Format:**
 
@@ -122,19 +122,43 @@ After each debate:
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│ AI Layer (GPT-4/5 or Replit AI)                         │
+│ AI Layer (Gemini AI → Replit AI → Static Fallback)      │
 │ - LCR Model evaluation                                  │
 │ - Fact-checking via Serper/Tavily                       │
-│ - Speech-to-text (Whisper API)                          │
+│ - Speech-to-text (Web Speech API)                       │
 │ - Personalized training feedback                        │
 └─────────────────┬───────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│ Database (Supabase / PostgreSQL / Replit DB)            │
+│ Database (Replit DB → In-Memory Dict)                   │
 │ - User profiles, debate history, scores                 │
 │ - XP progression, badges, leaderboards                  │
+│ - Auto-fallback for local development                   │
 └─────────────────────────────────────────────────────────┘
+```
+
+### Multi-Tier Fallback System
+
+Oratio uses intelligent fallback layers for maximum compatibility:
+
+**Database Tier:**
+
+- **Tier 1 (Production)**: Replit DB - Persistent key-value storage when deployed on Replit
+- **Tier 2 (Development)**: In-Memory Dict - Non-persistent, perfect for local testing
+
+**AI Provider Tier:**
+
+- **Tier 1 (Best Quality)**: Gemini AI (gemini-2.5-pro) - If `GEMINI_API_KEY` is configured
+- **Tier 2 (Good Quality)**: Replit AI (chat-bison) - Automatically available on Replit platform
+- **Tier 3 (Demo Mode)**: Static Responses - Fallback for testing without API keys
+
+**Backend Hosting:**
+
+- **Replit**: Auto-detected, optimized for Replit environment
+- **Local**: Development mode with in-memory storage
+- **Docker**: Production-ready containerized deployment
+
 ```
 
 ---
@@ -143,15 +167,16 @@ After each debate:
 
 | Layer | Technologies |
 |-------|-------------|
-| **Frontend** | React, TailwindCSS, Framer Motion, React Router, Web Speech API, WebSockets |
-| **Backend** | FastAPI (Python), Pydantic, Uvicorn, WebSockets |
-| **AI/LLM** | GPT-4/5 or Replit AI (judging, summarizing, feedback) |
-| **Speech** | Whisper API / Browser SpeechRecognition |
-| **Fact Checking** | Serper / Tavily / Custom Search API |
-| **File Parsing** | PyMuPDF (PDF), BeautifulSoup (articles), Whisper (audio) |
-| **Database** | PostgreSQL / Supabase / Replit DB |
-| **Auth** | Replit Auth / JWT |
-| **Deployment** | Docker + Docker Compose (or Replit hosting) |
+| **Frontend** | React 18, TailwindCSS, Framer Motion, React Router, Web Speech API, WebSockets |
+| **Backend** | FastAPI 0.95+, Pydantic 2.0+, Uvicorn, WebSockets, ORJSONResponse (3-5x faster JSON) |
+| **AI/LLM** | Google Gemini AI (gemini-2.5-pro) → Replit AI (chat-bison) → Static fallback |
+| **Speech** | Browser SpeechRecognition API (built-in) |
+| **Fact Checking** | Serper API (free tier available) |
+| **File Parsing** | PyMuPDF (PDF), BeautifulSoup4 (HTML/articles), aiofiles (async I/O) |
+| **Database** | Replit DB (key-value) → In-Memory Dict (local fallback) |
+| **Auth** | Replit Auth (on Replit) / Simple JWT (local) |
+| **Performance** | GZip middleware, orjson serialization, connection pooling |
+| **Deployment** | Replit (primary), Docker + Docker Compose (alternative), Local (development) |
 
 ---
 
@@ -160,25 +185,29 @@ After each debate:
 ### **Option 1: Deploy on Replit (Recommended)**
 
 1. **Fork this Repl**
-   
+
    Click "Fork" on Replit or import from GitHub
 
-2. **Add Secrets (Optional)**
-   
-   - Click 🔒 **Secrets** tab
-   - Add `SERPER_API_KEY` for fact-checking (get free key at [serper.dev](https://serper.dev))
+2. **Add Secrets (Optional but Recommended)**
 
-3. **Click Run**
-   
+   - Click 🔒 **Secrets** tab in left sidebar
+   - Add `GEMINI_API_KEY` for better AI judging (get free key at [Google AI Studio](https://aistudio.google.com/app/apikey))
+   - Add `SERPER_API_KEY` for fact-checking (get free key at [serper.dev](https://serper.dev))
+   - Add `SECRET_KEY` for secure sessions (or let it auto-generate)
+
+3. **Click ▶️ Run**
+
    The backend will start automatically on port 8000
 
 4. **Access the App**
-   
-   ```
-   https://[your-repl-name].[username].repl.co/docs
-   ```
 
-📖 **Detailed Replit setup**: See [REPLIT_SETUP.md](./REPLIT_SETUP.md)
+```
+
+https://[your-repl-name].[username].repl.co/docs
+
+````
+
+📖 **Detailed guide**: See [QUICKSTART.md](./QUICKSTART.md)
 
 ---
 
@@ -194,7 +223,7 @@ After each debate:
 ```bash
 git clone https://github.com/muneer320/oratio.git
 cd oratio
-```
+````
 
 #### **2. Set Up Environment Variables**
 
@@ -202,11 +231,13 @@ cd oratio
 cp .env.example .env
 ```
 
-Edit `.env` and add your API keys:
+Edit `.env` and add your API keys (all optional):
 
-- `OPENAI_API_KEY` (for GPT-4/5)
-- `SERPER_API_KEY` (for fact-checking)
-- `DATABASE_URL` (if using external database)
+- `GEMINI_API_KEY` - For better AI judging (get at [Google AI Studio](https://aistudio.google.com/app/apikey))
+- `SERPER_API_KEY` - For fact-checking (get at [serper.dev](https://serper.dev))
+- `SECRET_KEY` - For secure auth sessions (auto-generates if empty)
+
+**Note**: App works without these keys using fallback responses for testing.
 
 #### **3. Build and Run with Docker Compose**
 
@@ -356,14 +387,14 @@ ws://localhost/ws/trainer/{user_id}    - Real-time trainer feedback
 
 ## 🎨 **UI Pages**
 
-| Page | Route | Description |
-|------|-------|-------------|
-| **Landing Page** | `/` | "Host Debate" / "Join Debate" / "Train with AI" options |
-| **Host Dashboard** | `/host` | Room creation, topic input, reference upload |
-| **Debate Arena** | `/debate/:roomId` | Split-screen participants + live scores + audience meter |
-| **Spectator View** | `/spectate/:roomId` | Watch debate + send rewards |
-| **Result Page** | `/results/:roomId` | Winner, LCR breakdown chart, AI feedback, fact sources |
-| **Trainer Page** | `/trainer` | Personalized training modules, XP tracking, challenges |
+| Page               | Route               | Description                                              |
+| ------------------ | ------------------- | -------------------------------------------------------- |
+| **Landing Page**   | `/`                 | "Host Debate" / "Join Debate" / "Train with AI" options  |
+| **Host Dashboard** | `/host`             | Room creation, topic input, reference upload             |
+| **Debate Arena**   | `/debate/:roomId`   | Split-screen participants + live scores + audience meter |
+| **Spectator View** | `/spectate/:roomId` | Watch debate + send rewards                              |
+| **Result Page**    | `/results/:roomId`  | Winner, LCR breakdown chart, AI feedback, fact sources   |
+| **Trainer Page**   | `/trainer`          | Personalized training modules, XP tracking, challenges   |
 
 ---
 
@@ -410,33 +441,33 @@ oratio/
 
 ## 🕒 **36-Hour Hackathon Plan**
 
-| Time | Focus | Deliverable |
-|------|-------|-------------|
-| **0–6h** | Project setup | ✅ Base FastAPI + React + Docker structure |
-| **6–14h** | Debate logic | Room creation, join flow, turn system |
-| **14–22h** | AI judging | LCR prompt engineering + live scoring |
-| **22–28h** | Voice integration | Whisper API + speech recognition |
-| **28–32h** | Spectator system | Reward system + audience influence |
-| **32–36h** | Trainer + polish | AI training, animations, final demo |
+| Time       | Focus             | Deliverable                                |
+| ---------- | ----------------- | ------------------------------------------ |
+| **0–6h**   | Project setup     | ✅ Base FastAPI + React + Docker structure |
+| **6–14h**  | Debate logic      | Room creation, join flow, turn system      |
+| **14–22h** | AI judging        | LCR prompt engineering + live scoring      |
+| **22–28h** | Voice integration | Whisper API + speech recognition           |
+| **28–32h** | Spectator system  | Reward system + audience influence         |
+| **32–36h** | Trainer + polish  | AI training, animations, final demo        |
 
 ---
 
 ## 🧪 **Development Status**
 
-| Feature | Status |
-|---------|--------|
-| Backend Foundation | ✅ Complete |
-| Replit Integration | ✅ Complete |
-| Database Models | ✅ Complete |
-| API Schemas | ✅ Complete |
-| Auth System | 🚧 In Progress |
-| Room Management | 📝 Planned |
-| Debate Flow | 📝 Planned |
-| AI Judging | 📝 Planned |
-| Trainer System | 📝 Planned |
-| Frontend UI | 🚧 In Progress |
-| WebSockets | 📝 Planned |
-| File Uploads | 📝 Planned |
+| Feature            | Status         |
+| ------------------ | -------------- |
+| Backend Foundation | ✅ Complete    |
+| Replit Integration | ✅ Complete    |
+| Database Models    | ✅ Complete    |
+| API Schemas        | ✅ Complete    |
+| Auth System        | 🚧 In Progress |
+| Room Management    | 📝 Planned     |
+| Debate Flow        | 📝 Planned     |
+| AI Judging         | 📝 Planned     |
+| Trainer System     | 📝 Planned     |
+| Frontend UI        | 🚧 In Progress |
+| WebSockets         | 📝 Planned     |
+| File Uploads       | 📝 Planned     |
 
 ---
 
@@ -495,10 +526,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 **Acknowledgments**
 
-- **OpenAI** for GPT-4/5 and Whisper API
+- **Google Gemini** for powerful AI capabilities
 - **FastAPI** for the amazing Python web framework
 - **React** and **Vite** for modern frontend tooling
-- **Replit** for inspiration and potential hosting
+- **Replit** for zero-config database and AI integration
 
 ---
 

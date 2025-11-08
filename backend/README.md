@@ -6,16 +6,39 @@ This is the backend for Oratio, an AI-powered debate platform. It provides RESTf
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ **Architecture**
 
-The backend is built with:
+The backend uses a **multi-tier fallback system** for maximum compatibility:
 
-- **FastAPI** - Modern Python web framework
-- **Replit Database** - Key-value store for data persistence
-- **Replit AI** - AI model integration for debate analysis
-- **Replit Auth** - Seamless user authentication
-- **WebSockets** - Real-time communication
-- **Pydantic** - Data validation
+### Core Framework
+
+- **FastAPI** - Modern async Python web framework with automatic OpenAPI docs
+- **Pydantic 2.0+** - Runtime data validation and settings management
+- **Uvicorn** - ASGI server with WebSocket support
+- **ORJSONResponse** - 3-5x faster JSON serialization
+- **GZip Middleware** - Response compression (60-80% size reduction)
+
+### Database Tier
+
+- **Tier 1**: **Replit DB** - Persistent key-value storage (when deployed on Replit)
+- **Tier 2**: **In-Memory Dict** - Non-persistent fallback for local development
+
+**Implementation**: `app/replit_db.py` - Unified `ReplitDB` class with automatic fallback
+
+### AI Provider Tier
+
+- **Tier 1**: **Gemini AI** (gemini-2.5-pro) - Best quality, requires `GEMINI_API_KEY`
+- **Tier 2**: **Replit AI** (chat-bison) - Good quality, auto-available on Replit
+- **Tier 3**: **Static Responses** - Demo mode for testing without API keys
+
+**Implementation**: `app/gemini_ai.py` - `GeminiAI` class with cascading fallbacks
+
+### Authentication
+
+- **Replit Auth** - On Replit platform (auto-detected)
+- **Simple JWT** - For local development and testing
+
+**Implementation**: `app/replit_auth.py`
 
 ---
 
@@ -24,22 +47,29 @@ The backend is built with:
 ```
 backend/
 ├── app/
-│   ├── main.py              # FastAPI application entry
-│   ├── config.py            # Configuration settings
-│   ├── replit_db.py         # Replit Database wrapper
-│   ├── replit_ai.py         # Replit AI integration
+│   ├── main.py              # FastAPI application entry point
+│   ├── config.py            # Settings & environment configuration
+│   ├── replit_db.py         # Database wrapper (Replit DB → In-Memory)
+│   ├── gemini_ai.py         # AI integration (Gemini → Replit AI → Static)
 │   ├── replit_auth.py       # Authentication system
 │   ├── models.py            # Data models (reference)
 │   ├── schemas.py           # Pydantic validation schemas
-│   ├── routers/             # API endpoint routers (TODO)
-│   │   ├── auth.py
-│   │   ├── rooms.py
-│   │   ├── debate.py
-│   │   ├── ai.py
-│   │   └── trainer.py
-│   └── websockets/          # WebSocket handlers (TODO)
-│       ├── debate.py
-│       └── spectator.py
+│   ├── cache.py             # Caching utilities
+│   ├── database.py          # Database utilities (legacy/future)
+│   ├── routers/             # API endpoint routers ✅ COMPLETE
+│   │   ├── auth.py          # User authentication & registration
+│   │   ├── rooms.py         # Debate room management
+│   │   ├── participants.py  # Participant join/leave/ready
+│   │   ├── debate.py        # Debate flow & turn submission
+│   │   ├── ai.py            # AI judging & analysis
+│   │   ├── trainer.py       # Training & gamification
+│   │   ├── spectators.py    # Audience interactions
+│   │   ├── uploads.py       # File upload handling
+│   │   └── utils.py         # Utility endpoints
+│   └── websockets/          # WebSocket handlers ✅ COMPLETE
+│       ├── debate.py        # Real-time debate updates
+│       ├── spectator.py     # Audience real-time interactions
+│       └── trainer.py       # Real-time training feedback
 ├── requirements.txt         # Python dependencies
 └── README.md               # This file
 ```
@@ -125,16 +155,26 @@ Key variables (see `.env.example`):
 API_ENV=development
 DEBUG=true
 
-# Replit Features (auto-detected on Replit)
-USE_REPLIT_DB=true
-USE_REPLIT_AI=true
+# AI Configuration (Optional but Recommended)
+GEMINI_API_KEY=your_gemini_key_here      # Get at https://aistudio.google.com/app/apikey
+GEMINI_MODEL=gemini-2.5-pro              # Model to use
+GEMINI_TEMPERATURE=0.7                   # Response creativity (0.0-1.0)
+
+# Fact-Checking (Optional)
+SERPER_API_KEY=your_serper_key_here      # Get at https://serper.dev
+TAVILY_API_KEY=your_tavily_key_here      # Alternative fact-checker
 
 # Security
-SECRET_KEY=your_secret_key_here
+SECRET_KEY=your_secret_key_here          # For JWT tokens (auto-generates if empty)
 
-# Optional APIs
-SERPER_API_KEY=your_serper_key  # For fact-checking
+# Replit Features (auto-detected on Replit)
+# REPL_ID, REPL_SLUG, REPL_OWNER, REPLIT_DEV_DOMAIN
 ```
+
+**Database & AI Auto-Detection:**
+
+- **On Replit**: Uses Replit DB (persistent) + Replit AI (fallback)
+- **Locally**: Uses In-Memory Dict (non-persistent) + Static responses (unless `GEMINI_API_KEY` set)
 
 ### Replit-Specific Settings
 

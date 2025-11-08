@@ -12,15 +12,16 @@ Oratio is an AI-powered debate platform designed for real-time voice and text de
 - **Fixed "Joining as Spectator" bug**: JoinRoomByCode now checks if user is already a participant before navigating; non-participants are always directed to upcoming page to join first (prevents spectator-only access)
 
 **Performance Optimizations (November 8, 2025):**
-- **Backend API Caching**: Added aggressive caching to reduce database load:
-  - `get_room_by_code`: 30s cache (reduces repeated lookups during polling)
-  - `get_debate_status`: 15s cache (most frequently polled endpoint)
-  - `get_transcript`: 15s cache (reduces full table scans)
+- **Backend API Caching with Smart Invalidation**: Implemented aggressive caching with comprehensive cache invalidation:
+  - `get_room_by_code`: 90s cache (3x longer, reduces repeated lookups)
+  - `get_debate_status`: 60s cache (4x longer, most frequently polled endpoint)
+  - `get_transcript`: 60s cache (4x longer, reduces full table scans)
   - User data cache: 5-minute TTL (usernames rarely change)
-  - Room cache default: 30s (up from 10s)
-- **Cache Invalidation**: All participant mutations (join/leave/ready) invalidate debate status cache immediately, ensuring fresh data for join confirmation flows
-- **Expected Impact**: 80-90% reduction in database queries during active debates, most requests complete in <5s instead of timing out at 60s
-- Reduced API polling intervals: Dashboard and UpcomingDebateDetails (5s → 30s), 83% reduction
+  - **Cache Invalidation**: All mutations (join/leave/ready/submit turn/start/end/update/delete) immediately invalidate affected caches, ensuring real-time updates despite long TTLs
+- **Frontend Polling Reduction**: Reduced polling frequency to ease backend load:
+  - Debate page: 10s → 30s (67% reduction in request volume)
+  - Dashboard and UpcomingDebateDetails: 5s → 30s (83% reduction)
+- **Expected Impact**: 70-80% reduction in database queries, most requests served from cache in <100ms, only cache misses trigger DB scans
 - Implemented Page Visibility API: polling stops when tab is inactive/hidden, saving resources
 - **Frontend Timeout Fixes**: Increased API timeouts and added automatic retry logic:
   - GET requests: 60s → 90s with 2 automatic retries (up to 3 total attempts)

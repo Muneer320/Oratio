@@ -89,6 +89,29 @@ async def submit_turn(
     if not participant:
         raise HTTPException(status_code=403, detail="Not a participant in this debate")
     
+    # TURN-BASED ENFORCEMENT: Check if this user/team can submit now
+    all_turns = ReplitDB.find(Collections.TURNS, {"room_id": room["id"]})
+    if all_turns:
+        # Sort by timestamp to get the most recent turn
+        sorted_turns = sorted(all_turns, key=lambda x: x.get("timestamp", ""), reverse=True)
+        last_turn = sorted_turns[0]
+        
+        # Check if the same participant submitted the last turn
+        if last_turn["speaker_id"] == participant["id"]:
+            raise HTTPException(
+                status_code=400, 
+                detail="You cannot submit consecutive turns. Please wait for another participant to respond."
+            )
+        
+        # For team debates, check if same team submitted the last turn
+        if room.get("format") == "team" and participant.get("team"):
+            last_speaker = ReplitDB.get(Collections.PARTICIPANTS, last_turn["speaker_id"])
+            if last_speaker and last_speaker.get("team") == participant.get("team"):
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
+                )
+    
     from datetime import datetime
     
     new_turn = {
@@ -144,7 +167,30 @@ async def submit_audio(
     if not participant:
         raise HTTPException(status_code=403, detail="Not a participant in this debate")
     
-    # Save audio file (placeholder - would use object storage in production)
+    # TURN-BASED ENFORCEMENT: Check if this user/team can submit now
+    all_turns = ReplitDB.find(Collections.TURNS, {"room_id": room["id"]})
+    if all_turns:
+        # Sort by timestamp to get the most recent turn
+        sorted_turns = sorted(all_turns, key=lambda x: x.get("timestamp", ""), reverse=True)
+        last_turn = sorted_turns[0]
+        
+        # Check if the same participant submitted the last turn
+        if last_turn["speaker_id"] == participant["id"]:
+            raise HTTPException(
+                status_code=400, 
+                detail="You cannot submit consecutive turns. Please wait for another participant to respond."
+            )
+        
+        # For team debates, check if same team submitted the last turn
+        if room.get("format") == "team" and participant.get("team"):
+            last_speaker = ReplitDB.get(Collections.PARTICIPANTS, last_turn["speaker_id"])
+            if last_speaker and last_speaker.get("team") == participant.get("team"):
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
+                )
+    
+    # Save audio file
     import os
     os.makedirs("uploads/audio", exist_ok=True)
     audio_path = f"uploads/audio/{room_id}_{participant['id']}_{turn_number}.webm"
@@ -154,13 +200,21 @@ async def submit_audio(
     with open(audio_path, "wb") as f:
         f.write(audio_content)
     
+    # Transcribe audio using Gemini AI
+    transcription = await GeminiAI.transcribe_audio(audio_path)
+    
+    # Use transcription as content (or combine with provided text)
+    final_content = content.strip() if content.strip() else transcription
+    if content.strip() and transcription and transcription not in ["[Audio transcription unavailable]", "[Audio transcription failed - please try again]"]:
+        final_content = f"{content.strip()}\n\n[Transcription]: {transcription}"
+    
     from datetime import datetime
     
-    # Create turn with audio
+    # Create turn with audio and transcription
     new_turn = {
         "room_id": room["id"],
         "speaker_id": participant["id"],
-        "content": content or "[Audio submission]",
+        "content": final_content,
         "audio_url": audio_path,
         "round_number": round_number,
         "turn_number": turn_number,

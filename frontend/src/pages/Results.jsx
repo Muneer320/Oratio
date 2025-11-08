@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Home, ArrowRight, TrendingUp, MessageSquare, BarChart, Volume2, FileText } from 'lucide-react';
+import { Trophy, Home, ArrowRight, TrendingUp, MessageSquare, BarChart, Volume2, FileText, Users, Target, Award } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 function Results() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [room, setRoom] = useState(null);
   const [result, setResult] = useState(null);
   const [transcript, setTranscript] = useState([]);
   const [detailedReport, setDetailedReport] = useState(null);
+  const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isTeamDebate, setIsTeamDebate] = useState(false);
 
   useEffect(() => {
     loadResults();
@@ -33,15 +37,21 @@ function Results() {
       setRoom(foundRoom);
 
       try {
-        const [summary, transcriptData, report] = await Promise.all([
+        const [summary, transcriptData, report, debateStatus] = await Promise.all([
           api.get(`/api/ai/summary/${foundRoom.id}`, true).catch(() => null),
           api.get(`/api/debate/${foundRoom.id}/transcript`, true).catch(() => []),
-          api.get(`/api/ai/report/${foundRoom.id}`, true).catch(() => null)
+          api.get(`/api/ai/report/${foundRoom.id}`, true).catch(() => null),
+          api.get(`/api/debate/${foundRoom.id}/status`, true).catch(() => ({ participants: [] }))
         ]);
         
         if (summary) setResult(summary);
         setTranscript(transcriptData || []);
         setDetailedReport(report);
+        setParticipants(debateStatus.participants || []);
+        
+        // Check if it's a team debate
+        const hasTeams = debateStatus.participants?.some(p => p.team);
+        setIsTeamDebate(hasTeams);
       } catch (summaryErr) {
         console.log('Some data not available, showing what we have');
       }

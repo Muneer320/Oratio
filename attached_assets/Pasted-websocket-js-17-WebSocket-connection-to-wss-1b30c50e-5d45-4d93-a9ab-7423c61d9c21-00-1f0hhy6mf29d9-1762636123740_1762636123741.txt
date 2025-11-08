@@ -1,0 +1,17 @@
+websocket.js:17 WebSocket connection to 'wss://1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev/ws/ws/debate/15' failed: 
+connect @ websocket.js:17
+(anonymous) @ useWebSocket.js:13
+commitHookEffectListMount @ chunk-NUMECXU6.js?v=bf857384:16915
+commitPassiveMountOnFiber @ chunk-NUMECXU6.js?v=bf857384:18156
+commitPassiveMountEffects_complete @ chunk-NUMECXU6.js?v=bf857384:18129
+commitPassiveMountEffects_begin @ chunk-NUMECXU6.js?v=bf857384:18119
+commitPassiveMountEffects @ chunk-NUMECXU6.js?v=bf857384:18109
+flushPassiveEffectsImpl @ chunk-NUMECXU6.js?v=bf857384:19490
+flushPassiveEffects @ chunk-NUMECXU6.js?v=bf857384:19447
+(anonymous) @ chunk-NUMECXU6.js?v=bf857384:19328
+workLoop @ chunk-NUMECXU6.js?v=bf857384:197
+flushWork @ chunk-NUMECXU6.js?v=bf857384:176
+performWorkUntilDeadline @ chunk-NUMECXU6.js?v=bf857384:384
+websocket.js:29 WebSocket error: Event {isTrusted: true, type: 'error', target: WebSocket, currentTarget: WebSocket, eventPhase: 2, …}isTrusted: truebubbles: falsecancelBubble: falsecancelable: falsecomposed: falsecurrentTarget: WebSocketbinaryType: "blob"bufferedAmount: 0extensions: ""onclose: () => {       console.log("WebSocket disconnected");     }length: 0name: ""arguments: (...)caller: (...)[[FunctionLocation]]: websocket.js:32[[Prototype]]: ƒ ()apply: ƒ apply()arguments: (...)bind: ƒ bind()call: ƒ call()caller: (...)constructor: ƒ Function()length: 0name: ""toString: ƒ toString()Symbol(Symbol.hasInstance): ƒ [Symbol.hasInstance]()get arguments: ƒ arguments()set arguments: ƒ arguments()get caller: ƒ caller()set caller: ƒ caller()[[FunctionLocation]]: [[Prototype]]: Object[[Scopes]]: Scopes[0][[Scopes]]: Scopes[3]onerror: (error) => {…}onmessage: (event) => {…}onopen: () => {       console.log("WebSocket connected");     }protocol: ""readyState: 3url: "wss://1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev/ws/ws/debate/15"[[Prototype]]: WebSocketdefaultPrevented: falseeventPhase: 0returnValue: truesrcElement: WebSocket {url: 'wss://1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev/ws/ws/debate/15', readyState: 3, bufferedAmount: 0, onopen: ƒ, onerror: ƒ, …}target: WebSocket {url: 'wss://1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev/ws/ws/debate/15', readyState: 3, bufferedAmount: 0, onopen: ƒ, onerror: ƒ, …}timeStamp: 31521type: "error"[[Prototype]]: Event
+ws.onerror @ websocket.js:29
+websocket.js:33 WebSocket disconnected

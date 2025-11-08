@@ -167,6 +167,47 @@ async def generate_debate_results(room_id: str):
     return result
 
 
+async def _generate_ai_turn(room: Dict[str, Any], ai_participant: Dict[str, Any], round_number: int, turn_number: int, previous_turns: List[Dict]):
+    """
+    Generate an AI opponent's turn using Gemini AI
+    """
+    try:
+        # Get context from previous turns
+        context = f"Topic: {room.get('topic')}\n\n"
+        if previous_turns:
+            context += "Previous arguments:\n"
+            for t in previous_turns[-3:]:  # Last 3 turns for context
+                context += f"- {t.get('content', '')}\n"
+        
+        # Generate AI argument
+        prompt = f"""You are debating on: {room.get('topic')}
+
+{context}
+
+Generate a compelling debate argument (2-3 paragraphs). Be persuasive, use logic and evidence, and respond to previous points if any."""
+        
+        ai_content = await GeminiAI.generate_debate_argument(prompt)
+        
+        # Create AI turn
+        ai_turn = {
+            "room_id": room["id"],
+            "speaker_id": ai_participant["id"],
+            "speaker_name": "AI Opponent",
+            "round_number": round_number,
+            "turn_number": turn_number,
+            "content": ai_content,
+            "audio_url": None,
+            "submitted_at": datetime.utcnow().isoformat(),
+            "is_ai": True
+        }
+        
+        DB.insert(Collections.TURNS, ai_turn)
+        print(f"🤖 AI Opponent submitted turn {turn_number} in round {round_number}")
+        
+    except Exception as e:
+        print(f"⚠️  AI turn generation failed: {e}")
+
+
 async def _analyze_round_background(room: Dict[str, Any], round_number: int, round_turns: List[Dict], all_turns: List[Dict], debater_count: int):
     """
     Background task: Analyze all turns in a round in parallel
@@ -194,6 +235,20 @@ async def _analyze_round_background(room: Dict[str, Any], round_number: int, rou
     # Analyze all turns in parallel
     await asyncio.gather(*[analyze_turn(turn) for turn in round_turns])
     print(f"✅ Round {round_number} analysis complete!")
+    
+    # If this is a training room with AI, generate AI's response for next turn
+    if room.get("is_training"):
+        participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
+        ai_participant = next((p for p in participants if p.get("is_ai")), None)
+        
+        if ai_participant:
+            # Check if it's AI's turn
+            current_round_turns = [t for t in all_turns if t["round_number"] == round_number]
+            human_participant = next((p for p in participants if not p.get("is_ai")), None)
+            
+            # If human just went and round is not complete, AI should respond
+            if human_participant and len(current_round_turns) < debater_count:
+                await _generate_ai_turn(room, ai_participant, round_number, len(current_round_turns) + 1, all_turns)
 
     # Check if ALL rounds are now complete and auto-end the debate
     total_rounds = room.get("rounds", 3)

@@ -31,6 +31,10 @@ Preferred communication style: Simple, everyday language.
 7. Added tooltips to bottom navigation bar
 8. Backend: New `/api/user` endpoints for stats and history aggregation
 9. **Functional Training Feature:** Start Training button now creates real debate rooms with selected topics
+10. **AI Opponent System:** Training rooms automatically include an AI opponent powered by Gemini 2.0 Flash
+    - AI generates contextual arguments in response to human debater
+    - AI auto-responds after each human turn
+    - AI scored using same LCR model as humans
 
 ## System Architecture
 

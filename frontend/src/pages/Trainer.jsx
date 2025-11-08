@@ -43,18 +43,20 @@ function Trainer() {
     
     setIsCreating(true);
     try {
+      const now = new Date();
       const roomData = {
-        topic: `Training: ${selectedTopic}`,
-        description: `Practice debate on ${selectedTopic}`,
+        topic: `AI Training: ${selectedTopic}`,
+        description: `Practice debate against AI on ${selectedTopic}`,
+        scheduled_time: now.toISOString(),
+        duration_minutes: 30,
         mode: 'text',
         type: '1v1',
-        max_participants: 2,
-        total_rounds: 3,
-        time_limit: 300,
-        is_private: false
+        visibility: 'public',
+        rounds: 3,
+        resources: []
       };
 
-      const response = await api.post('/api/rooms', roomData, true);
+      const response = await api.post('/api/rooms/create', roomData, true);
       
       if (response && response.room_code) {
         navigate(`/upcoming/${response.room_code}`);

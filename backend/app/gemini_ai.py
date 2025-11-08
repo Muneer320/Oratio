@@ -177,6 +177,35 @@ class GeminiAI:
             return GeminiAI._fallback_response(messages[-1]["content"])
 
     @staticmethod
+    async def generate_debate_argument(prompt: str) -> str:
+        """
+        Generate a debate argument for AI opponent
+        """
+        try:
+            if not GEMINI_AVAILABLE or not gemini_client:
+                return "I argue that this is an important topic that deserves careful consideration. We must weigh both the benefits and drawbacks to reach a well-reasoned conclusion."
+            
+            from google.genai import types
+            config = types.GenerateContentConfig(
+                temperature=0.8,
+                max_output_tokens=800,
+            )
+            
+            response = gemini_client.models.generate_content(
+                model="gemini-2.0-flash-exp",
+                contents=prompt,
+                config=config
+            )
+            
+            if response and response.text:
+                return response.text.strip()
+            else:
+                return "I argue that this is an important topic that deserves careful consideration. We must weigh both the benefits and drawbacks to reach a well-reasoned conclusion."
+        except Exception as e:
+            print(f"⚠️  AI argument generation failed: {e}")
+            return "I argue that this is an important topic that deserves careful consideration. We must weigh both the benefits and drawbacks to reach a well-reasoned conclusion."
+
+    @staticmethod
     async def analyze_debate_turn(
         turn_content: str,
         context: Optional[str] = None,

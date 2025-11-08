@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserPlus, Mail, Lock, User, AlertCircle, Image } from 'lucide-react';
@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext';
 function Register() {
   const navigate = useNavigate();
   const { register, error } = useAuth();
+  const canvasRef = useRef(null);
+  const mousePosRef = useRef({ x: 0, y: 0 });
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -17,6 +19,79 @@ function Register() {
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let animationId;
+    
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const handleMouseMove = (e) => {
+      mousePosRef.current = { x: e.clientX, y: e.clientY };
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
+    let time = 0;
+    
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const waves = [
+        { amplitude: 70, frequency: 0.006, phase: 0, opacity: 0.15, color: '#D67C56', lineWidth: 3 },
+        { amplitude: 50, frequency: 0.009, phase: Math.PI / 3, opacity: 0.1, color: '#4A9A9F', lineWidth: 2.5 },
+        { amplitude: 40, frequency: 0.012, phase: Math.PI / 2, opacity: 0.08, color: '#F0C674', lineWidth: 2 },
+      ];
+
+      waves.forEach(wave => {
+        ctx.strokeStyle = wave.color;
+        ctx.globalAlpha = wave.opacity;
+        ctx.lineWidth = wave.lineWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+
+        const centerY = canvas.height * 0.35;
+        const points = [];
+        
+        for (let x = 0; x < canvas.width; x += 2) {
+          const mouseInfluence = Math.max(0, 1 - Math.abs(x - mousePosRef.current.x) / 300) * 20;
+          const baseY = centerY + 
+            Math.sin(x * wave.frequency + time + wave.phase) * wave.amplitude +
+            Math.sin(x * wave.frequency * 2.3 + time * 1.3) * (wave.amplitude * 0.4) +
+            Math.sin(x * wave.frequency * 0.7 + time * 0.8) * (wave.amplitude * 0.6) +
+            mouseInfluence;
+          points.push({ x, y: baseY });
+        }
+
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length - 2; i++) {
+          const xc = (points[i].x + points[i + 1].x) / 2;
+          const yc = (points[i].y + points[i + 1].y) / 2;
+          ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+        }
+        ctx.stroke();
+      });
+
+      time += 0.005;
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
 
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
@@ -67,7 +142,13 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-base noise-bg flex items-center justify-center p-6">
+    <div className="relative min-h-screen bg-dark-base overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ zIndex: 0 }}
+      />
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
       <motion.div
         className="w-full max-w-md"
         initial={{ opacity: 0, scale: 0.95 }}
@@ -230,6 +311,7 @@ function Register() {
           Back to Home
         </button>
       </motion.div>
+      </div>
     </div>
   );
 }

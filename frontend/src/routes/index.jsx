@@ -4,6 +4,7 @@ import Home from "../pages/Home";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import JoinRoom from "../pages/JoinRoom";
 import AddDebate from "../pages/AddDebate";
 import Debate from "../pages/Debate";
 import Results from "../pages/Results";
@@ -22,6 +23,7 @@ function AppRoutes() {
       <Route path="/register" element={<Register />} />
       
       <Route path="/home" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/join" element={<ProtectedRoute><JoinRoom /></ProtectedRoute>} />
       <Route path="/add" element={<ProtectedRoute><AddDebate /></ProtectedRoute>} />
       <Route path="/debate/:roomCode" element={<ProtectedRoute><Debate /></ProtectedRoute>} />
       <Route path="/results/:roomCode" element={<ProtectedRoute><Results /></ProtectedRoute>} />

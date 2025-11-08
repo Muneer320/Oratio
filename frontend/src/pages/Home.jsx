@@ -43,8 +43,8 @@ function AnimatedCounter({ value, suffix = '', duration = 2 }) {
 
 function Home() {
   const canvasRef = useRef(null);
+  const mousePosRef = useRef({ x: 0, y: 0 });
   const navigate = useNavigate();
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const { scrollY } = useScroll();
   const parallax1 = useTransform(scrollY, [0, 500], [0, -80]);
   const parallax2 = useTransform(scrollY, [0, 500], [0, 40]);
@@ -65,7 +65,7 @@ function Home() {
     window.addEventListener('resize', resize);
 
     const handleMouseMove = (e) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
+      mousePosRef.current = { x: e.clientX, y: e.clientY };
     };
     window.addEventListener('mousemove', handleMouseMove);
 
@@ -92,7 +92,7 @@ function Home() {
         const points = [];
         
         for (let x = 0; x < canvas.width; x += 2) {
-          const mouseInfluence = Math.max(0, 1 - Math.abs(x - mousePos.x) / 300) * 20;
+          const mouseInfluence = Math.max(0, 1 - Math.abs(x - mousePosRef.current.x) / 300) * 20;
           const baseY = centerY + 
             Math.sin(x * wave.frequency + time + wave.phase) * wave.amplitude +
             Math.sin(x * wave.frequency * 2.3 + time * 1.3) * (wave.amplitude * 0.4) +
@@ -122,7 +122,7 @@ function Home() {
       window.removeEventListener('mousemove', handleMouseMove);
       if (animationId) cancelAnimationFrame(animationId);
     };
-  }, [mousePos.x]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-dark-base text-text-primary relative overflow-hidden texture-grain">
@@ -162,7 +162,7 @@ function Home() {
             </motion.button>
 
             <motion.button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/join')}
               className="group relative px-5 py-2.5 bg-dark-elevated border border-accent-saffron/40 text-accent-saffron rounded-xl font-medium text-sm overflow-hidden backdrop-blur-sm"
               whileHover={{ scale: 1.05, borderColor: 'rgba(240, 198, 116, 0.8)' }}
               whileTap={{ scale: 0.95 }}
@@ -188,33 +188,18 @@ function Home() {
             </motion.button>
           </>
         ) : (
-          <>
-            <motion.button
-              onClick={() => navigate('/login')}
-              className="group relative px-5 py-2.5 bg-dark-elevated border border-accent-teal/40 text-accent-teal rounded-xl font-medium text-sm overflow-hidden backdrop-blur-sm"
-              whileHover={{ scale: 1.05, borderColor: 'rgba(74, 154, 159, 0.8)' }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/0 to-accent-teal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <span className="relative flex items-center gap-2">
-                <LogIn className="w-4 h-4" />
-                Login
-              </span>
-            </motion.button>
-            
-            <motion.button
-              onClick={() => navigate('/register')}
-              className="group relative px-5 py-2.5 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-xl font-medium text-sm overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <span className="relative flex items-center gap-2">
-                <UserPlus className="w-4 h-4" />
-                Sign Up
-              </span>
-            </motion.button>
-          </>
+          <motion.button
+            onClick={() => navigate('/login')}
+            className="group relative px-5 py-2.5 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-xl font-medium text-sm overflow-hidden"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <span className="relative flex items-center gap-2">
+              <LogIn className="w-4 h-4" />
+              Get Started
+            </span>
+          </motion.button>
         )}
       </div>
 

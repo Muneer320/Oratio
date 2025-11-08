@@ -6,7 +6,7 @@ class WebSocketService {
   }
 
   connect(endpoint, onMessage) {
-    this.ws = new WebSocket(`${WS_BASE_URL}${endpoint}`);
+    this.ws = new WebSocket(`${WS_BASE_URL}/ws${endpoint}`);
 
     this.ws.onopen = () => {
       console.log("WebSocket connected");

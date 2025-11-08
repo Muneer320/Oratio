@@ -26,8 +26,8 @@ const Dashboard = () => {
     }
   };
 
-  const ongoingDebates = rooms.filter(room => room.status === 'in_progress');
-  const upcomingDebates = rooms.filter(room => room.status === 'waiting');
+  const ongoingDebates = rooms.filter(room => room.status === 'ongoing');
+  const upcomingDebates = rooms.filter(room => room.status === 'upcoming');
   const pastDebates = rooms.filter(room => room.status === 'completed');
 
   const DebateCard = ({ room, type }) => {

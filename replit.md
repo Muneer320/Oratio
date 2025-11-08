@@ -13,9 +13,23 @@ Oratio is a voice-enabled, AI-powered debate platform that transforms traditiona
 - **Real-time:** WebSockets for live debate updates
 - **Styling:** Tailwind CSS with custom design system
 
+**Current Status:** Pre-launch phase - Production ready for hackathon submission (November 2025)
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Recent Changes (November 8, 2025)
+
+**Hackathon Pre-Launch Polish:**
+1. Added Oratio logo to header (frontend/src/assets/Logo.png)
+2. Enhanced Profile page with real backend stats integration via `/api/user/stats`
+3. Updated Trainer page with Layout component, dark theme consistency, and backend integration
+4. Dashboard sections now support horizontal scrolling with "View All" toggle
+5. AI feedback enhanced with "Better Alternative Arguments" section
+6. Added 9 achievement badges total (Profile page)
+7. Added tooltips to bottom navigation bar
+8. Backend: New `/api/user` endpoints for stats and history aggregation
 
 ## System Architecture
 

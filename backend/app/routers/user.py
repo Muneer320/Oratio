@@ -18,7 +18,7 @@ async def get_user_stats(current_user: User = Depends(get_current_user)):
     all_participants = DB.find(Collections.PARTICIPANTS, {"user_id": user_id})
     
     # Get all rooms
-    all_rooms = DB.list(Collections.ROOMS)
+    all_rooms = DB.find(Collections.ROOMS, {})
     rooms_map = {r["id"]: r for r in all_rooms}
     
     debates_joined = 0
@@ -147,7 +147,7 @@ async def get_user_history(current_user: User = Depends(get_current_user)):
             continue
             
         room_id = participant.get("room_id")
-        room = DB.get(Collections.ROOMS, room_id)
+        room = DB.get(Collections.ROOMS, str(room_id))
         
         if not room:
             continue

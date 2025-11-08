@@ -9,7 +9,7 @@ from app.gemini_ai import GEMINI_AVAILABLE, REPLIT_AI_AVAILABLE
 from app.replit_auth import REPLIT_AUTH_AVAILABLE
 import os
 
-from app.routers import auth, rooms, participants, spectators, debate, ai, trainer, uploads, utils
+from app.routers import auth, rooms, participants, spectators, debate, ai, trainer, uploads, utils, user
 from app.websockets import debate as ws_debate, spectator as ws_spectator, trainer as ws_trainer
 
 # Create FastAPI app with orjson for 3-5x faster JSON serialization
@@ -43,6 +43,7 @@ app.include_router(ai.router)
 app.include_router(trainer.router)
 app.include_router(uploads.router)
 app.include_router(utils.router)
+app.include_router(user.router)
 
 # Include WebSocket routers
 app.include_router(ws_debate.router)

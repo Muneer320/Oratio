@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Send, X, AlertCircle, CheckCircle, Clock, Mic, Square } from 'lucide-react';
+import { Send, X, AlertCircle, CheckCircle, Clock, Mic, Square, Play, Pause } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,10 +22,12 @@ function Debate() {
   const [currentTurn, setCurrentTurn] = useState(1);
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [timePerTurn, setTimePerTurn] = useState(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const audioPlaybackRef = useRef(null);
   const timerIntervalRef = useRef(null);
   const lastTurnKeyRef = useRef(null);
   const transcriptEndRef = useRef(null);
@@ -188,6 +190,25 @@ function Debate() {
     }
   };
 
+  const toggleAudioPlayback = () => {
+    if (!audioBlob || !audioPlaybackRef.current) return;
+
+    if (isPlayingAudio) {
+      audioPlaybackRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      const audioUrl = URL.createObjectURL(audioBlob);
+      audioPlaybackRef.current.src = audioUrl;
+      audioPlaybackRef.current.play();
+      setIsPlayingAudio(true);
+      
+      audioPlaybackRef.current.onended = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+    }
+  };
+
   const handleSubmitTurn = async () => {
     // Allow either text or audio
     if (!argument.trim() && !audioBlob) {
@@ -244,6 +265,40 @@ function Debate() {
       newTurn.ai_feedback = newTurn.ai_feedback || null;
       setTurns([...turns, newTurn]);
       setArgument('');
+
+      // Check if this completes a round (all participants have submitted)
+      const debaterCount = participants.filter(p => p.role === 'debater').length || 2;
+      const turnsInCurrentRound = [...turns, newTurn].filter(
+        t => t.round_number === currentRound
+      ).length;
+      
+      if (turnsInCurrentRound >= debaterCount) {
+        // Round complete - show AI analyzing indicator
+        setIsAnalyzing(true);
+        
+        // Poll for AI feedback to appear
+        const checkAIFeedback = setInterval(async () => {
+          try {
+            const updatedTranscript = await api.get(`/api/debate/${room.id}/transcript`, true);
+            const roundTurns = updatedTranscript.filter(t => t.round_number === currentRound);
+            const allHaveFeedback = roundTurns.every(t => t.ai_feedback !== null);
+            
+            if (allHaveFeedback) {
+              setIsAnalyzing(false);
+              setTurns(updatedTranscript);
+              clearInterval(checkAIFeedback);
+            }
+          } catch (err) {
+            console.error('Error polling for AI feedback:', err);
+          }
+        }, 2000);
+        
+        // Stop polling after 30 seconds
+        setTimeout(() => {
+          setIsAnalyzing(false);
+          clearInterval(checkAIFeedback);
+        }, 30000);
+      }
 
       await loadRoomData();
     } catch (err) {
@@ -490,17 +545,45 @@ function Debate() {
               />
               
               {audioBlob && (
-                <div className="mb-4 p-3 bg-accent-teal/20 border border-accent-teal/50 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Mic className="w-5 h-5 text-accent-teal" />
-                    <span className="text-sm text-accent-teal">Audio recorded ({(audioBlob.size / 1024).toFixed(1)} KB)</span>
+                <div className="mb-4 p-3 bg-accent-teal/20 border border-accent-teal/50 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mic className="w-5 h-5 text-accent-teal" />
+                      <span className="text-sm text-accent-teal">Audio recorded ({(audioBlob.size / 1024).toFixed(1)} KB)</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={toggleAudioPlayback}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-accent-teal/30 hover:bg-accent-teal/50 rounded-lg text-accent-teal text-sm font-semibold transition-colors"
+                      >
+                        {isPlayingAudio ? (
+                          <>
+                            <Pause className="w-4 h-4" />
+                            Pause
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4" />
+                            Play
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAudioBlob(null);
+                          setIsPlayingAudio(false);
+                          if (audioPlaybackRef.current) {
+                            audioPlaybackRef.current.pause();
+                            audioPlaybackRef.current.src = '';
+                          }
+                        }}
+                        className="text-accent-teal hover:text-accent-saffron text-sm font-semibold"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => setAudioBlob(null)}
-                    className="text-accent-teal hover:text-accent-saffron text-sm font-semibold"
-                  >
-                    Remove
-                  </button>
+                  <audio ref={audioPlaybackRef} className="hidden" />
                 </div>
               )}
 

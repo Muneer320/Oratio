@@ -240,6 +240,74 @@ Provide a final verdict in JSON:
         }
 
     @staticmethod
+    async def transcribe_audio(audio_path: str) -> str:
+        """
+        Transcribe audio file using Gemini AI
+        Returns: Transcribed text
+        """
+        if not GEMINI_AVAILABLE or not gemini_client:
+            print("⚠️  Gemini AI unavailable, cannot transcribe audio")
+            return "[Audio transcription unavailable]"
+
+        try:
+            import pathlib
+            import asyncio
+            
+            # Upload the audio file
+            audio_file = gemini_client.files.upload(file=pathlib.Path(audio_path))
+            
+            if not audio_file or not hasattr(audio_file, 'name'):
+                raise ValueError("File upload failed")
+            
+            # Wait for file to be ready (non-blocking)
+            while hasattr(audio_file, 'state') and audio_file.state == "PROCESSING":
+                await asyncio.sleep(1)
+                audio_file = gemini_client.files.get(name=audio_file.name)
+            
+            if hasattr(audio_file, 'state') and audio_file.state == "FAILED":
+                raise ValueError("Audio file processing failed")
+            
+            # Generate transcription
+            prompt = "Please transcribe this audio file accurately. Provide only the transcription without any additional commentary."
+            
+            # Build contents manually to avoid type issues
+            file_uri = getattr(audio_file, 'uri', None)
+            mime_type = getattr(audio_file, 'mime_type', None)
+            
+            if not file_uri:
+                raise ValueError("No file URI available")
+            
+            from google.genai import types
+            file_part = types.Part.from_uri(file_uri=file_uri, mime_type=mime_type or "audio/webm")
+            
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-pro",
+                contents=[file_part, prompt]
+            )
+            
+            # Clean up the uploaded file
+            if hasattr(audio_file, 'name') and audio_file.name:
+                try:
+                    gemini_client.files.delete(name=audio_file.name)
+                except:
+                    pass  # Ignore cleanup errors
+            
+            # Extract transcription
+            transcription = getattr(response, 'text', None)
+            if not transcription:
+                raise ValueError("No transcription returned")
+            
+            transcription = transcription.strip()
+            print(f"✅ Audio transcribed successfully: {len(transcription)} characters")
+            return transcription
+
+        except Exception as e:
+            print(f"⚠️  Audio transcription failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return "[Audio transcription failed - please try again]"
+
+    @staticmethod
     async def fact_check(statement: str, context: Optional[str] = None) -> Dict[str, Any]:
         """
         Fact-check a statement (requires external API like Serper)

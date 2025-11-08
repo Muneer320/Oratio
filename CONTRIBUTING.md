@@ -2,6 +2,12 @@
 
 Thank you for your interest in contributing to Oratio! 🎉 This document provides guidelines and instructions for contributing to the project.
 
+**Project Info:**
+
+- **Version**: 2.0.0
+- **Architecture**: Multi-tier fallback system (DB: Replit DB → In-Memory | AI: Gemini → Replit AI → Static)
+- **Tech Stack**: FastAPI, React 18, Gemini AI, Replit DB
+
 ---
 
 ## 📋 Table of Contents

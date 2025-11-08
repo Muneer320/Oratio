@@ -1,395 +1,765 @@
-# ⚡ Oratio Quick Start# 🚀 Quick Start Guide
+# ⚡ Oratio Quick Start Guide# ⚡ Oratio Quick Start# 🚀 Quick Start Guide
 
-The fastest way to get Oratio running locally!Get Oratio up and running in minutes!
+Get Oratio up and running in minutes!The fastest way to get Oratio running locally!Get Oratio up and running in minutes!
 
-## 🚀 One-Time Setup---
+---## 🚀 One-Time Setup---
 
-### 1. Get Your Credentials First## 🎯 **Option 1: Deploy on Replit (Recommended)**
+## 🎯 **Option 1: Deploy on Replit (Recommended)**### 1. Get Your Credentials First## 🎯 **Option 1: Deploy on Replit (Recommended)**
 
-Before running anything, get these ready:**Best for**: Hackathon demos, quick testing, zero configuration
+**Best for**: Hackathon demos, quick testing, zero configurationBefore running anything, get these ready:**Best for**: Hackathon demos, quick testing, zero configuration
 
-**Supabase (2 minutes):**### Steps
+### Steps**Supabase (2 minutes):**### Steps
 
-1. Go to https://supabase.com → Create account/Sign in
+1. **Import to Replit**1. Go to https://supabase.com → Create account/Sign in
 
-2. Create new project → Wait for it to initialize1. **Import to Replit**
+   - Go to [replit.com](https://replit.com)
 
-3. Go to Settings → API → Copy:
+   - Click "Create Repl" → "Import from GitHub"2. Create new project → Wait for it to initialize1. **Import to Replit**
 
-   - `Project URL` (e.g., https://xxxxx.supabase.co) - Go to [replit.com](https://replit.com)
+   - Paste repository URL: `https://github.com/muneer320/oratio.git`
 
-   - `anon public` key (long string) - Click "Create Repl" → "Import from GitHub"
+   - Click "Import from GitHub"3. Go to Settings → API → Copy:
 
-4. Go to SQL Editor → Run the SQL from `DEPLOYMENT_GUIDE.md` Section 1.2 - Paste repository URL
-
-   - Click "Import from GitHub"
-
-**Gemini API Key (1 minute):**
-
-1. Go to https://aistudio.google.com/app/apikey2. **Configure Secrets (Optional)**
-
-2. Click "Create API Key" → Copy it
+2. **Configure Secrets (Optional but Recommended)** - `Project URL` (e.g., https://xxxxx.supabase.co) - Go to [replit.com](https://replit.com)
 
    - Click 🔒 **Secrets** tab in left sidebar
 
+   - Add `GEMINI_API_KEY` for better AI judging (get free key at [Google AI Studio](https://aistudio.google.com/app/apikey)) - `anon public` key (long string) - Click "Create Repl" → "Import from GitHub"
+
+   - Add `SERPER_API_KEY` for fact-checking (get free key at [serper.dev](https://serper.dev))
+
+   - Add `SECRET_KEY` for auth (or let it auto-generate)4. Go to SQL Editor → Run the SQL from `DEPLOYMENT_GUIDE.md` Section 1.2 - Paste repository URL
+
+3. **Click ▶️ Run** - Click "Import from GitHub"
+
+   - Backend starts automatically on port 8000
+
+   - Frontend served via Vite on port 5173**Gemini API Key (1 minute):**
+
+   - Replit provides a public URL automatically
+
+4. Go to https://aistudio.google.com/app/apikey2. **Configure Secrets (Optional)**
+
+5. **Access Your App**
+
+   - Backend API: `https://[repl-name].[username].repl.co/docs`2. Click "Create API Key" → Copy it
+
+   - Health check: `https://[repl-name].[username].repl.co/api/utils/health`
+
+   - Click 🔒 **Secrets** tab in left sidebar
+
+### ✅ Verification
+
 ### 2. Run Setup Script - Add `SERPER_API_KEY` for fact-checking (get free key at [serper.dev](https://serper.dev))
+
+Check the console output for:
 
 - Add `SECRET_KEY` (or let it auto-generate)
 
-Open PowerShell in the project root folder:
+````
 
-3. **Click ▶️ Run**
+✅ Using Replit DatabaseOpen PowerShell in the project root folder:
 
-```powershell
+✅ Gemini AI available (Primary)
 
-# Run the setup script   - Backend starts automatically on port 8000
+✅ Replit AI available (Fallback)3. **Click ▶️ Run**
 
-.\setup.ps1   - Frontend served via Vite on port 5173
+✅ Replit Auth: ✅
 
-```
+INFO: Uvicorn running on http://0.0.0.0:8000```powershell
+
+````
+
+# Run the setup script - Backend starts automatically on port 8000
+
+📖 **Need more help?** See full Replit deployment guide (coming soon)
+
+.\setup.ps1 - Frontend served via Vite on port 5173
+
+---
+
+`````
+
+## 💻 **Option 2: Local Development**
 
 4. **Access Your App**
 
+**Best for**: Contributing, offline work, full control
+
 This will: - Backend API: `https://[repl-name].[username].repl.co/docs`
+
+### Prerequisites
 
 - ✅ Check Python & Node.js - Health check: `https://[repl-name].[username].repl.co/api/utils/health`
 
-- ✅ Create virtual environment
+- **Python 3.11+**
+
+- **Node.js 18+**- ✅ Create virtual environment
+
+- **Git**
 
 - ✅ Install all Python packages### ✅ Verification
 
+### Quick Setup (Windows PowerShell)
+
 - ✅ Install all Node packages
 
-- ✅ Create `.env` templateCheck the console output for:
+```powershell
 
-### 3. Add Your Credentials```
+# 1. Clone the repository- ✅ Create `.env` templateCheck the console output for:
 
-✅ Replit Database: Available
+git clone https://github.com/muneer320/oratio.git
 
-Edit `backend/.env` file:✅ Replit AI: Available
+cd oratio### 3. Add Your Credentials```
 
-✅ Replit Auth: Available
 
-````powershellINFO: Uvicorn running on http://0.0.0.0:8000
 
-notepad backend\.env```
+# 2. Run the automated setup script✅ Replit Database: Available
 
-````
+.\setup.ps1
+
+```Edit `backend/.env` file:✅ Replit AI: Available
+
+
+
+The script will:✅ Replit Auth: Available
+
+- ✅ Check Python & Node.js versions
+
+- ✅ Create Python virtual environment````powershellINFO: Uvicorn running on http://0.0.0.0:8000
+
+- ✅ Install all backend dependencies
+
+- ✅ Install all frontend dependenciesnotepad backend\.env```
+
+- ✅ Create `.env` template
+
+`````
+
+### Manual Setup (All Platforms)
 
 📖 **Detailed Replit Guide**: See [REPLIT_SETUP.md](REPLIT_SETUP.md)
 
+#### Step 1: Setup Backend
+
 Replace these lines with your actual values:
 
-````env---
+`````bash
 
-SUPABASE_URL=https://xxxxx.supabase.co
-
-SUPABASE_KEY=your_actual_anon_key_here## 💻 **Option 2: Local Development**
-
-GEMINI_API_KEY=your_actual_gemini_key_here
-
-```**Best for**: Contributing, offline work, full control
-
-
-
-Save and close.### Prerequisites
-
-
-
----- **Python 3.11+**
-
-- **Node.js 18+**
-
-## ▶️ Running Locally (Every Time)- **Git**
-
-
-
-### Option A: Use Start Scripts (Recommended)---
-
-
-
-**Terminal 1 - Backend:**### Backend Setup
-
-```powershell
-
-.\start-backend.ps11. **Clone the repository**
-
-````
-
-````bash
-
-**Terminal 2 - Frontend:**   git clone https://github.com/yourusername/oratio.git
-
-```powershell   cd oratio
-
-.\start-frontend.ps1   ```
-
-````
-
-2. **Navigate to backend**
-
-### Option B: Manual Start
-
-````bash
-
-**Terminal 1 - Backend:**   cd backend
-
-```powershell   ```
+# Navigate to backend````env---
 
 cd backend
 
-.\venv\Scripts\Activate.ps13. **Create virtual environment**
+SUPABASE_URL=https://xxxxx.supabase.co
 
-uvicorn app.main:app --reload
+# Create virtual environment
 
-```   ```bash
+python -m venv .venvSUPABASE_KEY=your_actual_anon_key_here## 💻 **Option 2: Local Development**
 
-python -m venv .venv
 
-**Terminal 2 - Frontend:**   ```
+
+# Activate virtual environmentGEMINI_API_KEY=your_actual_gemini_key_here
+
+# Windows PowerShell:
+
+.\.venv\Scripts\Activate.ps1```**Best for**: Contributing, offline work, full control
+
+# Windows CMD:
+
+.venv\Scripts\activate.bat
+
+# Linux/Mac:
+
+source .venv/bin/activateSave and close.### Prerequisites
+
+
+
+# Install dependencies
+
+pip install -r requirements.txt
+
+```---- **Python 3.11+**
+
+
+
+#### Step 2: Setup Frontend- **Node.js 18+**
+
+
+
+```bash## ▶️ Running Locally (Every Time)- **Git**
+
+# Open a new terminal
+
+cd frontend
+
+
+
+# Install dependencies### Option A: Use Start Scripts (Recommended)---
+
+npm install
+
+`````
+
+#### Step 3: Configure Environment (Optional)**Terminal 1 - Backend:**### Backend Setup
+
+Create `backend/.env` file:```powershell
+
+`````bash.\start-backend.ps11. **Clone the repository**
+
+# Copy example file
+
+cp .env.example backend/.env````
+
+
+
+# Edit with your preferred editor````bash
+
+notepad backend/.env  # Windows
+
+nano backend/.env     # Linux/Mac**Terminal 2 - Frontend:**   git clone https://github.com/yourusername/oratio.git
+
+`````
+
+````powershell cd oratio
+
+**Optional API Keys:**
+
+- `GEMINI_API_KEY` - For better AI judging (free at [Google AI Studio](https://aistudio.google.com/app/apikey)).\start-frontend.ps1   ```
+
+- `SERPER_API_KEY` - For fact-checking (free at [serper.dev](https://serper.dev))
+
+````
+
+**Note**: The app works without these keys using fallback responses.
+
+2. **Navigate to backend**
+
+#### Step 4: Run the Application
+
+### Option B: Manual Start
+
+**Option A: Using PowerShell Scripts (Windows)**
+
+```````bash
 
 ```powershell
 
-cd frontend4. **Activate virtual environment**
+# Terminal 1 - Start backend**Terminal 1 - Backend:**   cd backend
 
-npm run dev
-
-```   - **Windows (PowerShell)**:
-
-
-
----     ```powershell
-
-  .\.venv\Scripts\Activate.ps1
-
-## 🌐 Access Your App     ```
-
-
-
-- **Frontend:** http://localhost:5173   - **Windows (CMD)**:
-
-- **Backend API Docs:** http://localhost:8000/docs
-
-- **Backend API:** http://localhost:8000     ```cmd
-
-  .venv\Scripts\activate.bat
-
----     ```
-
-
-
-## 🛑 Stopping the Servers   - **Linux/Mac**:
-
-  ```bash
-
-Press `Ctrl+C` in each terminal window.     source .venv/bin/activate
-
-  ```
-
----
-
-5. **Install dependencies**
-
-## 🐛 Common Issues
-
-```bash
-
-### "execution policy" error   pip install -r requirements.txt
+.\start-backend.ps1
 
 ```powershell   ```
 
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+# Terminal 2 - Start frontend
 
-```6. **Set up environment variables**
+.\start-frontend.ps1cd backend
 
+```
 
+.\venv\Scripts\Activate.ps13. **Create virtual environment**
 
-### "Port 8000 already in use"   ```bash
+**Option B: Manual Commands (All Platforms)**
 
-```powershell   cp ../.env.example .env
+uvicorn app.main:app --reload
 
-# Kill the process   ```
+```bash
 
-netstat -ano | findstr :8000
+# Terminal 1 - Backend```   ```bash
 
-taskkill /PID <PID_NUMBER> /F   Edit `.env` and configure:
+cd backend
 
-````
-
-````bash
-
-### "Module not found" error   SECRET_KEY=your_secret_key_here
-
-```powershell   SERPER_API_KEY=your_serper_key_here  # Optional
-
-cd backend   ```
-
-.\venv\Scripts\Activate.ps1
-
-pip install -r requirements.txt7. **Run the backend**
-
-```   ```bash
+# Activate venv first (see Step 1)python -m venv .venv
 
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
-### Backend shows "Replit DB (Fallback)" instead of "Supabase (Primary)"   ```
+**Terminal 2 - Frontend:**   ```
 
-- Check your `.env` file has correct `SUPABASE_URL` and `SUPABASE_KEY`
+# Terminal 2 - Frontend
+
+cd frontend```powershell
+
+npm run dev
+
+```cd frontend4. **Activate virtual environment**
+
+
+
+#### Step 5: Access the Applicationnpm run dev
+
+
+
+- **Frontend**: http://localhost:5173```   - **Windows (PowerShell)**:
+
+- **Backend API Docs**: http://localhost:8000/docs
+
+- **Backend Health**: http://localhost:8000/api/utils/health
+
+- **WebSocket**: ws://localhost:8000/ws/debate/{room_id}
+
+---     ```powershell
+
+---
+
+  .\.venv\Scripts\Activate.ps1
+
+## 🐳 **Option 3: Docker (Production-like)**
+
+## 🌐 Access Your App     ```
+
+**Best for**: Containerized deployment, production testing
+
+
+
+### Prerequisites
+
+- **Frontend:** http://localhost:5173   - **Windows (CMD)**:
+
+- **Docker** & **Docker Compose** installed
+
+- **Backend API Docs:** http://localhost:8000/docs
+
+### Steps
+
+- **Backend API:** http://localhost:8000     ```cmd
+
+```bash
+
+# 1. Clone repository  .venv\Scripts\activate.bat
+
+git clone https://github.com/muneer320/oratio.git
+
+cd oratio---     ```
+
+
+
+# 2. Create .env file (optional)
+
+cp .env.example .env
+
+# Edit .env if you have API keys## 🛑 Stopping the Servers   - **Linux/Mac**:
+
+
+
+# 3. Build and run  ```bash
+
+docker-compose up --build
+
+Press `Ctrl+C` in each terminal window.     source .venv/bin/activate
+
+# Access the app at http://localhost
+
+```  ```
+
+
+
+------
+
+
+
+## 🔍 **Verification & Testing**5. **Install dependencies**
+
+
+
+### Health Check## 🐛 Common Issues
+
+
+
+```bash```bash
+
+# Check backend is running
+
+curl http://localhost:8000/api/utils/health### "execution policy" error   pip install -r requirements.txt
+
+
+
+# Expected response:```powershell   ```
+
+# {
+
+#   "status": "ok",Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+#   "message": "Oratio backend is healthy",
+
+#   "replit_features": {```6. **Set up environment variables**
+
+#     "database": true/false,
+
+#     "gemini_ai": true/false,
+
+#     "replit_ai": true/false
+
+#   }### "Port 8000 already in use"   ```bash
+
+# }
+
+``````powershell   cp ../.env.example .env
+
+
+
+### Test API Endpoints# Kill the process   ```
+
+
+
+Visit http://localhost:8000/docs for interactive API documentation.netstat -ano | findstr :8000
+
+
+
+**Try these:**taskkill /PID <PID_NUMBER> /F   Edit `.env` and configure:
+
+1. `/api/utils/health` - Health check
+
+2. `/api/utils/config` - View configuration````
+
+3. `/api/rooms/list` - List available debate rooms
+
+````bash
+
+---
+
+### "Module not found" error   SECRET_KEY=your_secret_key_here
+
+## 🛠️ **Fallback Modes**
+
+```powershell   SERPER_API_KEY=your_serper_key_here  # Optional
+
+Oratio is designed to work in various environments:
+
+cd backend   ```
+
+### Database Tiers
+
+1. **Replit DB** (on Replit) - Persistent key-value storage.\venv\Scripts\Activate.ps1
+
+2. **In-Memory Dict** (local) - Non-persistent, good for testing
+
+pip install -r requirements.txt7. **Run the backend**
+
+### AI Provider Tiers
+
+1. **Gemini AI** (if GEMINI_API_KEY set) - Best quality AI judging```   ```bash
+
+2. **Replit AI** (on Replit, fallback) - Good quality, built-in
+
+3. **Static Responses** (no keys) - Demo mode with example responsesuvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+
+
+### Backend Hosting### Backend shows "Replit DB (Fallback)" instead of "Supabase (Primary)"   ```
+
+1. **Replit** - Auto-detected via environment variables
+
+2. **Local** - Development mode- Check your `.env` file has correct `SUPABASE_URL` and `SUPABASE_KEY`
+
+3. **Docker** - Production-like containerized environment
 
 - Restart the backend server✅ **Backend running at**: http://127.0.0.1:8000
 
+---
 
+
+
+## 🐛 **Troubleshooting**
 
 ---- API docs: http://127.0.0.1:8000/docs
 
+### Backend won't start
+
 - Health check: http://127.0.0.1:8000/api/utils/health
+
+**Problem**: `ModuleNotFoundError: No module named 'fastapi'`
 
 ## 📦 Project Structure
 
----
+**Solution**:
 
-````
+```bash---
+
+cd backend
+
+pip install -r requirements.txt````
+
+```
 
 Oratio/### Frontend Setup
 
+---
+
 ├── backend/ # FastAPI backend
+
+### Frontend build fails
 
 │ ├── app/1. **Open new terminal** and navigate to frontend
 
+**Problem**: `npm ERR! code ELIFECYCLE`
+
 │ │ ├── main.py # Entry point
 
-│ │ ├── routers/ # API endpoints ```bash
+**Solution**:
 
-│ │ ├── supabase_db.py # Database layer cd frontend
+```bash│ │ ├── routers/ # API endpoints ```bash
 
-│ │ └── gemini_ai.py # AI integration ```
+cd frontend
 
-│ ├── requirements.txt
+rm -rf node_modules package-lock.json│ │ ├── supabase_db.py # Database layer cd frontend
 
-│ └── .env # Your credentials (create this!)2. **Install dependencies**
+npm install
 
-├── frontend/ # React frontend
+```│ │ └── gemini_ai.py # AI integration ```
 
-│ ├── src/ ```bash
 
-│ ├── package.json npm install
+
+---│ ├── requirements.txt
+
+
+
+### Port already in use│ └── .env # Your credentials (create this!)2. **Install dependencies**
+
+
+
+**Problem**: `Error: Address already in use`├── frontend/ # React frontend
+
+
+
+**Solution**:│ ├── src/ ```bash
+
+```bash
+
+# Windows PowerShell - Kill process on port 8000│ ├── package.json npm install
+
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8000).OwningProcess | Stop-Process
 
 │ └── .env.local # Optional frontend config ```
 
-├── setup.ps1 # One-time setup script
+# Linux/Mac - Kill process on port 8000
+
+lsof -ti:8000 | xargs kill -9├── setup.ps1 # One-time setup script
+
+```
 
 ├── start-backend.ps1 # Start backend server3. **Configure environment**
 
+---
+
 └── start-frontend.ps1 # Start frontend server
 
+### CORS errors in browser
+
 `   `bash
+
+**Problem**: `CORS policy: No 'Access-Control-Allow-Origin' header`
 
 # Create .env file
 
---- echo "VITE_API_URL=http://localhost:8000" > .env
+**Solution**: Check `backend/.env` has correct CORS_ORIGINS:
 
-echo "VITE_WS_URL=ws://localhost:8000" >> .env
+```bash--- echo "VITE_API_URL=http://localhost:8000" > .env
 
-## 🎯 What You Should See ```
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8000
 
-### Backend Terminal:4. **Run the development server**
+```echo "VITE_WS_URL=ws://localhost:8000" >> .env
 
-`   `bash
 
-============================================================ npm run dev
 
-🚀 Oratio API Starting... ```
+---## 🎯 What You Should See ```
 
-============================================================
 
-✅ **Frontend running at**: http://localhost:5173
 
-📦 Features Status:
+### Gemini AI not working### Backend Terminal:4. **Run the development server**
 
-Database: ✅ Supabase (Primary)---
 
-AI Provider: ✅ Gemini AI (Primary)
 
-Backend: ✅ Replit (Dev)## 🐳 **Option 3: Using Docker (Alternative)**
+**Problem**: AI responses are generic/static`   `bash
 
-...
 
-**Best for**: Production-like testing, containerized environments
 
-✅ Oratio API ready at http://0.0.0.0:8000
+**Solutions**:============================================================ npm run dev
 
-============================================================### Prerequisites
+1. Check `GEMINI_API_KEY` is set correctly in `.env`
 
-```
+2. Verify API key at [Google AI Studio](https://aistudio.google.com/app/apikey)🚀 Oratio API Starting... ```
 
-- Docker Desktop installed and running
+3. Check console for errors: `⚠️ Gemini AI failed`
+
+4. App will fallback to Replit AI or static responses automatically============================================================
+
+
+
+---✅ **Frontend running at**: http://localhost:5173
+
+
+
+### Database data not persisting📦 Features Status:
+
+
+
+**Problem**: Data lost after restartDatabase: ✅ Supabase (Primary)---
+
+
+
+**Explanation**: AI Provider: ✅ Gemini AI (Primary)
+
+- **On Replit**: Replit DB persists data automatically
+
+- **Locally**: In-memory dict doesn't persist (by design)Backend: ✅ Replit (Dev)## 🐳 **Option 3: Using Docker (Alternative)**
+
+
+
+**Solution for local persistence**:...
+
+- Deploy to Replit for persistent storage
+
+- Or wait for database migrations (coming soon)**Best for**: Production-like testing, containerized environments
+
+
+
+---✅ Oratio API ready at http://0.0.0.0:8000
+
+
+
+## 📚 **Next Steps**============================================================### Prerequisites
+
+
+
+1. 📖 Read [README.md](./README.md) for full project overview```
+
+2. 🏗️ Check [backend/README.md](./backend/README.md) for API details
+
+3. 🤝 See [CONTRIBUTING.md](./CONTRIBUTING.md) to contribute- Docker Desktop installed and running
+
+4. 📋 View [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for endpoint details
 
 ### Frontend Terminal:- Docker Compose installed
 
+---
+
 ```
+
+## 💡 **Quick Commands Reference**
 
 VITE v5.x.x ready in xxx ms### Steps
 
+### Development
+
 ➜ Local: http://localhost:5173/1. **Clone and navigate**
 
-➜ Network: use --host to expose
+```bash
+
+# Start backend (with auto-reload)➜ Network: use --host to expose
+
+cd backend && uvicorn app.main:app --reload
 
 `   `bash
 
-git clone https://github.com/yourusername/oratio.git
+# Start frontend (with hot-reload)
 
---- cd oratio
+cd frontend && npm run devgit clone https://github.com/yourusername/oratio.git
 
-````
+
+
+# Run both (Windows PowerShell)--- cd oratio
+
+.\start-backend.ps1  # Terminal 1
+
+.\start-frontend.ps1  # Terminal 2````
+
+```
 
 ## 📚 More Info
 
+### Testing
+
 2. **Set up environment**
 
-- **Full Setup Guide:** `DEPLOYMENT_GUIDE.md`
+```bash
+
+# Test backend health- **Full Setup Guide:** `DEPLOYMENT_GUIDE.md`
+
+curl http://localhost:8000/api/utils/health
 
 - **Architecture Details:** `ARCHITECTURE_UPDATE.md`   ```bash
 
-- **API Documentation:** http://localhost:8000/docs (when backend is running)   cp .env.example .env
+# Test WebSocket connection (requires wscat)
 
-# Edit .env with your settings
+npm install -g wscat- **API Documentation:** http://localhost:8000/docs (when backend is running)   cp .env.example .env
 
----   ```
+wscat -c ws://localhost:8000/ws/debate/test-room
 
-
-
-## 🎉 First Time Running?3. **Build and start**
+```# Edit .env with your settings
 
 
+
+### Docker---   ```
+
+
+
+```bash
+
+# Build and run
+
+docker-compose up --build## 🎉 First Time Running?3. **Build and start**
+
+
+
+# Run in background
+
+docker-compose up -d
 
 1. ✅ Run `.\setup.ps1`   ```bash
 
-2. ✅ Edit `backend\.env` with your credentials   docker-compose up --build
+# Stop containers
 
-3. ✅ Run `.\start-backend.ps1` in one terminal   ```
+docker-compose down2. ✅ Edit `backend\.env` with your credentials   docker-compose up --build
 
-4. ✅ Run `.\start-frontend.ps1` in another terminal
 
-5. ✅ Open http://localhost:5173 in your browser4. **Access the application**
 
-6. 🎊 You're done!
+# View logs3. ✅ Run `.\start-backend.ps1` in one terminal   ```
 
-- Frontend: http://localhost
+docker-compose logs -f
 
----   - Backend API: http://localhost/api/utils/health
+```4. ✅ Run `.\start-frontend.ps1` in another terminal
 
-- Backend Direct: http://localhost:8000/docs
+
+
+---5. ✅ Open http://localhost:5173 in your browser4. **Access the application**
+
+
+
+## 🎉 **Success!**6. 🎊 You're done!
+
+
+
+You should now have Oratio running. Try creating a debate room and testing the AI judging!- Frontend: http://localhost
+
+
+
+**Having issues?** ---   - Backend API: http://localhost/api/utils/health
+
+- Check the troubleshooting section above
+
+- Open an issue on GitHub- Backend Direct: http://localhost:8000/docs
+
+- Contact: muneer.alam320@gmail.com
 
 **Need help?** Check `DEPLOYMENT_GUIDE.md` for detailed troubleshooting.
 
-5. **Stop the application**
-```bash
-docker-compose down
-````
-
 ---
 
-## 🧪 **Testing the Setup**
+5. **Stop the application**
+
+<div align="center">```bash
+
+docker-compose down
+
+**Built with ❤️ for better debates**````
+
+
+
+[⭐ Star on GitHub](https://github.com/muneer320/oratio) • [🐛 Report Bug](https://github.com/muneer320/oratio/issues) • [💡 Request Feature](https://github.com/muneer320/oratio/issues)---
+
+
+
+</div>## 🧪 **Testing the Setup**
+
 
 ### Backend Health Check
 
@@ -583,3 +953,4 @@ docker-compose up --build
 ---
 
 **Happy Debating! 🎤**
+```````

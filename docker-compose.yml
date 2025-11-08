@@ -11,9 +11,11 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - API_ENV=${API_ENV:-development}
-      - DATABASE_URL=${DATABASE_URL}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-pro}
       - SERPER_API_KEY=${SERPER_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - SECRET_KEY=${SECRET_KEY:-auto-generated-secret-key-change-in-production}
     volumes:
       - ./backend:/app/backend
       - ./frontend/dist:/app/frontend/dist
@@ -21,22 +23,6 @@ services:
     networks:
       - oratio-network
 
-  # Optional: Database service (uncomment if using PostgreSQL)
-  # db:
-  #   image: postgres:15-alpine
-  #   environment:
-  #     - POSTGRES_USER=${DB_USER:-oratio}
-  #     - POSTGRES_PASSWORD=${DB_PASSWORD:-oratio}
-  #     - POSTGRES_DB=${DB_NAME:-oratio_db}
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-  #   networks:
-  #     - oratio-network
-
 networks:
   oratio-network:
     driver: bridge
-# volumes:
-#   postgres_data:

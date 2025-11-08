@@ -133,7 +133,7 @@ class TurnResponse(BaseModel):
     audio_url: Optional[str]
     round_number: int
     turn_number: int
-    ai_feedback: Dict[str, Any]
+    ai_feedback: Optional[Dict[str, Any]] = None
     timestamp: datetime
 
     class Config:

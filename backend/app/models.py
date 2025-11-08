@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, JSON, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, JSON, Enum as SQLEnum, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -46,10 +46,10 @@ class User(Base):
 
     # Relationships
     hosted_rooms = relationship(
-        "Room", back_populates="host", foreign_keys="Room.host_id")
-    participations = relationship("Participant", back_populates="user")
+        "Room", back_populates="host", foreign_keys="Room.host_id", cascade="all, delete-orphan")
+    participations = relationship("Participant", back_populates="user", cascade="all, delete-orphan")
     trainer_feedback = relationship(
-        "TrainerFeedback", back_populates="user", uselist=False)
+        "TrainerFeedback", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 
 class Room(Base):
@@ -65,8 +65,8 @@ class Room(Base):
     visibility = Column(SQLEnum(Visibility), default=Visibility.PUBLIC)
     rounds = Column(Integer, default=3)
     status = Column(SQLEnum(DebateStatus), default=DebateStatus.UPCOMING)
-    host_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    resources = Column(JSON, default=list)  # List of uploaded file references
+    host_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    resources = Column(JSON, default=list)
     room_code = Column(String, unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow,
@@ -87,14 +87,16 @@ class Room(Base):
 
 class Participant(Base):
     __tablename__ = "participants"
+    __table_args__ = (
+        Index('idx_participants_room_role', 'room_id', 'role'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
-    team = Column(String, nullable=True)  # "A", "B", or team name
-    role = Column(String, default="debater")  # "debater" or "spectator"
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False)
+    team = Column(String, nullable=True)
+    role = Column(String, default="debater")
     is_ready = Column(Boolean, default=False)
-    # {"logic": 0, "credibility": 0, "rhetoric": 0}
     score = Column(JSON, default=dict)
     xp_earned = Column(Integer, default=0)
     joined_at = Column(DateTime, default=datetime.utcnow)
@@ -102,20 +104,23 @@ class Participant(Base):
     # Relationships
     user = relationship("User", back_populates="participations")
     room = relationship("Room", back_populates="participants")
-    turns = relationship("Turn", back_populates="speaker")
+    turns = relationship("Turn", back_populates="speaker", cascade="all, delete-orphan")
 
 
 class Turn(Base):
     __tablename__ = "turns"
+    __table_args__ = (
+        Index('idx_turns_room_round_turn', 'room_id', 'round_number', 'turn_number'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
-    speaker_id = Column(Integer, ForeignKey("participants.id"), nullable=False)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False)
+    speaker_id = Column(Integer, ForeignKey("participants.id", ondelete="CASCADE"), nullable=False)
     content = Column(Text, nullable=False)
     audio_url = Column(String, nullable=True)
     round_number = Column(Integer, nullable=False)
     turn_number = Column(Integer, nullable=False)
-    ai_feedback = Column(JSON, default=dict)  # Inline AI feedback
+    ai_feedback = Column(JSON, default=dict)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -125,13 +130,16 @@ class Turn(Base):
 
 class SpectatorVote(Base):
     __tablename__ = "spectator_votes"
+    __table_args__ = (
+        Index('idx_spectator_votes_room_target_type', 'room_id', 'target_id', 'reaction_type'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
-    spectator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    target_id = Column(Integer, ForeignKey("participants.id"),
-                       nullable=False)  # Player being rewarded
-    reaction_type = Column(String, nullable=False)  # "👏", "🔥", "❤️", etc.
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False)
+    spectator_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    target_id = Column(Integer, ForeignKey("participants.id", ondelete="CASCADE"),
+                       nullable=False)
+    reaction_type = Column(String, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -142,16 +150,14 @@ class Result(Base):
     __tablename__ = "results"
 
     id = Column(Integer, primary_key=True, index=True)
-    room_id = Column(Integer, ForeignKey("rooms.id"),
-                     unique=True, nullable=False)
-    winner_id = Column(Integer, ForeignKey("participants.id"), nullable=True)
-    # Full LCR scores for all participants
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"),
+                     unique=True, nullable=False, index=True)
+    winner_id = Column(Integer, ForeignKey("participants.id", ondelete="SET NULL"), nullable=True)
     scores_json = Column(JSON, nullable=False)
-    # AI feedback for each participant
     feedback_json = Column(JSON, nullable=False)
     summary = Column(Text, nullable=False)
     report_url = Column(String, nullable=True)
-    spectator_influence = Column(JSON, default=dict)  # Audience support data
+    spectator_influence = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -162,10 +168,9 @@ class TrainerFeedback(Base):
     __tablename__ = "trainer_feedback"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"),
-                     unique=True, nullable=False)
-    metrics_json = Column(JSON, default=dict)  # Strengths/weaknesses breakdown
-    # AI-generated training exercises
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
+                     unique=True, nullable=False, index=True)
+    metrics_json = Column(JSON, default=dict)
     recommendations = Column(JSON, default=list)
     xp = Column(Integer, default=0)
     badges = Column(JSON, default=list)
@@ -180,9 +185,9 @@ class UploadedFile(Base):
     __tablename__ = "uploaded_files"
 
     id = Column(Integer, primary_key=True, index=True)
-    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False)
     file_name = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
-    file_type = Column(String, nullable=False)  # "pdf", "audio", "url"
+    file_type = Column(String, nullable=False)
     file_size = Column(Integer, nullable=True)
     uploaded_at = Column(DateTime, default=datetime.utcnow)

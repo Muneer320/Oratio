@@ -1,8 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any
 from app.schemas import SpectatorJoin, SpectatorReward, SpectatorStats, ParticipantResponse
 from app.replit_auth import get_current_user, get_current_user_optional
-from app.replit_db import DB, Collections
+from app.database import get_db
+from app.repositories import Repository, RoomRepository, ParticipantRepository, SpectatorVoteRepository
+from app.models import Room, Participant, SpectatorVote
 from app.cache import room_cache
 
 router = APIRouter(prefix="/api/spectators", tags=["Spectators"])
@@ -11,26 +14,26 @@ router = APIRouter(prefix="/api/spectators", tags=["Spectators"])
 @router.post("/join", response_model=ParticipantResponse)
 async def join_as_spectator(
     join_data: SpectatorJoin,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Join a debate room as a spectator
     """
 
-    room = DB.find_one(Collections.ROOMS, {"room_code": join_data.room_code})
+    room = await RoomRepository.get_by_code(db, join_data.room_code)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    existing = DB.find_one(
-        Collections.PARTICIPANTS,
-        {"user_id": current_user["id"], "room_id": room["id"]}
+    existing = await ParticipantRepository.get_by_user_and_room(
+        db, int(current_user["id"]), room.id
     )
     if existing:
         return existing
 
     new_spectator = {
-        "user_id": current_user["id"],
-        "room_id": room["id"],
+        "user_id": int(current_user["id"]),
+        "room_id": room.id,
         "team": None,
         "role": "spectator",
         "is_ready": True,
@@ -38,10 +41,10 @@ async def join_as_spectator(
         "xp_earned": 0
     }
 
-    spectator = DB.insert(Collections.PARTICIPANTS, new_spectator)
+    spectator = await Repository.create(db, Participant, new_spectator)
 
     # Invalidate debate status cache so spectator join is immediately visible
-    room_cache.delete(f"debate_status_{room['id']}")
+    room_cache.delete(f"debate_status_{room.id}")
 
     return spectator
 
@@ -50,52 +53,55 @@ async def join_as_spectator(
 async def reward_participant(
     room_id: str,
     reward_data: SpectatorReward,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Spectator rewards a participant with a reaction
     """
-    room = DB.get(Collections.ROOMS, room_id)
+    room = await Repository.get_by_id(db, Room, int(room_id))
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    participant = DB.get(Collections.PARTICIPANTS, str(reward_data.target_id))
+    participant = await Repository.get_by_id(db, Participant, int(reward_data.target_id))
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
 
     vote = {
-        "room_id": room["id"],
-        "spectator_id": current_user["id"],
-        "target_id": reward_data.target_id,
+        "room_id": room.id,
+        "spectator_id": int(current_user["id"]),
+        "target_id": int(reward_data.target_id),
         "reaction_type": reward_data.reaction_type
     }
 
-    vote_record = DB.insert(Collections.SPECTATOR_VOTES, vote)
+    vote_record = await Repository.create(db, SpectatorVote, vote)
     return {"message": "Reaction recorded", "vote": vote_record}
 
 
 @router.get("/{room_id}/stats", response_model=SpectatorStats)
-async def get_spectator_stats(room_id: str):
+async def get_spectator_stats(
+    room_id: str,
+    db: AsyncSession = Depends(get_db)
+):
     """
     Get spectator statistics for a room
     """
-    room = DB.get(Collections.ROOMS, room_id)
+    room = await Repository.get_by_id(db, Room, int(room_id))
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    spectators = DB.find(
-        Collections.PARTICIPANTS,
-        {"room_id": room["id"], "role": "spectator"}
+    spectators = await ParticipantRepository.get_room_participants(
+        db, room.id, role="spectator"
     )
 
-    votes = DB.find(Collections.SPECTATOR_VOTES, {"room_id": room["id"]})
+    votes = await SpectatorVoteRepository.get_room_votes(db, room.id)
 
     reactions = {}
     for vote in votes:
-        target_id = vote["target_id"]
+        target_id = vote.target_id
         if target_id not in reactions:
             reactions[target_id] = []
-        reactions[target_id].append(vote["reaction_type"])
+        reactions[target_id].append(vote.reaction_type)
 
     total_votes = len(votes)
     support_percentages = {}
@@ -104,7 +110,7 @@ async def get_spectator_stats(room_id: str):
             len(vote_list) / total_votes * 100) if total_votes > 0 else 0
 
     return {
-        "room_id": room["id"],
+        "room_id": room.id,
         "total_spectators": len(spectators),
         "reactions": reactions,
         "support_percentages": support_percentages
@@ -114,20 +120,21 @@ async def get_spectator_stats(room_id: str):
 @router.delete("/{spectator_id}/leave")
 async def leave_as_spectator(
     spectator_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Leave room as spectator
     """
-    spectator = DB.get(Collections.PARTICIPANTS, spectator_id)
+    spectator = await Repository.get_by_id(db, Participant, int(spectator_id))
     if not spectator:
         raise HTTPException(status_code=404, detail="Spectator not found")
 
-    if str(spectator["user_id"]) != str(current_user["id"]):
+    if str(spectator.user_id) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    room_id = spectator["room_id"]
-    DB.delete(Collections.PARTICIPANTS, spectator_id)
+    room_id = spectator.room_id
+    await Repository.delete_record(db, Participant, int(spectator_id))
 
     # Invalidate debate status cache so spectator leave is immediately visible
     room_cache.delete(f"debate_status_{room_id}")

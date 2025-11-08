@@ -58,12 +58,16 @@ async def startup():
     print("🚀 Oratio API Starting...")
     print("=" * 60)
 
+    # Initialize PostgreSQL database
+    from app.database import init_db
+    await init_db()
+
     # Detect if running on Render
     is_render = os.getenv("RENDER") == "true"
 
     # Check features availability
     features = {
-        "Database": "✅ Replit DB" if REPLIT_DB_AVAILABLE else "⚠️  In-memory",
+        "Database": "✅ PostgreSQL (Neon)",
         "AI Provider": "✅ Gemini AI (Primary)" if GEMINI_AVAILABLE else
         ("✅ Replit AI (Fallback)" if REPLIT_AI_AVAILABLE else "⚠️  Static responses"),
         "Backend": "✅ Render (Production)" if is_render else "✅ Replit (Dev)",
@@ -84,6 +88,8 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     """Run on application shutdown"""
+    from app.database import close_db
+    await close_db()
     print("👋 Shutting down Oratio API...")
 
 

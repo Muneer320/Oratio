@@ -53,12 +53,12 @@ function Debate() {
   useEffect(() => {
     loadRoomData();
     
-    // Only poll when tab is active - 10s for debate page (needs faster updates)
+    // Only poll when tab is active - 30s for debate page (reduced to ease backend load)
     const interval = setInterval(() => {
       if (!document.hidden) {
         loadRoomData();
       }
-    }, 10000);
+    }, 30000);
     
     // Refresh when tab becomes visible
     const handleVisibilityChange = () => {

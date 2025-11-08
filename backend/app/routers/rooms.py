@@ -101,8 +101,8 @@ async def get_room_by_code(room_code: str):
 
     enriched_room = enrich_room_with_host(room)
 
-    # Cache for 30 seconds
-    room_cache.set(cache_key, enriched_room, ttl_seconds=30)
+    # Cache for 90 seconds (aggressive caching to reduce DB load)
+    room_cache.set(cache_key, enriched_room, ttl_seconds=90)
 
     return enriched_room
 
@@ -146,6 +146,11 @@ async def update_room(
                 update_data[key] = value
 
     updated_room = DB.update(Collections.ROOMS, room_id, update_data)
+    
+    # Invalidate caches when room is updated
+    room_cache.delete(f"debate_status_{room_id}")
+    room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
+    
     return updated_room
 
 
@@ -166,4 +171,10 @@ async def delete_room(
             status_code=403, detail="Only the host can delete the room")
 
     DB.delete(Collections.ROOMS, room_id)
+    
+    # Invalidate all caches when room is deleted
+    room_cache.delete(f"debate_status_{room_id}")
+    room_cache.delete(f"transcript_{room_id}")
+    room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
+    
     return {"message": "Room deleted successfully"}

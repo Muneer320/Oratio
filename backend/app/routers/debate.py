@@ -207,6 +207,12 @@ async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
             print(
                 f"🏁 All {total_rounds} rounds complete ({len(all_turns)}/{expected_total_turns} turns)! Auto-ending debate...")
             DB.update(Collections.ROOMS, room["id"], {"status": "completed"})
+            
+            # Invalidate all caches for this room (auto-ended)
+            room_cache.delete(f"debate_status_{room['id']}")
+            room_cache.delete(f"transcript_{room['id']}")
+            room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
+            
             print("✅ Debate automatically ended")
 
             # Generate comprehensive AI results
@@ -235,6 +241,10 @@ async def submit_turn(
         DB.update(Collections.ROOMS, room_id, {
                   "status": DebateStatus.ONGOING.value})
         room["status"] = DebateStatus.ONGOING.value
+        
+        # Invalidate caches when debate starts
+        room_cache.delete(f"debate_status_{room_id}")
+        room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
 
     if room["status"] != DebateStatus.ONGOING.value:
         raise HTTPException(
@@ -318,6 +328,10 @@ async def submit_audio(
         DB.update(Collections.ROOMS, room_id, {
                   "status": DebateStatus.ONGOING.value})
         room["status"] = DebateStatus.ONGOING.value
+        
+        # Invalidate caches when debate starts
+        room_cache.delete(f"debate_status_{room_id}")
+        room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
 
     if room["status"] != DebateStatus.ONGOING.value:
         raise HTTPException(
@@ -420,8 +434,8 @@ async def get_transcript(room_id: str):
     sorted_turns = sorted(turns, key=lambda x: (
         x["round_number"], x["turn_number"]))
 
-    # Cache for 15 seconds
-    room_cache.set(cache_key, sorted_turns, ttl_seconds=15)
+    # Cache for 60 seconds (aggressive caching to reduce DB load)
+    room_cache.set(cache_key, sorted_turns, ttl_seconds=60)
 
     return sorted_turns
 
@@ -447,6 +461,11 @@ async def end_debate(
 
     DB.update(Collections.ROOMS, room_id, {
               "status": DebateStatus.COMPLETED.value})
+
+    # Invalidate all caches for this room (status changed to completed)
+    room_cache.delete(f"debate_status_{room_id}")
+    room_cache.delete(f"transcript_{room_id}")
+    room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
 
     participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
     turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
@@ -530,7 +549,7 @@ async def get_debate_status(room_id: str):
         "status": room["status"]
     }
 
-    # Cache for 15 seconds (balance between freshness and performance)
-    room_cache.set(cache_key, status_response, ttl_seconds=15)
+    # Cache for 60 seconds (aggressive caching to reduce DB load)
+    room_cache.set(cache_key, status_response, ttl_seconds=60)
 
     return status_response

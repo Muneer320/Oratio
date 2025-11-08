@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Calendar, Clock, Users, FileText, Lock, Unlock, MessageSquare, Mic, Repeat } from 'lucide-react';
+import { PlusCircle, Calendar, Clock, Users, FileText, Lock, Unlock, MessageSquare, Mic, Repeat, User, Users2 } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 
@@ -193,11 +193,14 @@ const AddDebate = () => {
             <div>
               <label className="block text-sm font-medium text-text-primary mb-2">Format</label>
               <div className="grid grid-cols-2 gap-4">
-                {['individual', 'team'].map(format => (
+                {[
+                  { value: 'individual', label: '1v1 Individual', Icon: User, desc: '2 debaters' },
+                  { value: 'team', label: '2v2 Team Debate', Icon: Users2, desc: '4 debaters (2 teams)' }
+                ].map(format => (
                   <label
-                    key={format}
-                    className={`flex items-center justify-center px-4 py-3 border-2 rounded-xl cursor-pointer transition-all ${
-                      formData.format === format
+                    key={format.value}
+                    className={`flex flex-col items-center justify-center px-4 py-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      formData.format === format.value
                         ? 'border-accent-rust bg-accent-rust/20 text-accent-rust'
                         : 'border-dark-warm hover:border-accent-rust/50 text-text-secondary'
                     }`}
@@ -205,12 +208,14 @@ const AddDebate = () => {
                     <input
                       type="radio"
                       name="format"
-                      value={format}
-                      checked={formData.format === format}
+                      value={format.value}
+                      checked={formData.format === format.value}
                       onChange={handleChange}
                       className="sr-only"
                     />
-                    <span className="font-medium capitalize">{format}</span>
+                    <format.Icon className="w-6 h-6 mb-2" />
+                    <span className="font-medium">{format.label}</span>
+                    <span className="text-xs mt-1 opacity-75">{format.desc}</span>
                   </label>
                 ))}
               </div>

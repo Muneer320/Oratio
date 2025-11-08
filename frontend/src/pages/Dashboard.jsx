@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Users, Clock, Trophy, ChevronRight, Flame, Eye } from 'lucide-react';
+import { Play, Users, Clock, Trophy, ChevronRight, Flame, Eye, User, Users2 } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import JoinRoomByCode from '../components/JoinRoomByCode';
@@ -125,6 +125,11 @@ const Dashboard = () => {
               room.mode === 'audio' ? 'bg-accent-rust/20 text-accent-rust' : 'bg-accent-teal/20 text-accent-teal'
             }`}>
               {room.mode === 'audio' ? '🎙️ Audio' : '💬 Text'}
+            </span>
+            <span className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 ${
+              room.type === 'team' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+            }`}>
+              {room.type === 'team' ? <><Users2 className="w-3 h-3" /> 2v2</> : <><User className="w-3 h-3" /> 1v1</>}
             </span>
           </div>
           <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-accent-rust group-hover:translate-x-1 transition-all" />

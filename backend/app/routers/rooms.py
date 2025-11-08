@@ -4,7 +4,7 @@ import secrets
 from datetime import datetime
 from app.schemas import RoomCreate, RoomUpdate, RoomResponse
 from app.replit_auth import get_current_user
-from app.replit_db import ReplitDB, Collections
+from app.supabase_db import DatabaseWrapper as DB, Collections
 from app.models import DebateStatus
 from app.cache import user_cache, room_cache
 
@@ -15,7 +15,7 @@ def generate_room_code() -> str:
     """Generate a unique 6-character room code"""
     while True:
         code = secrets.token_hex(3).upper()
-        existing = ReplitDB.find_one(Collections.ROOMS, {"room_code": code})
+        existing = DB.find_one(Collections.ROOMS, {"room_code": code})
         if not existing:
             return code
 
@@ -25,13 +25,14 @@ def enrich_room_with_host(room: Dict[str, Any]) -> Dict[str, Any]:
     if room and "host_id" in room:
         cache_key = f"user_{room['host_id']}"
         host = user_cache.get(cache_key)
-        
+
         if host is None:
-            host = ReplitDB.get(Collections.USERS, room["host_id"])
+            host = DB.get(Collections.USERS, room["host_id"])
             if host:
                 user_cache.set(cache_key, host)
-        
-        room["host_name"] = host.get("username", "Anonymous") if host else "Anonymous"
+
+        room["host_name"] = host.get(
+            "username", "Anonymous") if host else "Anonymous"
     return room
 
 
@@ -44,7 +45,7 @@ async def create_room(
     Create a new debate room
     """
     room_code = generate_room_code()
-    
+
     new_room = {
         "topic": room_data.topic,
         "description": room_data.description,
@@ -59,8 +60,8 @@ async def create_room(
         "resources": room_data.resources or [],
         "room_code": room_code
     }
-    
-    room = ReplitDB.insert(Collections.ROOMS, new_room)
+
+    room = DB.insert(Collections.ROOMS, new_room)
     return enrich_room_with_host(room)
 
 
@@ -75,8 +76,8 @@ async def list_rooms(
     filter_criteria = {"visibility": "public"}
     if status:
         filter_criteria["status"] = status
-    
-    rooms = ReplitDB.find(Collections.ROOMS, filter_criteria, limit=limit)
+
+    rooms = DB.find(Collections.ROOMS, filter_criteria, limit=limit)
     return [enrich_room_with_host(room) for room in rooms]
 
 
@@ -87,22 +88,22 @@ async def get_room_by_code(room_code: str):
     """
     code_upper = room_code.upper()
     cache_key = f"room_code_{code_upper}"
-    
+
     # Check cache first
     cached_room = room_cache.get(cache_key)
     if cached_room:
         return cached_room
-    
+
     # Fetch from database
-    room = ReplitDB.find_one(Collections.ROOMS, {"room_code": code_upper})
+    room = DB.find_one(Collections.ROOMS, {"room_code": code_upper})
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
     enriched_room = enrich_room_with_host(room)
-    
+
     # Cache for 30 seconds
     room_cache.set(cache_key, enriched_room, ttl_seconds=30)
-    
+
     return enriched_room
 
 
@@ -111,7 +112,7 @@ async def get_room(room_id: str):
     """
     Get details of a specific room
     """
-    room = ReplitDB.get(Collections.ROOMS, room_id)
+    room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     return enrich_room_with_host(room)
@@ -126,13 +127,14 @@ async def update_room(
     """
     Update room details (host only)
     """
-    room = ReplitDB.get(Collections.ROOMS, room_id)
+    room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
     if str(room["host_id"]) != str(current_user["id"]):
-        raise HTTPException(status_code=403, detail="Only the host can update the room")
-    
+        raise HTTPException(
+            status_code=403, detail="Only the host can update the room")
+
     update_data = {}
     for key, value in room_update.model_dump(exclude_unset=True).items():
         if value is not None:
@@ -142,8 +144,8 @@ async def update_room(
                 update_data[key] = value.value
             else:
                 update_data[key] = value
-    
-    updated_room = ReplitDB.update(Collections.ROOMS, room_id, update_data)
+
+    updated_room = DB.update(Collections.ROOMS, room_id, update_data)
     return updated_room
 
 
@@ -155,12 +157,13 @@ async def delete_room(
     """
     Delete a room (host only)
     """
-    room = ReplitDB.get(Collections.ROOMS, room_id)
+    room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
     if str(room["host_id"]) != str(current_user["id"]):
-        raise HTTPException(status_code=403, detail="Only the host can delete the room")
-    
-    ReplitDB.delete(Collections.ROOMS, room_id)
+        raise HTTPException(
+            status_code=403, detail="Only the host can delete the room")
+
+    DB.delete(Collections.ROOMS, room_id)
     return {"message": "Room deleted successfully"}

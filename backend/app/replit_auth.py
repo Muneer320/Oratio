@@ -16,7 +16,7 @@ except ImportError:
     REPLIT_AUTH_AVAILABLE = False
     print("⚠️  Replit Auth not available, using simple token auth")
 
-from app.replit_db import ReplitDB, Collections
+from app.supabase_db import DatabaseWrapper as DB, Collections
 
 security = HTTPBearer(auto_error=False)
 
@@ -53,7 +53,7 @@ class ReplitAuth:
         Create user or get existing user from Replit auth
         """
         # Check if user exists
-        existing_user = ReplitDB.find_one(
+        existing_user = DB.find_one(
             Collections.USERS,
             {"username": replit_username}
         )
@@ -73,7 +73,7 @@ class ReplitAuth:
             "bio": None
         }
 
-        return ReplitDB.insert(Collections.USERS, new_user)
+        return DB.insert(Collections.USERS, new_user)
 
     @staticmethod
     def create_session(user_id: str) -> str:
@@ -86,7 +86,7 @@ class ReplitAuth:
             "user_id": user_id,
             "expires_at": None  # Sessions don't expire in demo
         }
-        ReplitDB.insert(Collections.SESSIONS, session_data)
+        DB.insert(Collections.SESSIONS, session_data)
         return token
 
     @staticmethod
@@ -94,14 +94,14 @@ class ReplitAuth:
         """
         Get user from session token
         """
-        session = ReplitDB.get(Collections.SESSIONS, token)
+        session = DB.get(Collections.SESSIONS, token)
         if not session:
             return None
 
         user_id = session.get("user_id")
         if not user_id:
             return None
-        return ReplitDB.get(Collections.USERS, str(user_id))
+        return DB.get(Collections.USERS, str(user_id))
 
     @staticmethod
     def simple_auth_register(username: str, email: str, password: str) -> Dict[str, Any]:
@@ -110,11 +110,12 @@ class ReplitAuth:
         """
         try:
             # Check if user exists
-            existing = ReplitDB.find_one(Collections.USERS, {"email": email})
+            existing = DB.find_one(Collections.USERS, {"email": email})
             if existing:
-                raise HTTPException(status_code=400, detail="User already exists")
+                raise HTTPException(
+                    status_code=400, detail="User already exists")
 
-            existing_username = ReplitDB.find_one(
+            existing_username = DB.find_one(
                 Collections.USERS, {"username": username})
             if existing_username:
                 raise HTTPException(
@@ -133,11 +134,11 @@ class ReplitAuth:
                 "bio": None
             }
 
-            user = ReplitDB.insert(Collections.USERS, new_user)
+            user = DB.insert(Collections.USERS, new_user)
             if not user or "id" not in user:
                 print(f"❌ Registration failed: user insert returned {user}")
                 raise Exception("Failed to create user")
-            
+
             print(f"✅ User registered: {user['username']} (id: {user['id']})")
             token = ReplitAuth.create_session(str(user["id"]))
 
@@ -153,7 +154,7 @@ class ReplitAuth:
         """
         Simple login for local development
         """
-        user = ReplitDB.find_one(Collections.USERS, {"email": email})
+        user = DB.find_one(Collections.USERS, {"email": email})
         if not user or user.get("password_hash") != password:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 

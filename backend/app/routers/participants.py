@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from app.schemas import ParticipantJoin, ParticipantResponse
 from app.replit_auth import get_current_user
-from app.replit_db import ReplitDB, Collections
+from app.supabase_db import DatabaseWrapper as DB, Collections
 from app.cache import room_cache
 
 router = APIRouter(prefix="/api/participants", tags=["Participants"])
@@ -16,17 +16,17 @@ async def join_room(
     """
     Join a debate room as a participant
     """
-    room = ReplitDB.find_one(Collections.ROOMS, {"room_code": join_data.room_code})
+    room = DB.find_one(Collections.ROOMS, {"room_code": join_data.room_code})
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
-    existing = ReplitDB.find_one(
+
+    existing = DB.find_one(
         Collections.PARTICIPANTS,
         {"user_id": current_user["id"], "room_id": room["id"]}
     )
     if existing:
         return existing
-    
+
     new_participant = {
         "user_id": current_user["id"],
         "room_id": room["id"],
@@ -36,12 +36,12 @@ async def join_room(
         "score": {"logic": 0, "credibility": 0, "rhetoric": 0},
         "xp_earned": 0
     }
-    
-    participant = ReplitDB.insert(Collections.PARTICIPANTS, new_participant)
-    
+
+    participant = DB.insert(Collections.PARTICIPANTS, new_participant)
+
     # Invalidate debate status cache so join is immediately visible
     room_cache.delete(f"debate_status_{room['id']}")
-    
+
     return participant
 
 
@@ -50,7 +50,7 @@ async def get_participant(participant_id: str):
     """
     Get participant details
     """
-    participant = ReplitDB.get(Collections.PARTICIPANTS, participant_id)
+    participant = DB.get(Collections.PARTICIPANTS, participant_id)
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
     return participant
@@ -64,18 +64,19 @@ async def mark_ready(
     """
     Mark participant as ready
     """
-    participant = ReplitDB.get(Collections.PARTICIPANTS, participant_id)
+    participant = DB.get(Collections.PARTICIPANTS, participant_id)
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
-    
+
     if str(participant["user_id"]) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="Not authorized")
-    
-    updated = ReplitDB.update(Collections.PARTICIPANTS, participant_id, {"is_ready": True})
-    
+
+    updated = DB.update(Collections.PARTICIPANTS,
+                        participant_id, {"is_ready": True})
+
     # Invalidate debate status cache so ready status is immediately visible
     room_cache.delete(f"debate_status_{participant['room_id']}")
-    
+
     return updated
 
 
@@ -87,17 +88,17 @@ async def leave_room(
     """
     Leave a debate room
     """
-    participant = ReplitDB.get(Collections.PARTICIPANTS, participant_id)
+    participant = DB.get(Collections.PARTICIPANTS, participant_id)
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
-    
+
     if str(participant["user_id"]) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="Not authorized")
-    
+
     room_id = participant["room_id"]
-    ReplitDB.delete(Collections.PARTICIPANTS, participant_id)
-    
+    DB.delete(Collections.PARTICIPANTS, participant_id)
+
     # Invalidate debate status cache so leave is immediately visible
     room_cache.delete(f"debate_status_{room_id}")
-    
+
     return {"message": "Left room successfully"}

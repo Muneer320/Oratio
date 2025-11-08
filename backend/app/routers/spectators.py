@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from app.schemas import SpectatorJoin, SpectatorReward, SpectatorStats, ParticipantResponse
 from app.replit_auth import get_current_user, get_current_user_optional
-from app.replit_db import ReplitDB, Collections
+from app.supabase_db import DatabaseWrapper as DB, Collections
 from app.cache import room_cache
 
 router = APIRouter(prefix="/api/spectators", tags=["Spectators"])
@@ -16,18 +16,18 @@ async def join_as_spectator(
     """
     Join a debate room as a spectator
     """
-    
-    room = ReplitDB.find_one(Collections.ROOMS, {"room_code": join_data.room_code})
+
+    room = DB.find_one(Collections.ROOMS, {"room_code": join_data.room_code})
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
-    existing = ReplitDB.find_one(
+
+    existing = DB.find_one(
         Collections.PARTICIPANTS,
         {"user_id": current_user["id"], "room_id": room["id"]}
     )
     if existing:
         return existing
-    
+
     new_spectator = {
         "user_id": current_user["id"],
         "room_id": room["id"],
@@ -37,12 +37,12 @@ async def join_as_spectator(
         "score": {},
         "xp_earned": 0
     }
-    
-    spectator = ReplitDB.insert(Collections.PARTICIPANTS, new_spectator)
-    
+
+    spectator = DB.insert(Collections.PARTICIPANTS, new_spectator)
+
     # Invalidate debate status cache so spectator join is immediately visible
     room_cache.delete(f"debate_status_{room['id']}")
-    
+
     return spectator
 
 
@@ -55,22 +55,22 @@ async def reward_participant(
     """
     Spectator rewards a participant with a reaction
     """
-    room = ReplitDB.get(Collections.ROOMS, room_id)
+    room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
-    participant = ReplitDB.get(Collections.PARTICIPANTS, str(reward_data.target_id))
+
+    participant = DB.get(Collections.PARTICIPANTS, str(reward_data.target_id))
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
-    
+
     vote = {
         "room_id": room["id"],
         "spectator_id": current_user["id"],
         "target_id": reward_data.target_id,
         "reaction_type": reward_data.reaction_type
     }
-    
-    vote_record = ReplitDB.insert(Collections.SPECTATOR_VOTES, vote)
+
+    vote_record = DB.insert(Collections.SPECTATOR_VOTES, vote)
     return {"message": "Reaction recorded", "vote": vote_record}
 
 
@@ -79,29 +79,30 @@ async def get_spectator_stats(room_id: str):
     """
     Get spectator statistics for a room
     """
-    room = ReplitDB.get(Collections.ROOMS, room_id)
+    room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
-    spectators = ReplitDB.find(
+
+    spectators = DB.find(
         Collections.PARTICIPANTS,
         {"room_id": room["id"], "role": "spectator"}
     )
-    
-    votes = ReplitDB.find(Collections.SPECTATOR_VOTES, {"room_id": room["id"]})
-    
+
+    votes = DB.find(Collections.SPECTATOR_VOTES, {"room_id": room["id"]})
+
     reactions = {}
     for vote in votes:
         target_id = vote["target_id"]
         if target_id not in reactions:
             reactions[target_id] = []
         reactions[target_id].append(vote["reaction_type"])
-    
+
     total_votes = len(votes)
     support_percentages = {}
     for target_id, vote_list in reactions.items():
-        support_percentages[target_id] = (len(vote_list) / total_votes * 100) if total_votes > 0 else 0
-    
+        support_percentages[target_id] = (
+            len(vote_list) / total_votes * 100) if total_votes > 0 else 0
+
     return {
         "room_id": room["id"],
         "total_spectators": len(spectators),
@@ -118,17 +119,17 @@ async def leave_as_spectator(
     """
     Leave room as spectator
     """
-    spectator = ReplitDB.get(Collections.PARTICIPANTS, spectator_id)
+    spectator = DB.get(Collections.PARTICIPANTS, spectator_id)
     if not spectator:
         raise HTTPException(status_code=404, detail="Spectator not found")
-    
+
     if str(spectator["user_id"]) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="Not authorized")
-    
+
     room_id = spectator["room_id"]
-    ReplitDB.delete(Collections.PARTICIPANTS, spectator_id)
-    
+    DB.delete(Collections.PARTICIPANTS, spectator_id)
+
     # Invalidate debate status cache so spectator leave is immediately visible
     room_cache.delete(f"debate_status_{room_id}")
-    
+
     return {"message": "Left room as spectator successfully"}

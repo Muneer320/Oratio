@@ -4,7 +4,7 @@ import aiofiles
 import os
 from app.schemas import UploadResponse
 from app.replit_auth import get_current_user
-from app.replit_db import ReplitDB, Collections
+from app.supabase_db import DatabaseWrapper as DB, Collections
 from app.config import settings
 
 router = APIRouter(prefix="/api/uploads", tags=["Uploads"])
@@ -25,17 +25,19 @@ async def upload_pdf(
     Upload a PDF reference document
     """
     if not file.filename.endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
-    
+        raise HTTPException(
+            status_code=400, detail="Only PDF files are allowed")
+
     if file.size and file.size > settings.MAX_FILE_SIZE_MB * 1024 * 1024:
-        raise HTTPException(status_code=400, detail=f"File too large. Max size: {settings.MAX_FILE_SIZE_MB}MB")
-    
+        raise HTTPException(
+            status_code=400, detail=f"File too large. Max size: {settings.MAX_FILE_SIZE_MB}MB")
+
     file_path = f"{UPLOAD_DIR}/pdfs/{room_id}_{file.filename}"
-    
+
     async with aiofiles.open(file_path, 'wb') as f:
         content = await file.read()
         await f.write(content)
-    
+
     uploaded_file = {
         "room_id": room_id,
         "file_name": file.filename,
@@ -43,16 +45,17 @@ async def upload_pdf(
         "file_type": "pdf",
         "file_size": len(content)
     }
-    
-    file_record = ReplitDB.insert(Collections.UPLOADED_FILES, uploaded_file)
-    
+
+    file_record = DB.insert(Collections.UPLOADED_FILES, uploaded_file)
+
     if room_id:
-        room = ReplitDB.get(Collections.ROOMS, room_id)
+        room = DB.get(Collections.ROOMS, room_id)
         if room:
             resources = room.get("resources", [])
-            resources.append({"file_id": file_record["id"], "type": "pdf", "name": file.filename})
-            ReplitDB.update(Collections.ROOMS, room_id, {"resources": resources})
-    
+            resources.append(
+                {"file_id": file_record["id"], "type": "pdf", "name": file.filename})
+            DB.update(Collections.ROOMS, room_id, {"resources": resources})
+
     return file_record
 
 
@@ -68,16 +71,17 @@ async def upload_audio(
     allowed_extensions = ['.mp3', '.wav', '.ogg', '.m4a']
     if not any(file.filename.endswith(ext) for ext in allowed_extensions):
         raise HTTPException(status_code=400, detail="Invalid audio format")
-    
+
     if file.size and file.size > settings.MAX_FILE_SIZE_MB * 1024 * 1024:
-        raise HTTPException(status_code=400, detail=f"File too large. Max size: {settings.MAX_FILE_SIZE_MB}MB")
-    
+        raise HTTPException(
+            status_code=400, detail=f"File too large. Max size: {settings.MAX_FILE_SIZE_MB}MB")
+
     file_path = f"{UPLOAD_DIR}/audio/{room_id}_{file.filename}"
-    
+
     async with aiofiles.open(file_path, 'wb') as f:
         content = await file.read()
         await f.write(content)
-    
+
     uploaded_file = {
         "room_id": room_id,
         "file_name": file.filename,
@@ -85,9 +89,9 @@ async def upload_audio(
         "file_type": "audio",
         "file_size": len(content)
     }
-    
-    file_record = ReplitDB.insert(Collections.UPLOADED_FILES, uploaded_file)
-    
+
+    file_record = DB.insert(Collections.UPLOADED_FILES, uploaded_file)
+
     return file_record
 
 
@@ -100,13 +104,14 @@ async def upload_url(
     """
     Add a URL reference to a room
     """
-    room = ReplitDB.get(Collections.ROOMS, room_id)
+    room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
+
     if str(room["host_id"]) != str(current_user["id"]):
-        raise HTTPException(status_code=403, detail="Only the host can add resources")
-    
+        raise HTTPException(
+            status_code=403, detail="Only the host can add resources")
+
     uploaded_file = {
         "room_id": room_id,
         "file_name": url,
@@ -114,13 +119,13 @@ async def upload_url(
         "file_type": "url",
         "file_size": 0
     }
-    
-    file_record = ReplitDB.insert(Collections.UPLOADED_FILES, uploaded_file)
-    
+
+    file_record = DB.insert(Collections.UPLOADED_FILES, uploaded_file)
+
     resources = room.get("resources", [])
     resources.append({"file_id": file_record["id"], "type": "url", "url": url})
-    ReplitDB.update(Collections.ROOMS, room_id, {"resources": resources})
-    
+    DB.update(Collections.ROOMS, room_id, {"resources": resources})
+
     return {"message": "URL added", "file": file_record}
 
 
@@ -129,7 +134,7 @@ async def get_room_uploads(room_id: str):
     """
     Get all uploaded files for a room
     """
-    files = ReplitDB.find(Collections.UPLOADED_FILES, {"room_id": room_id})
+    files = DB.find(Collections.UPLOADED_FILES, {"room_id": room_id})
     return files
 
 
@@ -141,17 +146,18 @@ async def delete_file(
     """
     Delete an uploaded file
     """
-    file_record = ReplitDB.get(Collections.UPLOADED_FILES, file_id)
+    file_record = DB.get(Collections.UPLOADED_FILES, file_id)
     if not file_record:
         raise HTTPException(status_code=404, detail="File not found")
-    
-    room = ReplitDB.get(Collections.ROOMS, str(file_record["room_id"]))
+
+    room = DB.get(Collections.ROOMS, str(file_record["room_id"]))
     if room and str(room["host_id"]) != str(current_user["id"]):
-        raise HTTPException(status_code=403, detail="Only the host can delete files")
-    
+        raise HTTPException(
+            status_code=403, detail="Only the host can delete files")
+
     if file_record["file_type"] != "url" and os.path.exists(file_record["file_path"]):
         os.remove(file_record["file_path"])
-    
-    ReplitDB.delete(Collections.UPLOADED_FILES, file_id)
-    
+
+    DB.delete(Collections.UPLOADED_FILES, file_id)
+
     return {"message": "File deleted successfully"}

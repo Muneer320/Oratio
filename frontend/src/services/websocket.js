@@ -1,4 +1,11 @@
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+// Use current origin for WebSocket (Vite proxy will forward to backend)
+const getWsUrl = () => {
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}`;
+};
 
 class WebSocketService {
   constructor() {
@@ -6,6 +13,7 @@ class WebSocketService {
   }
 
   connect(endpoint, onMessage) {
+    const WS_BASE_URL = getWsUrl();
     this.ws = new WebSocket(`${WS_BASE_URL}/ws${endpoint}`);
 
     this.ws.onopen = () => {

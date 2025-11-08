@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from app.schemas import SpectatorJoin, SpectatorReward, SpectatorStats, ParticipantResponse
 from app.replit_auth import get_current_user, get_current_user_optional
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 from app.cache import room_cache
 
 router = APIRouter(prefix="/api/spectators", tags=["Spectators"])

@@ -2,10 +2,6 @@
 
 Thank you for your interest in contributing to Oratio! 🎉 This document provides guidelines and instructions for contributing to the project.
 
-**Project Version:** 2.0.0  
-**Architecture:** Multi-Tier Fallback System  
-**Last Updated:** November 8, 2025
-
 ---
 
 ## 📋 Table of Contents

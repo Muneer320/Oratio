@@ -13,10 +13,11 @@ try:
     REPLIT_AUTH_AVAILABLE = True
     print("✅ Replit Auth available")
 except ImportError:
+    web = None  # type: ignore
     REPLIT_AUTH_AVAILABLE = False
     print("⚠️  Replit Auth not available, using simple token auth")
 
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 
 security = HTTPBearer(auto_error=False)
 

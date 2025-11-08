@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import ORJSONResponse
 from datetime import datetime
 from app.config import settings
-from app.supabase_db import SUPABASE_AVAILABLE, REPLIT_DB_AVAILABLE
+from app.replit_db import REPLIT_DB_AVAILABLE
 from app.gemini_ai import GEMINI_AVAILABLE, REPLIT_AI_AVAILABLE
 from app.replit_auth import REPLIT_AUTH_AVAILABLE
 import os
@@ -11,11 +12,17 @@ import os
 from app.routers import auth, rooms, participants, spectators, debate, ai, trainer, uploads, utils
 from app.websockets import debate as ws_debate, spectator as ws_spectator, trainer as ws_trainer
 
-# Create FastAPI app
+# Create FastAPI app with orjson for 3-5x faster JSON serialization
 app = FastAPI(
     title="Oratio - AI Debate Platform",
     description="Backend API for Oratio debate platform with AI judging",
-    version="1.0.0")
+    version="1.0.0",
+    default_response_class=ORJSONResponse  # Use orjson for all responses (3-5x faster)
+)
+
+# Performance Middlewares (order matters - GZIP should be first)
+# GZIP Compression - reduces payload size by 60-80% for responses >500 bytes
+app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=6)
 
 # CORS Middleware
 app.add_middleware(
@@ -56,8 +63,7 @@ async def startup():
 
     # Check features availability
     features = {
-        "Database": "✅ Supabase (Primary)" if SUPABASE_AVAILABLE else
-        ("✅ Replit DB (Fallback)" if REPLIT_DB_AVAILABLE else "⚠️  In-memory"),
+        "Database": "✅ Replit DB" if REPLIT_DB_AVAILABLE else "⚠️  In-memory",
         "AI Provider": "✅ Gemini AI (Primary)" if GEMINI_AVAILABLE else
         ("✅ Replit AI (Fallback)" if REPLIT_AI_AVAILABLE else "⚠️  Static responses"),
         "Backend": "✅ Render (Production)" if is_render else "✅ Replit (Dev)",
@@ -84,7 +90,7 @@ async def shutdown():
 # Health check endpoint
 @app.get("/api/utils/health")
 async def health():
-    return JSONResponse({
+    return {
         "status": "ok",
         "message": "Oratio backend is healthy",
         "timestamp": datetime.utcnow().isoformat(),
@@ -99,7 +105,7 @@ async def health():
             "slug": settings.REPL_SLUG,
             "owner": settings.REPL_OWNER
         }
-    })
+    }
 
 
 @app.get("/")

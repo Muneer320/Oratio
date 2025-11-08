@@ -43,33 +43,33 @@ class ReplitDB:
     def insert(collection: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Insert document into collection"""
         if "id" not in data:
-            data["id"] = DB._generate_id(collection)
+            data["id"] = ReplitDB._generate_id(collection)
 
         if "created_at" not in data:
             data["created_at"] = datetime.utcnow().isoformat()
 
-        key = DB._make_key(collection, str(data["id"]))
+        key = ReplitDB._make_key(collection, str(data["id"]))
         db[key] = json.dumps(data)
         return data
 
     @staticmethod
     def get(collection: str, id: str) -> Optional[Dict[str, Any]]:
         """Get document by ID"""
-        key = DB._make_key(collection, id)
+        key = ReplitDB._make_key(collection, id)
         value = db.get(key)
         return json.loads(value) if value else None
 
     @staticmethod
     def update(collection: str, id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update document"""
-        existing = DB.get(collection, id)
+        existing = ReplitDB.get(collection, id)
         if not existing:
             return None
 
         existing.update(data)
         existing["updated_at"] = datetime.utcnow().isoformat()
 
-        key = DB._make_key(collection, id)
+        key = ReplitDB._make_key(collection, id)
         db[key] = json.dumps(existing)
         return existing
 
@@ -109,13 +109,13 @@ class ReplitDB:
     @staticmethod
     def find_one(collection: str, filter: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Find single document"""
-        results = DB.find(collection, filter, limit=1000)
+        results = ReplitDB.find(collection, filter, limit=1000)
         return results[0] if results else None
 
     @staticmethod
     def count(collection: str, filter: Optional[Dict[str, Any]] = None) -> int:
         """Count documents"""
-        return len(DB.find(collection, filter))
+        return len(ReplitDB.find(collection, filter))
 
     @staticmethod
     def clear_collection(collection: str):
@@ -154,5 +154,8 @@ async def disconnect_db():
     print("👋 Database disconnected")
 
 
+# Alias for backward compatibility
+DB = ReplitDB
+
 # Export the database instance
-__all__ = ["ReplitDB", "Collections", "connect_db", "disconnect_db", "db"]
+__all__ = ["ReplitDB", "DB", "Collections", "connect_db", "disconnect_db", "db", "REPLIT_DB_AVAILABLE"]

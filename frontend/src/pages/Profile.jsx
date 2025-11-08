@@ -20,6 +20,9 @@ const Profile = () => {
     { name: 'Debate Champion', icon: '🏆', description: 'Won 50 debates', earned: false },
     { name: 'Marathon Debater', icon: '⏱️', description: 'Participated in 100 debates', earned: false },
     { name: 'Rising Star', icon: '⭐', description: 'Reach level 10', earned: true },
+    { name: 'Credibility Expert', icon: '✅', description: 'Achieved 95+ credibility score 5 times', earned: false },
+    { name: 'Quick Thinker', icon: '⚡', description: 'Won 10 debates with time limit', earned: true },
+    { name: 'Team Player', icon: '🤝', description: 'Won 20 team debates', earned: false },
   ];
 
   return (

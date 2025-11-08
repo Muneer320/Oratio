@@ -31,7 +31,7 @@ class GeminiAI:
         messages: List[Dict[str, str]],
         model: str = "gemini-2.5-pro",
         temperature: float = 0.7,
-        max_tokens: int = 1000
+        max_tokens: int = 4000
     ) -> str:
         """
         Generate chat completion using Gemini AI
@@ -76,8 +76,27 @@ class GeminiAI:
                 config=config
             )
             
-            result = response.text
-            if result is None:
+            # Better error handling for Gemini responses
+            if not response:
+                raise ValueError("Gemini returned no response object")
+            
+            # Check if response has text
+            result = None
+            try:
+                result = response.text
+            except Exception as text_error:
+                print(f"⚠️  Error accessing response.text: {text_error}")
+                # Try to get candidates
+                if hasattr(response, 'candidates') and response.candidates:
+                    candidate = response.candidates[0]
+                    if hasattr(candidate, 'content') and candidate.content:
+                        if hasattr(candidate.content, 'parts') and candidate.content.parts:
+                            result = candidate.content.parts[0].text
+            
+            if not result or result.strip() == "":
+                print(f"⚠️  Gemini response details: {response}")
+                if hasattr(response, 'prompt_feedback'):
+                    print(f"⚠️  Prompt feedback: {response.prompt_feedback}")
                 raise ValueError("Gemini returned empty response")
             
             print(f"✅ Using Gemini AI ({model})")
@@ -145,7 +164,7 @@ Provide scores (0-10) and brief feedback in JSON format:
             {"role": "user", "content": prompt}
         ]
 
-        response = await GeminiAI.chat_completion(messages, temperature=0.3, max_tokens=500)
+        response = await GeminiAI.chat_completion(messages, temperature=0.3, max_tokens=2000)
 
         try:
             # Try to parse JSON response
@@ -202,7 +221,7 @@ Provide a final verdict in JSON:
             {"role": "user", "content": prompt}
         ]
 
-        response = await GeminiAI.chat_completion(messages, temperature=0.5, max_tokens=800)
+        response = await GeminiAI.chat_completion(messages, temperature=0.5, max_tokens=3000)
 
         try:
             start = response.find('{')

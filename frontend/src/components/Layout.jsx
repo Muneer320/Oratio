@@ -1,31 +1,22 @@
 import React from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, Brain, User, Settings, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Brain, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import BottomTabBar from './BottomTabBar';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  const navItems = [
-    { name: 'Home', path: '/home', icon: Home },
-    { name: 'Add Debate', path: '/add', icon: PlusCircle },
-    { name: 'Learn', path: '/learn', icon: Brain },
-    { name: 'Profile', path: '/profile', icon: User },
-    { name: 'Settings', path: '/settings', icon: Settings },
-  ];
-
-  const isActive = (path) => location.pathname === path;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
+      {/* Top Header - Simplified */}
+      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/home" className="flex items-center space-x-2">
@@ -34,26 +25,6 @@ const Layout = ({ children }) => {
                 Oratio
               </span>
             </Link>
-
-            <nav className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all ${
-                      isActive(item.path)
-                        ? 'bg-indigo-100 text-indigo-700 font-medium'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
 
             <div className="flex items-center space-x-4">
               {user && (
@@ -76,55 +47,16 @@ const Layout = ({ children }) => {
               )}
             </div>
           </div>
-
-          <div className="md:hidden pb-3">
-            <nav className="flex items-center space-x-1 overflow-x-auto">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm whitespace-nowrap ${
-                      isActive(item.path)
-                        ? 'bg-indigo-100 text-indigo-700 font-medium'
-                        : 'text-slate-600'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
 
-      <footer className="bg-white border-t border-slate-200 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-            <p className="text-sm text-slate-600">
-              © 2025 Oratio. Where arguments meet intelligence.
-            </p>
-            <div className="flex items-center space-x-6 text-sm">
-              <Link to="/about" className="text-slate-600 hover:text-indigo-600 transition-colors">
-                About
-              </Link>
-              <a href="#" className="text-slate-600 hover:text-indigo-600 transition-colors">
-                Contact
-              </a>
-              <a href="#" className="text-slate-600 hover:text-indigo-600 transition-colors">
-                Terms
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Bottom Tab Bar */}
+      <BottomTabBar />
     </div>
   );
 };

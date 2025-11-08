@@ -62,7 +62,7 @@ class RoomBase(BaseModel):
 
 
 class RoomCreate(RoomBase):
-    pass
+    resources: Optional[List[str]] = []
 
 
 class RoomUpdate(BaseModel):

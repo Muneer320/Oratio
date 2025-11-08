@@ -40,7 +40,7 @@ async def create_room(
         "rounds": room_data.rounds,
         "status": DebateStatus.UPCOMING.value,
         "host_id": current_user["id"],
-        "resources": [],
+        "resources": room_data.resources or [],
         "room_code": room_code
     }
     

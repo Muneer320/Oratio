@@ -18,6 +18,7 @@ const AddDebate = () => {
     visibility: 'public',
     max_participants: 2,
     total_rounds: 3,
+    resources: '',
   });
 
   const handleChange = (e) => {
@@ -30,12 +31,25 @@ const AddDebate = () => {
     setLoading(true);
 
     try {
+      const resourceLinks = formData.resources
+        .split('\n')
+        .map(link => link.trim())
+        .filter(link => link.length > 0);
+
+      const scheduledTime = formData.date && formData.time
+        ? new Date(`${formData.date}T${formData.time}`).toISOString()
+        : new Date().toISOString();
+
       const response = await api.post('/rooms/create', {
         topic: formData.topic,
         description: formData.description,
+        scheduled_time: scheduledTime,
+        duration_minutes: parseInt(formData.duration),
         mode: formData.mode,
-        max_participants: parseInt(formData.max_participants),
-        total_rounds: parseInt(formData.total_rounds),
+        type: formData.format,
+        visibility: formData.visibility,
+        rounds: parseInt(formData.total_rounds),
+        resources: resourceLinks,
       });
 
       navigate(`/debate/${response.data.room_code}`);
@@ -146,13 +160,17 @@ const AddDebate = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Debate Mode</label>
-              <div className="grid grid-cols-2 gap-4">
-                {['text', 'audio'].map(mode => (
+              <label className="block text-sm font-medium text-slate-700 mb-2">Debate Format</label>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { value: 'text', label: '💬 Text', icon: '💬' },
+                  { value: 'audio', label: '🎙️ Audio', icon: '🎙️' },
+                  { value: 'both', label: '🔀 Both', icon: '🔀' }
+                ].map(mode => (
                   <label
-                    key={mode}
+                    key={mode.value}
                     className={`flex items-center justify-center px-4 py-3 border-2 rounded-xl cursor-pointer transition-all ${
-                      formData.mode === mode
+                      formData.mode === mode.value
                         ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
                         : 'border-slate-300 hover:border-slate-400'
                     }`}
@@ -160,12 +178,12 @@ const AddDebate = () => {
                     <input
                       type="radio"
                       name="mode"
-                      value={mode}
-                      checked={formData.mode === mode}
+                      value={mode.value}
+                      checked={formData.mode === mode.value}
                       onChange={handleChange}
                       className="sr-only"
                     />
-                    <span className="font-medium capitalize">{mode === 'text' ? '💬 Text' : '🎙️ Audio'}</span>
+                    <span className="font-medium">{mode.label}</span>
                   </label>
                 ))}
               </div>
@@ -235,6 +253,21 @@ const AddDebate = () => {
                 max="10"
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Resource Links (optional)
+              </label>
+              <textarea
+                name="resources"
+                value={formData.resources}
+                onChange={handleChange}
+                rows={2}
+                placeholder="Add reference links (one per line): https://example.com/article1..."
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
+              />
+              <p className="text-xs text-slate-500 mt-1">Provide research materials or reference documents for participants</p>
             </div>
           </div>
 

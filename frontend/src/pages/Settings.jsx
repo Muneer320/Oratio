@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Sun, Moon, Bell, Shield, Mic, LogOut } from 'lucide-react';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const { logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [settings, setSettings] = useState({
-    theme: 'light',
     notifications: true,
     autoTranscribe: true,
     publicDebates: true,
@@ -59,9 +60,9 @@ const Settings = () => {
               </div>
               <div className="flex items-center gap-3 bg-slate-100 rounded-xl p-1">
                 <button
-                  onClick={() => setSettings(prev => ({ ...prev, theme: 'light' }))}
+                  onClick={() => setTheme('light')}
                   className={`px-4 py-2 rounded-lg transition-all ${
-                    settings.theme === 'light'
+                    theme === 'light'
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-slate-600'
                   }`}
@@ -69,9 +70,9 @@ const Settings = () => {
                   <Sun className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setSettings(prev => ({ ...prev, theme: 'dark' }))}
+                  onClick={() => setTheme('dark')}
                   className={`px-4 py-2 rounded-lg transition-all ${
-                    settings.theme === 'dark'
+                    theme === 'dark'
                       ? 'bg-white text-indigo-600 shadow-sm'
                       : 'text-slate-600'
                   }`}

@@ -14,7 +14,7 @@ The backend is built with FastAPI, leveraging async support for high-performance
 
 ## AI Integration
 
-Debate analysis uses Google Gemini AI (gemini-2.0-flash) exclusively for all AI-powered features. The system evaluates debates based on logic (40%), credibility (35%), and rhetoric (25%), using context-aware analysis and JSON response validation. Static fallback responses are provided if Gemini is unavailable. Fact-checking is an optional feature via Serper API for claim verification. The training system provides AI-generated personalized feedback, identifying strengths and weaknesses, and recommending improvements.
+Debate analysis uses Google Gemini AI (gemini-2.5-pro) exclusively for all AI-powered features. The system evaluates debates based on logic (40%), credibility (35%), and rhetoric (25%), using context-aware analysis and JSON response validation. Static fallback responses are provided if Gemini is unavailable. Fact-checking is an optional feature via Serper API for claim verification. The training system provides AI-generated personalized feedback, identifying strengths and weaknesses, and recommending improvements.
 
 ## Real-Time Communication
 
@@ -41,7 +41,7 @@ Environment detection automatically switches between development and production 
 
 ## Third-Party APIs
 
-- **Google Gemini AI**: Primary AI provider for debate analysis and training feedback using gemini-2.0-flash model (requires API key).
+- **Google Gemini AI**: Primary AI provider for debate analysis and training feedback using gemini-2.5-pro model (requires API key).
 - **Serper API**: Optional fact-checking via web search (requires API key).
 
 ## Python Dependencies

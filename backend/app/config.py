@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # Use Gemini AI exclusively
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-2.5-pro"
     GEMINI_TEMPERATURE: float = 0.7
 
     # Fact-Checking (Serper is free tier friendly)

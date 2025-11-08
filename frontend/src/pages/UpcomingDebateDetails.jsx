@@ -20,7 +20,7 @@ const UpcomingDebateDetails = () => {
 
   useEffect(() => {
     fetchRoomDetails();
-    const interval = setInterval(fetchRoomDetails, 5000);
+    const interval = setInterval(fetchRoomDetails, 15000);
     return () => clearInterval(interval);
   }, [roomCode]);
 

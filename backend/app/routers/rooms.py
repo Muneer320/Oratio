@@ -6,7 +6,7 @@ from app.schemas import RoomCreate, RoomUpdate, RoomResponse
 from app.replit_auth import get_current_user
 from app.replit_db import ReplitDB, Collections
 from app.models import DebateStatus
-from app.cache import user_cache
+from app.cache import user_cache, room_cache
 
 router = APIRouter(prefix="/api/rooms", tags=["Rooms"])
 
@@ -83,12 +83,27 @@ async def list_rooms(
 @router.get("/code/{room_code}", response_model=RoomResponse)
 async def get_room_by_code(room_code: str):
     """
-    Get a room by its room code (more efficient than listing all rooms)
+    Get a room by its room code with caching for performance
     """
-    room = ReplitDB.find_one(Collections.ROOMS, {"room_code": room_code.upper()})
+    code_upper = room_code.upper()
+    cache_key = f"room_code_{code_upper}"
+    
+    # Check cache first
+    cached_room = room_cache.get(cache_key)
+    if cached_room:
+        return cached_room
+    
+    # Fetch from database
+    room = ReplitDB.find_one(Collections.ROOMS, {"room_code": code_upper})
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    return enrich_room_with_host(room)
+    
+    enriched_room = enrich_room_with_host(room)
+    
+    # Cache for 30 seconds
+    room_cache.set(cache_key, enriched_room, ttl_seconds=30)
+    
+    return enriched_room
 
 
 @router.get("/{room_id}", response_model=RoomResponse)

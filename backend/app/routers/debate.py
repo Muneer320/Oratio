@@ -5,7 +5,7 @@ from app.replit_auth import get_current_user
 from app.replit_db import ReplitDB, Collections
 from app.gemini_ai import GeminiAI
 from app.models import DebateStatus
-from app.cache import user_cache
+from app.cache import user_cache, room_cache
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
 
@@ -104,6 +104,10 @@ async def submit_turn(
     
     turn = ReplitDB.insert(Collections.TURNS, new_turn)
     
+    # Invalidate caches for this room (new data available)
+    room_cache.delete(f"debate_status_{room_id}")
+    room_cache.delete(f"transcript_{room_id}")
+    
     # Check if round is complete and trigger batch analysis
     await check_and_analyze_round(room, turn_data.round_number)
     
@@ -166,6 +170,10 @@ async def submit_audio(
     
     turn = ReplitDB.insert(Collections.TURNS, new_turn)
     
+    # Invalidate caches for this room (new data available)
+    room_cache.delete(f"debate_status_{room_id}")
+    room_cache.delete(f"transcript_{room_id}")
+    
     # Check if round is complete and trigger batch analysis
     await check_and_analyze_round(room, round_number)
     
@@ -175,14 +183,26 @@ async def submit_audio(
 @router.get("/{room_id}/transcript", response_model=List[TurnResponse])
 async def get_transcript(room_id: str):
     """
-    Get full debate transcript
+    Get full debate transcript with caching
     """
+    # Try cache first (15 second TTL for transcript)
+    cache_key = f"transcript_{room_id}"
+    cached_transcript = room_cache.get(cache_key)
+    if cached_transcript:
+        return cached_transcript
+    
+    # Fetch from database
     room = ReplitDB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     
     turns = ReplitDB.find(Collections.TURNS, {"room_id": room["id"]}, limit=1000)
-    return sorted(turns, key=lambda x: (x["round_number"], x["turn_number"]))
+    sorted_turns = sorted(turns, key=lambda x: (x["round_number"], x["turn_number"]))
+    
+    # Cache for 15 seconds
+    room_cache.set(cache_key, sorted_turns, ttl_seconds=15)
+    
+    return sorted_turns
 
 
 @router.post("/{room_id}/end")
@@ -245,8 +265,15 @@ async def end_debate(
 @router.get("/{room_id}/status")
 async def get_debate_status(room_id: str):
     """
-    Get current debate status with participant usernames
+    Get current debate status with caching for performance
     """
+    # Try cache first (15 second TTL for debate status)
+    cache_key = f"debate_status_{room_id}"
+    cached_status = room_cache.get(cache_key)
+    if cached_status:
+        return cached_status
+    
+    # Fetch from database
     room = ReplitDB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
@@ -257,22 +284,27 @@ async def get_debate_status(room_id: str):
     # Enrich participants with user information (username) - cached
     enriched_participants = []
     for participant in participants:
-        cache_key = f"user_{participant['user_id']}"
-        user = user_cache.get(cache_key)
+        cache_key_user = f"user_{participant['user_id']}"
+        user = user_cache.get(cache_key_user)
         
         if user is None:
             user = ReplitDB.get(Collections.USERS, participant["user_id"])
             if user:
-                user_cache.set(cache_key, user)
+                user_cache.set(cache_key_user, user)
         
         if user:
             participant["username"] = user.get("username", "Unknown")
             participant["name"] = user.get("full_name") or user.get("username", "Unknown")
         enriched_participants.append(participant)
     
-    return {
+    status_response = {
         "room": room,
         "participants": enriched_participants,
         "turn_count": len(turns),
         "status": room["status"]
     }
+    
+    # Cache for 15 seconds (balance between freshness and performance)
+    room_cache.set(cache_key, status_response, ttl_seconds=15)
+    
+    return status_response

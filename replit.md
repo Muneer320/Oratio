@@ -10,18 +10,30 @@ Oratio is an AI-powered debate platform designed for real-time voice and text de
 - Fixed "Everyone Joining as Spectator" bug by implementing confirmation polling that waits up to 10 seconds to verify user appears in participant list with role='debater' before navigation
 - Fixed request timeout issues by increasing default API timeout from 30s to 60s across all methods (GET, POST, PUT, DELETE, uploadFile, postFormData)
 
-**Performance Optimizations:**
+**Performance Optimizations (November 8, 2025):**
+- **Backend API Caching**: Added aggressive caching to reduce database load:
+  - `get_room_by_code`: 30s cache (reduces repeated lookups during polling)
+  - `get_debate_status`: 15s cache (most frequently polled endpoint)
+  - `get_transcript`: 15s cache (reduces full table scans)
+  - User data cache: 5-minute TTL (usernames rarely change)
+  - Room cache default: 30s (up from 10s)
+- **Cache Invalidation**: All participant mutations (join/leave/ready) invalidate debate status cache immediately, ensuring fresh data for join confirmation flows
+- **Expected Impact**: 80-90% reduction in database queries during active debates, most requests complete in <5s instead of timing out at 60s
 - Reduced API polling intervals: Dashboard and UpcomingDebateDetails (5s → 30s), 83% reduction
 - Implemented Page Visibility API: polling stops when tab is inactive/hidden, saving resources
-- Added user data caching (5-minute TTL) to eliminate repeated database lookups
-- Optimized host enrichment and participant enrichment with cached user data
 - Added comprehensive timeout handling with AbortController to prevent stuck submit buttons
 - Frontend now auto-refreshes when tab becomes visible again for best UX
+
+**UX Improvements:**
+- Replaced "Notify me" browser alert with graceful animated UI message that auto-dismisses after 5 seconds, suggesting users bookmark the page or set a reminder
 
 **Join Flow Improvements:**
 - Join operation now waits for backend confirmation before navigating to debate page
 - If confirmation fails after 10 retries, user sees clear error message and can retry
 - Navigation is strictly gated on confirmed debater status, preventing spectator mode entry
+
+**Technical Debt:**
+- **Database Performance**: ReplitDB.find() performs full table scans (O(n) for all queries). Future work needed: add indexed secondary maps or migrate to a database with filtered query support before data volume grows significantly
 
 # User Preferences
 

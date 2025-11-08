@@ -3,6 +3,7 @@ from typing import Dict, Any
 from app.schemas import SpectatorJoin, SpectatorReward, SpectatorStats, ParticipantResponse
 from app.replit_auth import get_current_user, get_current_user_optional
 from app.replit_db import ReplitDB, Collections
+from app.cache import room_cache
 
 router = APIRouter(prefix="/api/spectators", tags=["Spectators"])
 
@@ -38,6 +39,10 @@ async def join_as_spectator(
     }
     
     spectator = ReplitDB.insert(Collections.PARTICIPANTS, new_spectator)
+    
+    # Invalidate debate status cache so spectator join is immediately visible
+    room_cache.delete(f"debate_status_{room['id']}")
+    
     return spectator
 
 
@@ -120,5 +125,10 @@ async def leave_as_spectator(
     if str(spectator["user_id"]) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    room_id = spectator["room_id"]
     ReplitDB.delete(Collections.PARTICIPANTS, spectator_id)
+    
+    # Invalidate debate status cache so spectator leave is immediately visible
+    room_cache.delete(f"debate_status_{room_id}")
+    
     return {"message": "Left room as spectator successfully"}

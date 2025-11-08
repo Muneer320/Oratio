@@ -3,6 +3,7 @@ from typing import Dict, Any
 from app.schemas import ParticipantJoin, ParticipantResponse
 from app.replit_auth import get_current_user
 from app.replit_db import ReplitDB, Collections
+from app.cache import room_cache
 
 router = APIRouter(prefix="/api/participants", tags=["Participants"])
 
@@ -37,6 +38,10 @@ async def join_room(
     }
     
     participant = ReplitDB.insert(Collections.PARTICIPANTS, new_participant)
+    
+    # Invalidate debate status cache so join is immediately visible
+    room_cache.delete(f"debate_status_{room['id']}")
+    
     return participant
 
 
@@ -67,6 +72,10 @@ async def mark_ready(
         raise HTTPException(status_code=403, detail="Not authorized")
     
     updated = ReplitDB.update(Collections.PARTICIPANTS, participant_id, {"is_ready": True})
+    
+    # Invalidate debate status cache so ready status is immediately visible
+    room_cache.delete(f"debate_status_{participant['room_id']}")
+    
     return updated
 
 
@@ -85,5 +94,10 @@ async def leave_room(
     if str(participant["user_id"]) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    room_id = participant["room_id"]
     ReplitDB.delete(Collections.PARTICIPANTS, participant_id)
+    
+    # Invalidate debate status cache so leave is immediately visible
+    room_cache.delete(f"debate_status_{room_id}")
+    
     return {"message": "Left room successfully"}

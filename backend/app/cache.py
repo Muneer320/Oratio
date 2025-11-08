@@ -42,4 +42,4 @@ class SimpleCache:
 
 # Global cache instances
 user_cache = SimpleCache(ttl_seconds=300)  # 5 minutes for user data
-room_cache = SimpleCache(ttl_seconds=10)   # 10 seconds for room data
+room_cache = SimpleCache(ttl_seconds=30)   # 30 seconds for room data (increased for better performance)

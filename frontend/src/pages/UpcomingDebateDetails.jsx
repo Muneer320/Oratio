@@ -17,6 +17,7 @@ const UpcomingDebateDetails = () => {
   const [selectedSide, setSelectedSide] = useState(null);
   const [isJoining, setIsJoining] = useState(false);
   const [timeUntilStart, setTimeUntilStart] = useState('');
+  const [showNotifyMessage, setShowNotifyMessage] = useState(false);
 
   useEffect(() => {
     fetchRoomDetails();
@@ -149,7 +150,8 @@ const UpcomingDebateDetails = () => {
   };
 
   const handleNotify = () => {
-    alert('Notification feature coming soon! You will be notified when this debate starts.');
+    setShowNotifyMessage(true);
+    setTimeout(() => setShowNotifyMessage(false), 5000);
   };
 
   if (loading) {
@@ -337,6 +339,19 @@ const UpcomingDebateDetails = () => {
               <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
                 <p className="text-red-700">{error}</p>
               </div>
+            )}
+
+            {showNotifyMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mb-6 bg-accent-teal/10 border border-accent-teal/40 rounded-xl p-4"
+              >
+                <p className="text-accent-teal text-center">
+                  ✨ We'll add notifications in a future update! For now, bookmark this page or set a reminder for {new Date(room.scheduled_time).toLocaleString()}.
+                </p>
+              </motion.div>
             )}
 
             <div className="flex gap-4">

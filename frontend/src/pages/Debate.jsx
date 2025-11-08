@@ -311,6 +311,10 @@ function Debate() {
       setTurns([...turns, newTurn]);
       setArgument('');
 
+      // Show AI analysis indicator immediately after submission
+      setIsAnalyzing(true);
+      setTimeout(() => setIsAnalyzing(false), 8000);
+
       // Update turn/round state for next submission
       const debaterCount = participants.filter(p => p.role === 'debater').length || 2;
       const turnsInCurrentRound = [...turns, newTurn].filter(
@@ -323,16 +327,10 @@ function Debate() {
         
         if (currentRound >= totalRounds) {
           // Final round complete - debate will auto-end, don't advance state
-          setIsAnalyzing(true);
-          setTimeout(() => setIsAnalyzing(false), 10000);
         } else {
           // Advance to next round (clamp to max rounds)
           setCurrentRound(Math.min(currentRound + 1, totalRounds));
           setCurrentTurn(1);
-          
-          // AI analysis happens in background
-          setIsAnalyzing(true);
-          setTimeout(() => setIsAnalyzing(false), 10000);
         }
       } else {
         // Round in progress - advance to next turn

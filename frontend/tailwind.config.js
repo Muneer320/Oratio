@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -9,6 +10,12 @@ module.exports = {
           surface: '#151924',
           elevated: '#1C2330',
           warm: '#272F3D',
+        },
+        light: {
+          base: '#F5F6F8',
+          surface: '#FFFFFF',
+          elevated: '#F8F9FA',
+          warm: '#E9ECEF',
         },
         accent: {
           rust: '#D67C56',

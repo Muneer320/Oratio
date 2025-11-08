@@ -87,6 +87,7 @@ class RoomResponse(BaseModel):
     rounds: int
     status: str
     host_id: int
+    host_name: Optional[str] = None
     room_code: str
     resources: List[str]
     created_at: str

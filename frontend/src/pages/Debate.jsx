@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Send, X, AlertCircle, CheckCircle, Clock, Mic, Square, Play, Pause } from 'lucide-react';
+import { Send, X, AlertCircle, CheckCircle, Clock, Mic, Square, Play, Pause, ThumbsUp, Flame, Heart, Brain } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,12 +25,30 @@ function Debate() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [timePerTurn, setTimePerTurn] = useState(null);
+  const [selectedReactionParticipant, setSelectedReactionParticipant] = useState(null);
+  const [reactionSent, setReactionSent] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const audioPlaybackRef = useRef(null);
   const timerIntervalRef = useRef(null);
   const lastTurnKeyRef = useRef(null);
   const transcriptEndRef = useRef(null);
+
+  const handleSpectatorReaction = async (participantId, reactionType) => {
+    if (!room || isParticipant) return;
+    
+    try {
+      await api.post(`/api/spectators/${room.id}/reward`, {
+        target_id: participantId,
+        reaction_type: reactionType
+      }, true);
+      
+      setReactionSent(true);
+      setTimeout(() => setReactionSent(false), 2000);
+    } catch (err) {
+      console.error('Failed to send reaction:', err);
+    }
+  };
 
   useEffect(() => {
     loadRoomData();
@@ -224,6 +242,14 @@ function Debate() {
 
     if (!isParticipant) {
       setError('You must join as a participant before submitting arguments');
+      return;
+    }
+
+    // Check if all seats are filled before allowing submissions
+    const maxParticipants = room?.type === 'team' ? 4 : 2;
+    const currentDebaters = participants.filter(p => p.role === 'debater').length;
+    if (currentDebaters < maxParticipants) {
+      setError(`Waiting for all participants to join. ${currentDebaters}/${maxParticipants} seats filled.`);
       return;
     }
 
@@ -533,22 +559,117 @@ function Debate() {
             </div>
 
             <div className="bg-dark-elevated rounded-2xl border border-dark-warm p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-text-primary mb-4">Your Turn</h3>
+              <h3 className="text-lg font-semibold text-text-primary mb-4">
+                {isParticipant ? 'Your Turn' : 'Spectator Reactions'}
+              </h3>
               {!isParticipant && (
-                <div className="mb-4 p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-xl">
-                  <p className="text-sm text-yellow-400">
-                    You're viewing as a spectator. To participate, you need to join the room first.
-                  </p>
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-900/20 border border-blue-700/50 rounded-xl">
+                    <p className="text-sm text-blue-400 mb-3">
+                      👁️ You're viewing as a spectator. React to support participants!
+                    </p>
+                    {reactionSent && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-xs text-green-400 flex items-center gap-1"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Reaction sent!
+                      </motion.div>
+                    )}
+                  </div>
+                  
+                  {participants.filter(p => p.role === 'debater').length > 0 && (
+                    <div className="bg-dark-surface border border-dark-warm rounded-xl p-4">
+                      <p className="text-xs text-text-muted mb-3">React to a participant:</p>
+                      <div className="space-y-3">
+                        {participants.filter(p => p.role === 'debater').map(participant => (
+                          <div key={participant.id} className="flex items-center justify-between p-3 bg-dark-elevated rounded-lg border border-dark-warm">
+                            <span className="text-sm font-medium text-text-primary">
+                              {participant.username || participant.name}
+                            </span>
+                            <div className="flex gap-2">
+                              <motion.button
+                                onClick={() => handleSpectatorReaction(participant.id, 'agree')}
+                                className="p-2 rounded-lg bg-blue-900/20 hover:bg-blue-900/40 border border-blue-700/30 transition-colors"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                title="Agree"
+                              >
+                                <ThumbsUp className="w-4 h-4 text-blue-400" />
+                              </motion.button>
+                              <motion.button
+                                onClick={() => handleSpectatorReaction(participant.id, 'strong')}
+                                className="p-2 rounded-lg bg-orange-900/20 hover:bg-orange-900/40 border border-orange-700/30 transition-colors"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                title="Strong Argument"
+                              >
+                                <Flame className="w-4 h-4 text-orange-400" />
+                              </motion.button>
+                              <motion.button
+                                onClick={() => handleSpectatorReaction(participant.id, 'insightful')}
+                                className="p-2 rounded-lg bg-purple-900/20 hover:bg-purple-900/40 border border-purple-700/30 transition-colors"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                title="Insightful"
+                              >
+                                <Brain className="w-4 h-4 text-purple-400" />
+                              </motion.button>
+                              <motion.button
+                                onClick={() => handleSpectatorReaction(participant.id, 'support')}
+                                className="p-2 rounded-lg bg-red-900/20 hover:bg-red-900/40 border border-red-700/30 transition-colors"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                title="Support"
+                              >
+                                <Heart className="w-4 h-4 text-red-400" />
+                              </motion.button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               
-              <textarea
-                value={argument}
-                onChange={(e) => setArgument(e.target.value)}
-                className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-rust focus:ring-2 focus:ring-accent-rust/20 h-32 resize-none mb-4"
-                placeholder={isParticipant ? "Type your argument here. The AI will evaluate it based on logic, credibility, and rhetoric..." : "Join as a participant to submit arguments"}
-                disabled={!isParticipant}
-              />
+              {(() => {
+                // Check if user has already submitted in current round
+                const myParticipant = participants.find(p => String(p.user_id) === String(user?.id));
+                const hasSubmittedThisRound = myParticipant && turns.some(
+                  t => String(t.speaker_id) === String(myParticipant.id) && t.round_number === currentRound
+                );
+                
+                const isInputDisabled = !isParticipant || hasSubmittedThisRound;
+                const placeholderText = !isParticipant 
+                  ? "Join as a participant to submit arguments"
+                  : hasSubmittedThisRound
+                  ? "Waiting for other participants to submit their arguments..."
+                  : "Type your argument here. The AI will evaluate it based on logic, credibility, and rhetoric...";
+
+                return (
+                  <>
+                    {hasSubmittedThisRound && isParticipant && (
+                      <div className="mb-4 p-4 bg-accent-teal/20 border border-accent-teal/50 rounded-xl">
+                        <p className="text-sm text-accent-teal">
+                          ✓ You've submitted your argument for this round. Waiting for others...
+                        </p>
+                      </div>
+                    )}
+                    
+                    <textarea
+                      value={argument}
+                      onChange={(e) => setArgument(e.target.value)}
+                      className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-rust focus:ring-2 focus:ring-accent-rust/20 h-32 resize-none mb-4"
+                      placeholder={placeholderText}
+                      disabled={isInputDisabled}
+                    />
+                  </>
+                );
+              })()}
+              
               
               {audioBlob && (
                 <div className="mb-4 p-3 bg-accent-teal/20 border border-accent-teal/50 rounded-xl">
@@ -594,50 +715,62 @@ function Debate() {
               )}
 
               {isAnalyzing && (
-                <div className="mb-4 p-3 bg-accent-rust/20 border border-accent-rust/50 rounded-xl flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-accent-rust border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-sm text-accent-rust">AI is analyzing your argument...</p>
+                <div className="mb-4 p-4 bg-gradient-to-r from-accent-saffron/20 to-accent-rust/20 border border-accent-saffron/50 rounded-xl flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-accent-saffron border-t-transparent rounded-full animate-spin"></div>
+                  <div>
+                    <p className="text-sm font-semibold text-accent-saffron">⚖️ AI Judging in Progress...</p>
+                    <p className="text-xs text-text-muted mt-0.5">Evaluating Logic, Credibility, and Rhetoric</p>
+                  </div>
                 </div>
               )}
               
-              <div className="flex gap-3">
-                {(room?.mode === 'audio' || room?.mode === 'both') && (
-                  <motion.button
-                    onClick={isRecording ? stopRecording : startRecording}
-                    disabled={!isParticipant}
-                    className={`px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isRecording 
-                        ? 'bg-red-600 text-white' 
-                        : 'bg-accent-teal text-white'
-                    }`}
-                    whileHover={{ scale: isRecording || !isParticipant ? 1 : 1.02 }}
-                    whileTap={{ scale: isRecording || !isParticipant ? 1 : 0.98 }}
-                  >
-                    {isRecording ? (
-                      <>
-                        <Square className="w-5 h-5" />
-                        Stop Recording
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="w-5 h-5" />
-                        Record Audio
-                      </>
-                    )}
-                  </motion.button>
-                )}
+              {(() => {
+                const myParticipant = participants.find(p => String(p.user_id) === String(user?.id));
+                const hasSubmittedThisRound = myParticipant && turns.some(
+                  t => String(t.speaker_id) === String(myParticipant.id) && t.round_number === currentRound
+                );
                 
-                <motion.button
-                  onClick={handleSubmitTurn}
-                  disabled={isSubmitting || (!argument.trim() && !audioBlob) || !isParticipant}
-                  className="flex-1 bg-accent-rust px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-saffron transition-colors"
-                  whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                  whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                >
-                  <Send className="w-5 h-5" />
-                  {isSubmitting ? 'Submitting...' : audioBlob ? 'Submit Audio' : 'Submit Argument'}
-                </motion.button>
-              </div>
+                return (
+                  <div className="flex gap-3">
+                    {(room?.mode === 'audio' || room?.mode === 'both') && (
+                      <motion.button
+                        onClick={isRecording ? stopRecording : startRecording}
+                        disabled={!isParticipant || hasSubmittedThisRound}
+                        className={`px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          isRecording 
+                            ? 'bg-red-600 text-white' 
+                            : 'bg-accent-teal text-white'
+                        }`}
+                        whileHover={{ scale: isRecording || !isParticipant || hasSubmittedThisRound ? 1 : 1.02 }}
+                        whileTap={{ scale: isRecording || !isParticipant || hasSubmittedThisRound ? 1 : 0.98 }}
+                      >
+                        {isRecording ? (
+                          <>
+                            <Square className="w-5 h-5" />
+                            Stop Recording
+                          </>
+                        ) : (
+                          <>
+                            <Mic className="w-5 h-5" />
+                            Record Audio
+                          </>
+                        )}
+                      </motion.button>
+                    )}
+                    
+                    <motion.button
+                      onClick={handleSubmitTurn}
+                      disabled={isSubmitting || (!argument.trim() && !audioBlob) || !isParticipant || hasSubmittedThisRound}
+                      className="flex-1 bg-accent-rust px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-saffron transition-colors"
+                      whileHover={{ scale: isSubmitting || hasSubmittedThisRound ? 1 : 1.02 }}
+                      whileTap={{ scale: isSubmitting || hasSubmittedThisRound ? 1 : 0.98 }}
+                    >
+                      <Send className="w-5 h-5" />
+                      {isSubmitting ? 'Submitting...' : audioBlob ? 'Submit Audio' : 'Submit Argument'}
+                    </motion.button>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

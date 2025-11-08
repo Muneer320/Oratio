@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Home, TrendingUp, MessageSquare, BarChart, Volume2, FileText, Users, Target, Award, CheckCircle, XCircle, AlertCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -259,6 +260,40 @@ function Results() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Score Comparison Chart */}
+      {result?.scores && detailedReport?.participants && detailedReport.participants.length > 0 && (
+        <div className="bg-dark-elevated rounded-2xl border border-dark-warm p-8 shadow-xl mb-6">
+          <h2 className="text-2xl font-bold text-text-primary mb-6 flex items-center gap-2">
+            <BarChart className="w-6 h-6 text-accent-rust" />
+            Score Comparison
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <RechartsBarChart
+              data={detailedReport.participants.map(p => ({
+                name: p.username || 'Unknown',
+                Logic: result.scores[p.participant_id]?.logic || 0,
+                Credibility: result.scores[p.participant_id]?.credibility || 0,
+                Rhetoric: result.scores[p.participant_id]?.rhetoric || 0,
+                Total: result.scores[p.participant_id]?.weighted_total || result.scores[p.participant_id]?.total || 0
+              }))}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }}
+                labelStyle={{ color: '#F3F4F6' }}
+              />
+              <Legend />
+              <Bar dataKey="Logic" fill="#14B8A6" />
+              <Bar dataKey="Credibility" fill="#DC2626" />
+              <Bar dataKey="Rhetoric" fill="#F59E0B" />
+            </RechartsBarChart>
+          </ResponsiveContainer>
         </div>
       )}
 

@@ -22,7 +22,11 @@ try:
     from openai import AsyncOpenAI
     OPENAI_AVAILABLE = bool(settings.OPENAI_API_KEY)
     if OPENAI_AVAILABLE:
-        openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        openai_client = AsyncOpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            timeout=60.0,  # 60 second timeout for requests
+            max_retries=2   # Retry failed requests twice
+        )
         print("✅ OpenAI fallback available")
     else:
         openai_client = None

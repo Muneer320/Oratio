@@ -96,7 +96,7 @@ const UpcomingDebateDetails = () => {
       // Wait for confirmation that user appears in status
       let confirmed = false;
       let retries = 0;
-      const maxRetries = 5;
+      const maxRetries = 10;
       
       while (!confirmed && retries < maxRetries) {
         try {
@@ -108,6 +108,7 @@ const UpcomingDebateDetails = () => {
           
           if (userInList) {
             confirmed = true;
+            break;
           } else {
             await new Promise(resolve => setTimeout(resolve, 1000));
             retries++;
@@ -118,11 +119,11 @@ const UpcomingDebateDetails = () => {
         }
       }
       
-      if (!confirmed) {
-        console.warn('Could not confirm participant status, proceeding anyway');
+      if (confirmed) {
+        navigate(`/debate/${roomCode}`);
+      } else {
+        throw new Error('Could not confirm your participation. Please try again or refresh the page.');
       }
-      
-      navigate(`/debate/${roomCode}`);
     } catch (err) {
       setError(err.message || err.details?.detail || 'Failed to join debate');
       setIsJoining(false);

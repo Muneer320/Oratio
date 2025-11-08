@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import Dict, Any, List
 from app.schemas import TurnSubmit, TurnResponse
 from app.replit_auth import get_current_user
@@ -9,6 +9,48 @@ from app.models import DebateStatus
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
 
 
+async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
+    """
+    Check if round is complete and trigger batch AI analysis
+    A round is complete when all debaters have submitted their turns
+    """
+    # Get all participants who are debaters
+    participants = ReplitDB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
+    debater_count = len([p for p in participants if p.get("role") == "debater"])
+    
+    if debater_count == 0:
+        debater_count = 2  # Default to 2 if no debaters found
+    
+    # Get all turns for this round
+    all_turns = ReplitDB.find(Collections.TURNS, {"room_id": room["id"]})
+    round_turns = [t for t in all_turns if t["round_number"] == round_number]
+    
+    # Check if round is complete
+    if len(round_turns) >= debater_count:
+        print(f"🎯 Round {round_number} complete! Analyzing {len(round_turns)} turns...")
+        
+        # Analyze each turn in the round
+        for turn in round_turns:
+            if turn.get("ai_feedback") is None:  # Only analyze if not already analyzed
+                try:
+                    ai_feedback = await GeminiAI.analyze_debate_turn(
+                        turn_content=turn["content"],
+                        context=room.get("topic")
+                    )
+                    
+                    # Update turn with AI feedback
+                    ReplitDB.update(
+                        Collections.TURNS,
+                        turn["id"],
+                        {"ai_feedback": ai_feedback}
+                    )
+                    print(f"✅ Analyzed turn {turn['id']}")
+                except Exception as e:
+                    print(f"⚠️  Failed to analyze turn {turn['id']}: {e}")
+        
+        print(f"✅ Round {round_number} analysis complete!")
+
+
 @router.post("/{room_id}/submit-turn", response_model=TurnResponse)
 async def submit_turn(
     room_id: str,
@@ -17,6 +59,7 @@ async def submit_turn(
 ):
     """
     Submit a debate turn (text argument)
+    AI analysis happens in batch after round completion
     """
     room = ReplitDB.get(Collections.ROOMS, room_id)
     if not room:
@@ -35,11 +78,6 @@ async def submit_turn(
     )
     if not participant:
         raise HTTPException(status_code=403, detail="Not a participant in this debate")
-    
-    ai_feedback = await GeminiAI.analyze_debate_turn(
-        turn_content=turn_data.content,
-        context=room.get("topic")
-    )
     
     from datetime import datetime
     
@@ -50,24 +88,29 @@ async def submit_turn(
         "audio_url": None,
         "round_number": turn_data.round_number,
         "turn_number": turn_data.turn_number,
-        "ai_feedback": ai_feedback,
+        "ai_feedback": None,  # Will be analyzed in batch after round completion
         "timestamp": datetime.utcnow().isoformat()
     }
     
     turn = ReplitDB.insert(Collections.TURNS, new_turn)
+    
+    # Check if round is complete and trigger batch analysis
+    await check_and_analyze_round(room, turn_data.round_number)
+    
     return turn
 
 
-@router.post("/{room_id}/submit-audio")
+@router.post("/{room_id}/submit-audio", response_model=TurnResponse)
 async def submit_audio(
     room_id: str,
     audio: UploadFile = File(...),
-    round_number: int = 1,
-    turn_number: int = 1,
+    round_number: int = Form(1),
+    turn_number: int = Form(1),
+    content: str = Form(""),
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """
-    Submit a debate turn with audio
+    Submit a debate turn with audio (and optional text)
     """
     room = ReplitDB.get(Collections.ROOMS, room_id)
     if not room:
@@ -87,13 +130,36 @@ async def submit_audio(
     if not participant:
         raise HTTPException(status_code=403, detail="Not a participant in this debate")
     
-    audio_path = f"uploads/audio/{room_id}_{participant['id']}_{turn_number}.wav"
+    # Save audio file (placeholder - would use object storage in production)
+    import os
+    os.makedirs("uploads/audio", exist_ok=True)
+    audio_path = f"uploads/audio/{room_id}_{participant['id']}_{turn_number}.webm"
     
-    return {
-        "message": "Audio upload feature in development",
-        "audio_path": audio_path,
-        "status": "placeholder"
+    # Read and save audio file
+    audio_content = await audio.read()
+    with open(audio_path, "wb") as f:
+        f.write(audio_content)
+    
+    from datetime import datetime
+    
+    # Create turn with audio
+    new_turn = {
+        "room_id": room["id"],
+        "speaker_id": participant["id"],
+        "content": content or "[Audio submission]",
+        "audio_url": audio_path,
+        "round_number": round_number,
+        "turn_number": turn_number,
+        "ai_feedback": None,  # Will be analyzed in batch after round completion
+        "timestamp": datetime.utcnow().isoformat()
     }
+    
+    turn = ReplitDB.insert(Collections.TURNS, new_turn)
+    
+    # Check if round is complete and trigger batch analysis
+    await check_and_analyze_round(room, round_number)
+    
+    return turn
 
 
 @router.get("/{room_id}/transcript", response_model=List[TurnResponse])

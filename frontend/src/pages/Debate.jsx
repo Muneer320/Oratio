@@ -192,8 +192,9 @@ function Debate() {
   };
 
   const handleSubmitTurn = async () => {
-    if (!argument.trim()) {
-      setError('Please enter an argument');
+    // Allow either text or audio
+    if (!argument.trim() && !audioBlob) {
+      setError('Please enter an argument or record audio');
       return;
     }
 
@@ -203,31 +204,53 @@ function Debate() {
     }
 
     setIsSubmitting(true);
-    setIsAnalyzing(true);
     setError('');
 
     try {
-      const turnData = {
-        content: argument,
-        round_number: currentRound,
-        turn_number: currentTurn,
-      };
+      let newTurn;
+      
+      // If we have audio, submit it
+      if (audioBlob) {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'argument.webm');
+        formData.append('round_number', currentRound.toString());
+        formData.append('turn_number', currentTurn.toString());
+        
+        // Add text content if provided
+        if (argument.trim()) {
+          formData.append('content', argument);
+        }
 
-      const newTurn = await api.post(
-        `/api/debate/${room.id}/submit-turn`,
-        turnData,
-        true
-      );
+        newTurn = await api.postFormData(
+          `/api/debate/${room.id}/submit-audio`,
+          formData,
+          true
+        );
+        
+        setAudioBlob(null);
+      } else {
+        // Text only submission
+        const turnData = {
+          content: argument,
+          round_number: currentRound,
+          turn_number: currentTurn,
+        };
 
-      newTurn.ai_feedback = newTurn.ai_feedback || {};
+        newTurn = await api.post(
+          `/api/debate/${room.id}/submit-turn`,
+          turnData,
+          true
+        );
+      }
+
+      // AI analysis will happen in batch after round completion
+      newTurn.ai_feedback = newTurn.ai_feedback || null;
       setTurns([...turns, newTurn]);
       setArgument('');
-      setIsAnalyzing(false);
 
       await loadRoomData();
     } catch (err) {
       setError(err.message || 'Failed to submit turn');
-      setIsAnalyzing(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -397,8 +420,7 @@ function Debate() {
                     const speakerName = speaker?.username || speaker?.name || `Speaker ${turn.speaker_id}`;
                     const speakerInitial = speakerName[0]?.toUpperCase() || 'S';
                     
-                    return (
-                    <div key={i} className="bg-accent-rust/10 border border-accent-rust/30 rounded-xl p-4">
+                    return <div key={i} className="bg-accent-rust/10 border border-accent-rust/30 rounded-xl p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-accent-rust to-accent-saffron rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                           {speakerInitial}
@@ -435,8 +457,7 @@ function Debate() {
                           )}
                         </div>
                       </div>
-                    </div>
-                    );
+                    </div>;
                   })
                 )}
                 <div ref={transcriptEndRef} />
@@ -512,13 +533,13 @@ function Debate() {
                 
                 <motion.button
                   onClick={handleSubmitTurn}
-                  disabled={isSubmitting || !argument.trim() || !isParticipant}
+                  disabled={isSubmitting || (!argument.trim() && !audioBlob) || !isParticipant}
                   className="flex-1 bg-accent-rust px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-saffron transition-colors"
                   whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                   whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                 >
                   <Send className="w-5 h-5" />
-                  {isSubmitting ? 'Submitting...' : 'Submit Argument'}
+                  {isSubmitting ? 'Submitting...' : audioBlob ? 'Submit Audio' : 'Submit Argument'}
                 </motion.button>
               </div>
             </div>

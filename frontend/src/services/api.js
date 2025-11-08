@@ -144,6 +144,29 @@ class ApiService {
     }
   }
 
+  async postFormData(endpoint, formData, requiresAuth = true) {
+    try {
+      const headers = {};
+      if (requiresAuth) {
+        const token = this.getToken();
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      }
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+
+      return await this.handleResponse(response);
+    } catch (error) {
+      console.error(`POST FormData ${endpoint} failed:`, error);
+      throw error;
+    }
+  }
+
   async register(email, username, password) {
     const response = await this.post("/api/auth/register", {
       email,

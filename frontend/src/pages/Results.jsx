@@ -76,7 +76,7 @@ function Results() {
           <h2 className="text-2xl font-bold text-text-primary text-center mb-2">Error</h2>
           <p className="text-text-secondary text-center mb-6">{error}</p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/home')}
             className="w-full px-6 py-3 bg-accent-rust text-white rounded-xl font-semibold hover:bg-accent-saffron transition-colors"
           >
             Back to Home

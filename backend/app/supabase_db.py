@@ -37,7 +37,8 @@ except ImportError:
     replit_db = {}
     REPLIT_DB_AVAILABLE = False
     if not SUPABASE_AVAILABLE:
-        print("⚠️  Replit DB not available, using in-memory storage (data will not persist)")
+        print(
+            "⚠️  Replit DB not available, using in-memory storage (data will not persist)")
 
 
 class DatabaseWrapper:

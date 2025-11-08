@@ -8,7 +8,7 @@ from app.config import settings
 
 # Try to import Replit AI
 try:
-    from replit.ai.modelfarm import CompletionModel, ChatModel, ChatExample, ChatMessage
+    from replit.ai.modelfarm import CompletionModel, ChatModel, ChatExample, ChatMessage, ChatSession
     REPLIT_AI_AVAILABLE = True
     print("✅ Replit AI available")
 except ImportError:
@@ -34,22 +34,25 @@ class ReplitAI:
         if REPLIT_AI_AVAILABLE:
             try:
                 # Use Replit AI ChatModel
-                chat = ChatModel(
-                    model_name=model,
-                    temperature=temperature,
-                )
+                model_instance = ChatModel(model)
 
                 # Convert messages to ChatMessage format
                 chat_messages = [
                     ChatMessage(
-                        author="user" if msg["role"] == "user" else "assistant",
+                        author="USER" if msg["role"] == "user" else "ASSISTANT",
                         content=msg["content"]
                     )
                     for msg in messages
                 ]
 
-                response = chat(chat_messages, max_tokens=max_tokens)
-                return response
+                # Call chat method with ChatSession
+                response = model_instance.chat(
+                    [ChatSession(messages=chat_messages)],
+                    temperature=temperature
+                )
+                
+                # Extract response content
+                return response.responses[0].candidates[0].message.content
 
             except Exception as e:
                 print(f"❌ Replit AI error: {e}")

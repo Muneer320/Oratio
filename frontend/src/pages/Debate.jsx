@@ -36,7 +36,7 @@ function Debate() {
   const transcriptEndRef = useRef(null);
   
   // WebSocket for real-time updates
-  const { messages: wsMessages, isConnected } = useWebSocket(room?.id ? `/debate/${room.id}` : null);
+  const { messages: wsMessages, isConnected } = useWebSocket(room?.id ? `/ws/debate/${room.id}` : null);
 
   const handleSpectatorReaction = async (participantId, reactionType) => {
     if (!room || isParticipant) return;

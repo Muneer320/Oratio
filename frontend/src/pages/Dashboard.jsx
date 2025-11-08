@@ -35,7 +35,7 @@ const Dashboard = () => {
       if (type === 'ongoing') {
         navigate(`/debate/${room.room_code}`);
       } else if (type === 'upcoming') {
-        navigate(`/debate/${room.room_code}`);
+        navigate(`/upcoming/${room.room_code}`);
       } else if (type === 'past') {
         navigate(`/results/${room.room_code}`);
       }

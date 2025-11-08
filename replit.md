@@ -6,7 +6,30 @@ Oratio is an AI-powered debate platform that enables real-time voice and text de
 
 # Recent Changes
 
-**November 8, 2025 (Latest)** - Complete App Flow Update
+**November 8, 2025 (Latest)** - UX & Feature Enhancements
+- ✅ **Style Consistency**: Updated Home.jsx to match light theme used across app (indigo/blue gradient)
+- ✅ **Bottom Tab Navigation**: Replaced top navbar with mobile-first bottom tab bar
+  - Active tab displays icon + name, inactive tabs show icon only
+  - Created BottomTabBar.jsx component with fixed bottom positioning
+- ✅ **Working Theme Switcher**: Implemented functional theme system
+  - Created ThemeContext with localStorage persistence
+  - Integrated with Settings page for light/dark mode toggle
+- ✅ **Enhanced Debate Creation**: Updated AddDebate form with comprehensive fields
+  - Name, description, scheduled time, duration (minutes)
+  - Number of participants, team/individual mode
+  - Resource links (multiple URLs for reference materials)
+  - Format options: Text, Audio, or Both
+  - Number of rounds configuration
+- ✅ **Backend Schema Updates**: Fixed RoomResponse to match ReplitDB storage
+  - All fields use string types (scheduled_time, mode, type, visibility, status)
+  - Resources stored as List[str] for URL links
+  - Eliminates FastAPI validation errors
+- ✅ **Display Improvements**: Updated Debate and Results pages
+  - Resources section with clickable reference links
+  - Description and metadata display
+  - Better information organization
+
+**November 8, 2025** - Complete App Flow Update
 - ✅ Implemented comprehensive Frontend Page Flow with all required pages
 - ✅ Created Dashboard page (`/home`) with Ongoing/Upcoming/Past debates sections
 - ✅ Created AddDebate page (`/add`) with full debate creation form

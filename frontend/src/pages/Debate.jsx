@@ -213,10 +213,10 @@ function Debate() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-dark-base flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading debate room...</p>
+          <div className="w-16 h-16 border-4 border-accent-rust border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary font-medium">Loading debate room...</p>
         </div>
       </div>
     );
@@ -224,14 +224,14 @@ function Debate() {
 
   if (error && !room) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-red-200 p-8 shadow-xl">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Room Not Found</h2>
-          <p className="text-slate-600 text-center mb-6">{error}</p>
+      <div className="min-h-screen bg-dark-base flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-dark-elevated rounded-2xl border border-red-900/50 p-8 shadow-xl">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-text-primary text-center mb-2">Room Not Found</h2>
+          <p className="text-text-secondary text-center mb-6">{error}</p>
           <button
             onClick={() => navigate('/')}
-            className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold"
+            className="w-full px-6 py-3 bg-accent-rust text-white rounded-xl font-semibold hover:bg-accent-saffron transition-colors"
           >
             Back to Home
           </button>
@@ -241,27 +241,27 @@ function Debate() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 noise-bg">
+    <div className="min-h-screen bg-dark-base noise-bg">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Debate Arena</h1>
-            <p className="text-slate-600">
-              Room: <span className="font-mono font-semibold text-purple-600">{roomCode}</span>
+            <h1 className="text-3xl font-bold text-text-primary">Debate Arena</h1>
+            <p className="text-text-secondary">
+              Room: <span className="font-mono font-semibold text-accent-rust">{roomCode}</span>
             </p>
           </div>
           <div className="flex gap-3">
             {room?.host_id === user?.id && (
               <button
                 onClick={handleEndDebate}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="px-4 py-2 bg-accent-rust text-white rounded-lg hover:bg-accent-saffron transition-colors"
               >
                 End Debate
               </button>
             )}
             <button
               onClick={() => navigate('/')}
-              className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 bg-dark-elevated border border-dark-warm rounded-lg text-text-secondary hover:bg-dark-warm transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -277,51 +277,51 @@ function Debate() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-lg shadow-slate-200/50 sticky top-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-6">Room Info</h2>
+            <div className="bg-dark-elevated rounded-2xl border border-dark-warm p-6 shadow-lg sticky top-8">
+              <h2 className="text-xl font-bold text-text-primary mb-6">Room Info</h2>
               
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span className="text-slate-600">Status:</span>
-                  <span className="font-semibold text-slate-900 capitalize">{room?.status?.toLowerCase()}</span>
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-text-secondary">Status:</span>
+                  <span className="font-semibold text-text-primary capitalize">{room?.status?.toLowerCase()}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                  <span className="text-slate-600">Round:</span>
-                  <span className="font-semibold text-slate-900">{currentRound} / {room?.rounds}</span>
+                  <Clock className="w-4 h-4 text-accent-teal" />
+                  <span className="text-text-secondary">Round:</span>
+                  <span className="font-semibold text-text-primary">{currentRound} / {room?.rounds}</span>
                 </div>
 
                 {timeRemaining !== null && (
                   <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-orange-600" />
-                    <span className="text-slate-600">Time Remaining:</span>
-                    <span className={`font-bold ${timeRemaining < 30 ? 'text-red-600' : 'text-slate-900'}`}>
+                    <Clock className="w-4 h-4 text-accent-saffron" />
+                    <span className="text-text-secondary">Time Remaining:</span>
+                    <span className={`font-bold ${timeRemaining < 30 ? 'text-red-500' : 'text-text-primary'}`}>
                       {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}
                     </span>
                   </div>
                 )}
 
-                <div className="pt-4 border-t border-slate-200">
-                  <p className="text-xs text-slate-500 mb-2">AI Scoring Criteria:</p>
+                <div className="pt-4 border-t border-dark-warm">
+                  <p className="text-xs text-text-muted mb-2">AI Scoring Criteria:</p>
                   <div className="space-y-2">
                     {[
-                      { label: 'Logic', color: 'purple', weight: '40%' },
-                      { label: 'Credibility', color: 'blue', weight: '35%' },
-                      { label: 'Rhetoric', color: 'indigo', weight: '25%' }
+                      { label: 'Logic', color: 'accent-rust', weight: '40%' },
+                      { label: 'Credibility', color: 'accent-teal', weight: '35%' },
+                      { label: 'Rhetoric', color: 'accent-saffron', weight: '25%' }
                     ].map((criteria, i) => (
                       <div key={i} className="flex justify-between items-center text-xs">
-                        <span className={`text-${criteria.color}-700 font-medium`}>{criteria.label}</span>
-                        <span className="text-slate-500">{criteria.weight}</span>
+                        <span className={`text-${criteria.color} font-medium`}>{criteria.label}</span>
+                        <span className="text-text-muted">{criteria.weight}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {room?.resources && room.resources.length > 0 && (
-                  <div className="pt-4 border-t border-slate-200">
-                    <p className="text-xs text-slate-500 mb-2">Reference Materials:</p>
+                  <div className="pt-4 border-t border-dark-warm">
+                    <p className="text-xs text-text-muted mb-2">Reference Materials:</p>
                     <div className="space-y-2">
                       {room.resources.map((resource, i) => (
                         <a
@@ -329,7 +329,7 @@ function Debate() {
                           href={resource}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-xs text-indigo-600 hover:text-indigo-700 hover:underline truncate"
+                          className="block text-xs text-accent-rust hover:text-accent-saffron hover:underline truncate"
                         >
                           📎 {resource}
                         </a>
@@ -342,7 +342,7 @@ function Debate() {
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-r from-accent-rust to-accent-saffron rounded-2xl p-6 text-white">
               <p className="text-sm font-semibold mb-1 opacity-90">TOPIC</p>
               <h3 className="text-2xl font-bold">
                 {room?.topic || 'Loading...'}
@@ -352,43 +352,43 @@ function Debate() {
               )}
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 min-h-96 max-h-96 overflow-y-auto shadow-lg shadow-slate-200/50">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Debate Transcript</h3>
+            <div className="bg-dark-elevated rounded-2xl border border-dark-warm p-6 min-h-96 max-h-96 overflow-y-auto shadow-lg">
+              <h3 className="text-lg font-semibold text-text-primary mb-4">Debate Transcript</h3>
               <div className="space-y-4">
                 {turns.length === 0 ? (
-                  <p className="text-slate-500 text-center py-12">No arguments yet. Be the first to speak!</p>
+                  <p className="text-text-muted text-center py-12">No arguments yet. Be the first to speak!</p>
                 ) : (
                   turns.map((turn, i) => (
-                    <div key={i} className="bg-purple-50 border border-purple-100 rounded-xl p-4">
+                    <div key={i} className="bg-accent-rust/10 border border-accent-rust/30 rounded-xl p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        <div className="w-10 h-10 bg-accent-rust rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                           {turn.speaker_id}
                         </div>
                         <div className="flex-1">
                           <div className="flex justify-between mb-2">
-                            <span className="font-semibold text-slate-900">Speaker {turn.speaker_id}</span>
-                            <span className="text-slate-500 text-sm">
+                            <span className="font-semibold text-text-primary">Speaker {turn.speaker_id}</span>
+                            <span className="text-text-muted text-sm">
                               Round {turn.round_number}, Turn {turn.turn_number}
                             </span>
                           </div>
-                          <p className="text-slate-700 text-sm mb-3">{turn.content}</p>
+                          <p className="text-text-secondary text-sm mb-3">{turn.content}</p>
                           
                           {turn.ai_feedback && (
                             <div className="space-y-2">
                               <div className="flex gap-2 text-xs">
-                                <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded font-semibold">
+                                <span className="bg-accent-rust/20 text-accent-rust px-2 py-1 rounded font-semibold">
                                   L: {turn.ai_feedback.logic || 0}
                                 </span>
-                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">
+                                <span className="bg-accent-teal/20 text-accent-teal px-2 py-1 rounded font-semibold">
                                   C: {turn.ai_feedback.credibility || 0}
                                 </span>
-                                <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-semibold">
+                                <span className="bg-accent-saffron/20 text-accent-saffron px-2 py-1 rounded font-semibold">
                                   R: {turn.ai_feedback.rhetoric || 0}
                                 </span>
                               </div>
                               
                               {turn.ai_feedback.feedback && (
-                                <p className="text-xs text-slate-600 italic bg-slate-50 p-2 rounded">
+                                <p className="text-xs text-text-secondary italic bg-dark-surface p-2 rounded">
                                   💡 {turn.ai_feedback.feedback}
                                 </p>
                               )}
@@ -402,11 +402,11 @@ function Debate() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-lg shadow-slate-200/50">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Your Turn</h3>
+            <div className="bg-dark-elevated rounded-2xl border border-dark-warm p-6 shadow-lg">
+              <h3 className="text-lg font-semibold text-text-primary mb-4">Your Turn</h3>
               {!isParticipant && (
-                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                  <p className="text-sm text-yellow-800">
+                <div className="mb-4 p-4 bg-yellow-900/20 border border-yellow-700/50 rounded-xl">
+                  <p className="text-sm text-yellow-400">
                     You're viewing as a spectator. To participate, you need to join the room first.
                   </p>
                 </div>
@@ -415,20 +415,20 @@ function Debate() {
               <textarea
                 value={argument}
                 onChange={(e) => setArgument(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 h-32 resize-none mb-4"
+                className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-rust focus:ring-2 focus:ring-accent-rust/20 h-32 resize-none mb-4"
                 placeholder={isParticipant ? "Type your argument here. The AI will evaluate it based on logic, credibility, and rhetoric..." : "Join as a participant to submit arguments"}
                 disabled={!isParticipant}
               />
               
               {audioBlob && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+                <div className="mb-4 p-3 bg-accent-teal/20 border border-accent-teal/50 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Mic className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm text-blue-800">Audio recorded ({(audioBlob.size / 1024).toFixed(1)} KB)</span>
+                    <Mic className="w-5 h-5 text-accent-teal" />
+                    <span className="text-sm text-accent-teal">Audio recorded ({(audioBlob.size / 1024).toFixed(1)} KB)</span>
                   </div>
                   <button
                     onClick={() => setAudioBlob(null)}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
+                    className="text-accent-teal hover:text-accent-saffron text-sm font-semibold"
                   >
                     Remove
                   </button>
@@ -436,9 +436,9 @@ function Debate() {
               )}
 
               {isAnalyzing && (
-                <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-xl flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-sm text-purple-800">AI is analyzing your argument...</p>
+                <div className="mb-4 p-3 bg-accent-rust/20 border border-accent-rust/50 rounded-xl flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-accent-rust border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-accent-rust">AI is analyzing your argument...</p>
                 </div>
               )}
               
@@ -450,7 +450,7 @@ function Debate() {
                     className={`px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       isRecording 
                         ? 'bg-red-600 text-white' 
-                        : 'bg-blue-600 text-white'
+                        : 'bg-accent-teal text-white'
                     }`}
                     whileHover={{ scale: isRecording || !isParticipant ? 1 : 1.02 }}
                     whileTap={{ scale: isRecording || !isParticipant ? 1 : 0.98 }}
@@ -472,7 +472,7 @@ function Debate() {
                 <motion.button
                   onClick={handleSubmitTurn}
                   disabled={isSubmitting || !argument.trim() || !isParticipant}
-                  className="flex-1 bg-slate-900 px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-accent-rust px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-saffron transition-colors"
                   whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                   whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                 >

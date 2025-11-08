@@ -44,14 +44,14 @@ const Dashboard = () => {
     return (
       <div
         onClick={handleClick}
-        className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-indigo-300 hover:shadow-xl transition-all cursor-pointer group"
+        className="bg-dark-elevated rounded-2xl p-6 border border-dark-warm hover:border-accent-rust hover:shadow-xl transition-all cursor-pointer group"
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
+            <h3 className="text-lg font-bold text-text-primary mb-2 group-hover:text-accent-rust transition-colors">
               {room.topic || 'Untitled Debate'}
             </h3>
-            <p className="text-sm text-slate-600 flex items-center gap-2">
+            <p className="text-sm text-text-secondary flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span>Host: {room.host_name || 'Anonymous'}</span>
             </p>
@@ -65,7 +65,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
+        <div className="flex items-center gap-4 text-sm text-text-secondary mb-4">
           {type === 'ongoing' && (
             <>
               <span className="flex items-center gap-1">
@@ -103,12 +103,12 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-              room.mode === 'audio' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'
+              room.mode === 'audio' ? 'bg-accent-rust/20 text-accent-rust' : 'bg-accent-teal/20 text-accent-teal'
             }`}>
               {room.mode === 'audio' ? '🎙️ Audio' : '💬 Text'}
             </span>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+          <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-accent-rust group-hover:translate-x-1 transition-all" />
         </div>
       </div>
     );
@@ -117,11 +117,11 @@ const Dashboard = () => {
   const Section = ({ title, icon: Icon, children, count }) => (
     <div className="mb-12">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-indigo-100 rounded-xl">
-          <Icon className="w-6 h-6 text-indigo-600" />
+        <div className="p-2 bg-accent-rust/20 rounded-xl">
+          <Icon className="w-6 h-6 text-accent-rust" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
-        <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
+        <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
+        <span className="px-3 py-1 bg-dark-surface text-text-secondary rounded-full text-sm font-medium">
           {count}
         </span>
       </div>
@@ -135,7 +135,7 @@ const Dashboard = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-rust"></div>
         </div>
       </Layout>
     );
@@ -144,8 +144,8 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900 mb-2">Dashboard</h1>
-        <p className="text-lg text-slate-600">Explore ongoing debates, join upcoming rooms, or review past performances.</p>
+        <h1 className="text-4xl font-bold text-text-primary mb-2">Dashboard</h1>
+        <p className="text-lg text-text-secondary">Explore ongoing debates, join upcoming rooms, or review past performances.</p>
       </div>
 
       <Section title="Ongoing Debates" icon={Flame} count={ongoingDebates.length}>
@@ -154,12 +154,12 @@ const Dashboard = () => {
             <DebateCard key={room.id} room={room} type="ongoing" />
           ))
         ) : (
-          <div className="col-span-full bg-white rounded-2xl p-12 border border-slate-200 text-center">
-            <Play className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600">No ongoing debates right now.</p>
+          <div className="col-span-full bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
+            <Play className="w-12 h-12 text-text-muted mx-auto mb-4" />
+            <p className="text-text-secondary">No ongoing debates right now.</p>
             <button
               onClick={() => navigate('/add')}
-              className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+              className="mt-4 px-6 py-2 bg-accent-rust text-white rounded-xl hover:bg-accent-saffron transition-colors"
             >
               Start a Debate
             </button>
@@ -173,9 +173,9 @@ const Dashboard = () => {
             <DebateCard key={room.id} room={room} type="upcoming" />
           ))
         ) : (
-          <div className="col-span-full bg-white rounded-2xl p-12 border border-slate-200 text-center">
-            <Clock className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600">No upcoming debates scheduled.</p>
+          <div className="col-span-full bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
+            <Clock className="w-12 h-12 text-text-muted mx-auto mb-4" />
+            <p className="text-text-secondary">No upcoming debates scheduled.</p>
           </div>
         )}
       </Section>
@@ -186,9 +186,9 @@ const Dashboard = () => {
             <DebateCard key={room.id} room={room} type="past" />
           ))
         ) : (
-          <div className="col-span-full bg-white rounded-2xl p-12 border border-slate-200 text-center">
-            <Trophy className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600">No past debates yet.</p>
+          <div className="col-span-full bg-dark-elevated rounded-2xl p-12 border border-dark-warm text-center">
+            <Trophy className="w-12 h-12 text-text-muted mx-auto mb-4" />
+            <p className="text-text-secondary">No past debates yet.</p>
           </div>
         )}
       </Section>

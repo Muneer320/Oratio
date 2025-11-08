@@ -52,10 +52,10 @@ function Results() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-dark-base flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading results...</p>
+          <div className="w-16 h-16 border-4 border-accent-rust border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary font-medium">Loading results...</p>
         </div>
       </div>
     );
@@ -63,13 +63,13 @@ function Results() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-red-200 p-8 shadow-xl">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Error</h2>
-          <p className="text-slate-600 text-center mb-6">{error}</p>
+      <div className="min-h-screen bg-dark-base flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-dark-elevated rounded-2xl border border-red-900/50 p-8 shadow-xl">
+          <h2 className="text-2xl font-bold text-text-primary text-center mb-2">Error</h2>
+          <p className="text-text-secondary text-center mb-6">{error}</p>
           <button
             onClick={() => navigate('/')}
-            className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold"
+            className="w-full px-6 py-3 bg-accent-rust text-white rounded-xl font-semibold hover:bg-accent-saffron transition-colors"
           >
             Back to Home
           </button>
@@ -79,7 +79,7 @@ function Results() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 noise-bg py-12 px-6">
+    <div className="min-h-screen bg-dark-base noise-bg py-12 px-6">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -87,27 +87,27 @@ function Results() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-accent-rust to-accent-saffron rounded-full mb-6">
             <Trophy className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-5xl font-bold text-slate-900 mb-4">Debate Complete!</h1>
-          <p className="text-xl text-slate-600">Here are the final results</p>
+          <h1 className="text-5xl font-bold text-text-primary mb-4">Debate Complete!</h1>
+          <p className="text-xl text-text-secondary">Here are the final results</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50 mb-6"
+          className="bg-dark-elevated rounded-2xl border border-dark-warm p-8 shadow-xl mb-6"
         >
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Topic</h2>
-          <p className="text-lg text-slate-700 mb-4">{room?.topic}</p>
+          <h2 className="text-2xl font-bold text-text-primary mb-4">Topic</h2>
+          <p className="text-lg text-text-secondary mb-4">{room?.topic}</p>
           {room?.description && (
-            <p className="text-slate-600 mb-4">{room.description}</p>
+            <p className="text-text-muted mb-4">{room.description}</p>
           )}
           {room?.resources && room.resources.length > 0 && (
-            <div className="pt-4 border-t border-slate-200">
-              <p className="text-sm font-medium text-slate-700 mb-2">Reference Materials:</p>
+            <div className="pt-4 border-t border-dark-warm">
+              <p className="text-sm font-medium text-text-primary mb-2">Reference Materials:</p>
               <div className="space-y-1">
                 {room.resources.map((resource, i) => (
                   <a
@@ -115,7 +115,7 @@ function Results() {
                     href={resource}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block text-sm text-indigo-600 hover:text-indigo-700 hover:underline"
+                    className="block text-sm text-accent-rust hover:text-accent-saffron hover:underline"
                   >
                     📎 {resource}
                   </a>
@@ -130,13 +130,13 @@ function Results() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border border-purple-200 p-8 shadow-lg mb-6"
+            className="bg-gradient-to-br from-accent-rust/20 to-accent-saffron/20 rounded-2xl border border-accent-rust/50 p-8 shadow-lg mb-6"
           >
-            <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
+            <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-accent-rust" />
               AI Summary
             </h2>
-            <p className="text-slate-700 leading-relaxed">{result.summary}</p>
+            <p className="text-text-secondary leading-relaxed">{result.summary}</p>
           </motion.div>
         )}
 
@@ -145,14 +145,14 @@ function Results() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50 mb-6"
+            className="bg-dark-elevated rounded-2xl border border-dark-warm p-8 shadow-xl mb-6"
           >
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Final Scores</h2>
+            <h2 className="text-2xl font-bold text-text-primary mb-6">Final Scores</h2>
             <div className="space-y-6">
               {Object.entries(result.scores_json).map(([participantId, scores], index) => (
-                <div key={participantId} className="pb-6 border-b border-slate-200 last:border-0">
+                <div key={participantId} className="pb-6 border-b border-dark-warm last:border-0">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-slate-900">
+                    <h3 className="text-lg font-semibold text-text-primary">
                       Participant {participantId}
                       {result.winner_id && parseInt(result.winner_id) === parseInt(participantId) && (
                         <span className="ml-3 px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 text-sm font-bold rounded-full">
@@ -160,7 +160,7 @@ function Results() {
                         </span>
                       )}
                     </h3>
-                    <span className="text-3xl font-bold text-purple-600">
+                    <span className="text-3xl font-bold text-accent-rust">
                       {scores.total || 0}
                     </span>
                   </div>
@@ -168,14 +168,14 @@ function Results() {
                     {['logic', 'credibility', 'rhetoric'].map((metric) => (
                       <div key={metric}>
                         <div className="flex justify-between mb-1 text-sm">
-                          <span className="text-slate-600 capitalize">{metric}</span>
-                          <span className="font-semibold text-slate-900">
+                          <span className="text-text-secondary capitalize">{metric}</span>
+                          <span className="font-semibold text-text-primary">
                             {scores[metric] || 0}
                           </span>
                         </div>
-                        <div className="bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="bg-dark-surface h-2 rounded-full overflow-hidden">
                           <motion.div
-                            className="bg-purple-500 h-full"
+                            className="bg-accent-rust h-full"
                             initial={{ width: 0 }}
                             animate={{ width: `${scores[metric] || 0}%` }}
                             transition={{ duration: 1, delay: 0.5 + index * 0.1 }}
@@ -198,7 +198,7 @@ function Results() {
         >
           <motion.button
             onClick={() => navigate('/')}
-            className="group px-8 py-4 bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-900/10 flex items-center gap-2"
+            className="group px-8 py-4 bg-dark-elevated border border-dark-warm text-text-primary rounded-xl font-semibold shadow-lg hover:bg-dark-warm flex items-center gap-2"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -208,7 +208,7 @@ function Results() {
           
           <motion.button
             onClick={() => navigate('/trainer')}
-            className="group px-8 py-4 bg-purple-600 text-white rounded-xl font-semibold shadow-lg shadow-purple-600/20 flex items-center gap-2"
+            className="group px-8 py-4 bg-accent-rust text-white rounded-xl font-semibold shadow-lg hover:bg-accent-saffron flex items-center gap-2"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >

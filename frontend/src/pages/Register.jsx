@@ -44,7 +44,7 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 noise-bg flex items-center justify-center p-6">
+    <div className="min-h-screen bg-dark-base noise-bg flex items-center justify-center p-6">
       <motion.div
         className="w-full max-w-md"
         initial={{ opacity: 0, scale: 0.95 }}
@@ -52,14 +52,14 @@ function Register() {
         transition={{ duration: 0.5 }}
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-4">
-            <UserPlus className="w-8 h-8 text-blue-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-teal/20 rounded-2xl mb-4">
+            <UserPlus className="w-8 h-8 text-accent-teal" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Create Account</h1>
-          <p className="text-slate-600">Join the debate community today</p>
+          <h1 className="text-4xl font-bold text-text-primary mb-2">Create Account</h1>
+          <p className="text-text-secondary">Join the debate community today</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50">
+        <div className="bg-dark-elevated rounded-2xl border border-dark-warm p-8 shadow-xl">
           {(localError || error) && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -69,16 +69,16 @@ function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
+              <label className="block text-sm font-semibold text-text-primary mb-2">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 transition-all"
                   placeholder="your@email.com"
                   required
                 />
@@ -86,16 +86,16 @@ function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
+              <label className="block text-sm font-semibold text-text-primary mb-2">
                 Username
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 transition-all"
                   placeholder="coolDebater123"
                   required
                 />
@@ -103,16 +103,16 @@ function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
+              <label className="block text-sm font-semibold text-text-primary mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 transition-all"
                   placeholder="••••••••"
                   required
                 />
@@ -120,16 +120,16 @@ function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-2">
+              <label className="block text-sm font-semibold text-text-primary mb-2">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/20 transition-all"
                   placeholder="••••••••"
                   required
                 />
@@ -139,7 +139,7 @@ function Register() {
             <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full px-6 py-4 bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-4 bg-accent-teal text-white rounded-xl font-semibold shadow-lg hover:bg-accent-saffron disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               whileHover={{ scale: isLoading ? 1 : 1.02, y: isLoading ? 0 : -1 }}
               whileTap={{ scale: isLoading ? 1 : 0.98 }}
             >
@@ -147,9 +147,9 @@ function Register() {
             </motion.button>
 
             <div className="text-center">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-text-secondary">
                 Already have an account?{' '}
-                <Link to="/login" className="text-blue-600 font-semibold hover:text-blue-700">
+                <Link to="/login" className="text-accent-teal font-semibold hover:text-accent-saffron">
                   Login
                 </Link>
               </p>
@@ -159,7 +159,7 @@ function Register() {
 
         <button
           onClick={() => navigate('/')}
-          className="mt-4 w-full px-6 py-3 bg-slate-50 text-slate-700 rounded-xl font-medium hover:bg-slate-100 transition-colors"
+          className="mt-4 w-full px-6 py-3 bg-dark-surface text-text-secondary rounded-xl font-medium hover:bg-dark-warm transition-colors"
         >
           Back to Home
         </button>

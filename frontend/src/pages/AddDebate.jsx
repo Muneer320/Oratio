@@ -64,14 +64,14 @@ const AddDebate = () => {
     <Layout>
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Create New Debate</h1>
-          <p className="text-lg text-slate-600">Set up your debate room with custom settings and invite participants.</p>
+          <h1 className="text-4xl font-bold text-text-primary mb-2">Create New Debate</h1>
+          <p className="text-lg text-text-secondary">Set up your debate room with custom settings and invite participants.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 border border-slate-200 shadow-lg">
+        <form onSubmit={handleSubmit} className="bg-dark-elevated rounded-2xl p-8 border border-dark-warm shadow-lg">
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 <FileText className="w-4 h-4 inline mr-2" />
                 Debate Title *
               </label>
@@ -82,25 +82,25 @@ const AddDebate = () => {
                 onChange={handleChange}
                 required
                 placeholder="e.g., Should AI replace human judges in debates?"
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all text-text-primary placeholder-text-muted"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">Description</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows={3}
                 placeholder="Provide context and rules for your debate..."
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
+                className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all resize-none text-text-primary placeholder-text-muted"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-text-primary mb-2">
                   <Calendar className="w-4 h-4 inline mr-2" />
                   Date
                 </label>
@@ -109,12 +109,12 @@ const AddDebate = () => {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all text-text-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-text-primary mb-2">
                   <Clock className="w-4 h-4 inline mr-2" />
                   Time
                 </label>
@@ -123,14 +123,14 @@ const AddDebate = () => {
                   name="time"
                   value={formData.time}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all text-text-primary"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Duration (minutes)</label>
+                <label className="block text-sm font-medium text-text-primary mb-2">Duration (minutes)</label>
                 <input
                   type="number"
                   name="duration"
@@ -138,12 +138,12 @@ const AddDebate = () => {
                   onChange={handleChange}
                   min="5"
                   max="120"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all text-text-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-text-primary mb-2">
                   <Users className="w-4 h-4 inline mr-2" />
                   Max Participants
                 </label>
@@ -154,13 +154,13 @@ const AddDebate = () => {
                   onChange={handleChange}
                   min="2"
                   max="10"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all text-text-primary"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Debate Format</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">Debate Format</label>
               <div className="grid grid-cols-3 gap-4">
                 {[
                   { value: 'text', label: '💬 Text', icon: '💬' },
@@ -171,8 +171,8 @@ const AddDebate = () => {
                     key={mode.value}
                     className={`flex items-center justify-center px-4 py-3 border-2 rounded-xl cursor-pointer transition-all ${
                       formData.mode === mode.value
-                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                        : 'border-slate-300 hover:border-slate-400'
+                        ? 'border-accent-rust bg-accent-rust/20 text-accent-rust'
+                        : 'border-dark-warm hover:border-accent-rust/50 text-text-secondary'
                     }`}
                   >
                     <input
@@ -190,15 +190,15 @@ const AddDebate = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Format</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">Format</label>
               <div className="grid grid-cols-2 gap-4">
                 {['individual', 'team'].map(format => (
                   <label
                     key={format}
                     className={`flex items-center justify-center px-4 py-3 border-2 rounded-xl cursor-pointer transition-all ${
                       formData.format === format
-                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                        : 'border-slate-300 hover:border-slate-400'
+                        ? 'border-accent-rust bg-accent-rust/20 text-accent-rust'
+                        : 'border-dark-warm hover:border-accent-rust/50 text-text-secondary'
                     }`}
                   >
                     <input
@@ -216,15 +216,15 @@ const AddDebate = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Visibility</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">Visibility</label>
               <div className="grid grid-cols-2 gap-4">
                 {['public', 'private'].map(visibility => (
                   <label
                     key={visibility}
                     className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-xl cursor-pointer transition-all ${
                       formData.visibility === visibility
-                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                        : 'border-slate-300 hover:border-slate-400'
+                        ? 'border-accent-rust bg-accent-rust/20 text-accent-rust'
+                        : 'border-dark-warm hover:border-accent-rust/50 text-text-secondary'
                     }`}
                   >
                     <input
@@ -243,7 +243,7 @@ const AddDebate = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Number of Rounds</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">Number of Rounds</label>
               <input
                 type="number"
                 name="total_rounds"
@@ -251,12 +251,12 @@ const AddDebate = () => {
                 onChange={handleChange}
                 min="1"
                 max="10"
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all text-text-primary"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Resource Links (optional)
               </label>
               <textarea
@@ -265,9 +265,9 @@ const AddDebate = () => {
                 onChange={handleChange}
                 rows={2}
                 placeholder="Add reference links (one per line): https://example.com/article1..."
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none"
+                className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all resize-none text-text-primary placeholder-text-muted"
               />
-              <p className="text-xs text-slate-500 mt-1">Provide research materials or reference documents for participants</p>
+              <p className="text-xs text-text-muted mt-1">Provide research materials or reference documents for participants</p>
             </div>
           </div>
 
@@ -275,14 +275,14 @@ const AddDebate = () => {
             <button
               type="button"
               onClick={() => navigate('/home')}
-              className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-all"
+              className="flex-1 px-6 py-3 border-2 border-dark-warm text-text-secondary rounded-xl font-medium hover:bg-dark-warm transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !formData.topic}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-accent-rust to-accent-saffron text-white rounded-xl font-medium hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               <PlusCircle className="w-5 h-5" />
               {loading ? 'Creating...' : 'Create Debate'}

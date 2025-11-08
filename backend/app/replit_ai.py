@@ -35,7 +35,7 @@ class ReplitAI:
             try:
                 # Use Replit AI ChatModel
                 chat = ChatModel(
-                    model=model,
+                    model_name=model,
                     temperature=temperature,
                 )
 

@@ -195,6 +195,10 @@ class ApiService {
   async getCurrentUser() {
     return await this.get("/api/auth/me", true);
   }
+
+  async getRoomByCode(roomCode) {
+    return await this.get(`/api/rooms/code/${roomCode}`, true);
+  }
 }
 
 export default new ApiService();

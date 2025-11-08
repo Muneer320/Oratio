@@ -6,6 +6,14 @@ Oratio is an AI-powered debate platform that enables real-time voice and text de
 
 # Recent Changes
 
+**November 8, 2025** - AI Resilience Enhancement
+- ✅ Implemented OpenAI GPT-4o mini as fallback AI provider
+- ✅ Added AI provider cascade: Replit AI → OpenAI → Static fallback
+- ✅ Ensures real AI analysis always available even during Replit AI outages
+- ✅ Secure API key management via Replit Secrets (OPENAI_API_KEY)
+- ✅ JSON response validation for both AI providers
+- ✅ Cost-effective model selection (gpt-4o-mini) for debate analysis
+
 **November 7, 2025** - Production Readiness Achieved
 - ✅ Implemented JWT-based authentication with automatic participant detection
 - ✅ Fixed participant tracking: Now derives `isParticipant` from API instead of localStorage
@@ -52,11 +60,14 @@ Preferred communication style: Simple, everyday language.
 
 ## AI Integration
 
-**Debate Analysis**: Replit AI (LCR Model)
-- Real-time turn-by-turn analysis using Replit's ChatModel
-- Evaluates logic, credibility, and rhetoric scores
+**Debate Analysis**: Multi-provider AI cascade for maximum reliability
+- **Primary**: Replit AI ChatModel (chat-bison) for real-time LCR analysis
+- **Fallback**: OpenAI GPT-4o mini when Replit AI unavailable
+- **Last Resort**: Static responses for demo mode
+- Cascade strategy ensures real AI analysis always available
+- Evaluates logic (40%), credibility (35%), and rhetoric (25%) scores
 - Context-aware analysis using debate topic and previous turns
-- Fallback to mock responses when Replit AI unavailable
+- JSON response validation and parsing for both providers
 
 **Fact-Checking**: Serper API integration
 - Web search for claim verification
@@ -213,6 +224,9 @@ Preferred communication style: Simple, everyday language.
 - `aiofiles>=23.0.0` - Async file I/O
 - `PyMuPDF>=1.23.0` - PDF processing
 - `beautifulsoup4>=4.12.0` - HTML parsing
+
+**AI Providers**:
+- `openai>=2.0.0` - OpenAI API client for GPT-4o mini fallback
 
 **Utilities**:
 - `python-dotenv>=1.0.0` - Environment management

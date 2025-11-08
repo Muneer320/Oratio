@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from app.schemas import UserCreate, UserLogin, UserResponse, UserUpdate, Token
 from app.replit_auth import ReplitAuth, get_current_user, REPLIT_AUTH_AVAILABLE
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 

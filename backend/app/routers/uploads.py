@@ -4,7 +4,7 @@ import aiofiles
 import os
 from app.schemas import UploadResponse
 from app.replit_auth import get_current_user
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 from app.config import settings
 
 router = APIRouter(prefix="/api/uploads", tags=["Uploads"])

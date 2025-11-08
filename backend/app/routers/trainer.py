@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any, List
 from app.schemas import TrainerAnalyze, TrainerProgress, ChallengeStart, ChallengeSubmit, TrainerRecommendation
 from app.replit_auth import get_current_user
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 from app.gemini_ai import GeminiAI
 import secrets
 

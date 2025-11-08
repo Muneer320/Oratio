@@ -64,6 +64,17 @@ async def list_rooms(
     return rooms
 
 
+@router.get("/code/{room_code}", response_model=RoomResponse)
+async def get_room_by_code(room_code: str):
+    """
+    Get a room by its room code (more efficient than listing all rooms)
+    """
+    room = ReplitDB.find_one(Collections.ROOMS, {"room_code": room_code.upper()})
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    return room
+
+
 @router.get("/{room_id}", response_model=RoomResponse)
 async def get_room(room_id: str):
     """

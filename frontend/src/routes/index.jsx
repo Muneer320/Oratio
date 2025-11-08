@@ -7,6 +7,7 @@ import Register from "../pages/Register";
 import JoinRoom from "../pages/JoinRoom";
 import AddDebate from "../pages/AddDebate";
 import Debate from "../pages/Debate";
+import UpcomingDebateDetails from "../pages/UpcomingDebateDetails";
 import Results from "../pages/Results";
 import Trainer from "../pages/Trainer";
 import Profile from "../pages/Profile";
@@ -26,6 +27,7 @@ function AppRoutes() {
       <Route path="/join" element={<ProtectedRoute><JoinRoom /></ProtectedRoute>} />
       <Route path="/add" element={<ProtectedRoute><AddDebate /></ProtectedRoute>} />
       <Route path="/debate/:roomCode" element={<ProtectedRoute><Debate /></ProtectedRoute>} />
+      <Route path="/upcoming/:roomCode" element={<ProtectedRoute><UpcomingDebateDetails /></ProtectedRoute>} />
       <Route path="/results/:roomCode" element={<ProtectedRoute><Results /></ProtectedRoute>} />
       <Route path="/learn" element={<ProtectedRoute><Trainer /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

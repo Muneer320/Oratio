@@ -31,7 +31,7 @@ function Debate() {
 
   useEffect(() => {
     loadRoomData();
-    const interval = setInterval(loadRoomData, 5000);
+    const interval = setInterval(loadRoomData, 10000);
     return () => clearInterval(interval);
   }, [roomCode]);
 
@@ -69,8 +69,7 @@ function Debate() {
 
   const loadRoomData = async () => {
     try {
-      const rooms = await api.get('/api/rooms/list', true);
-      const foundRoom = rooms.find(r => r.room_code === roomCode);
+      const foundRoom = await api.get(`/api/rooms/code/${roomCode}`, true);
       
       if (!foundRoom) {
         setError('Room not found');

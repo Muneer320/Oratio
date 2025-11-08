@@ -28,6 +28,8 @@ function Trainer() {
     }
   };
 
+  const [isCreating, setIsCreating] = useState(false);
+
   const topics = [
     'AI Ethics and Regulation',
     'Climate Change Solutions',
@@ -35,6 +37,35 @@ function Trainer() {
     'Universal Basic Income',
     'Space Exploration Funding'
   ];
+
+  const startTraining = async () => {
+    if (!selectedTopic) return;
+    
+    setIsCreating(true);
+    try {
+      const roomData = {
+        topic: `Training: ${selectedTopic}`,
+        description: `Practice debate on ${selectedTopic}`,
+        mode: 'text',
+        type: '1v1',
+        max_participants: 2,
+        total_rounds: 3,
+        time_limit: 300,
+        is_private: false
+      };
+
+      const response = await api.post('/api/rooms', roomData, true);
+      
+      if (response && response.room_code) {
+        navigate(`/upcoming/${response.room_code}`);
+      }
+    } catch (error) {
+      console.error('Error creating training room:', error);
+      alert('Failed to create training room. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const stats = userStats ? {
     level: userStats.level,
@@ -147,15 +178,25 @@ function Trainer() {
                 ))}
               </div>
               <button
-                disabled={!selectedTopic}
+                onClick={startTraining}
+                disabled={!selectedTopic || isCreating}
                 className={`w-full py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 ${
-                  selectedTopic 
+                  selectedTopic && !isCreating
                     ? 'bg-gradient-to-r from-accent-rust to-accent-saffron text-white hover:shadow-lg transition-all' 
                     : 'bg-dark-surface text-text-muted cursor-not-allowed'
                 }`}
               >
-                <Play className="w-5 h-5" />
-                Start Training
+                {isCreating ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Creating Room...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5" />
+                    Start Training
+                  </>
+                )}
               </button>
             </motion.div>
 

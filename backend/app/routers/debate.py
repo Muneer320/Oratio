@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import Dict, Any, List
 from app.schemas import TurnSubmit, TurnResponse
 from app.replit_auth import get_current_user
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 from app.gemini_ai import GeminiAI
 from app.models import DebateStatus
 from app.cache import user_cache, room_cache

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
 from app.schemas import AIAnalyzeTurn, AIFactCheck, AIFinalScore
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 from app.gemini_ai import GeminiAI
 
 router = APIRouter(prefix="/api/ai", tags=["AI Judging"])

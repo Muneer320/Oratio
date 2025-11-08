@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from datetime import datetime
 from app.schemas import HealthResponse, LeaderboardEntry, FeedbackSubmit
-from app.supabase_db import DatabaseWrapper as DB, Collections
+from app.replit_db import DB, Collections
 from app.config import settings
 
 router = APIRouter(prefix="/api/utils", tags=["Utilities"])

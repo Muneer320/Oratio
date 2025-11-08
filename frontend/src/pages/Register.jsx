@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, Image } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 function Register() {
@@ -13,8 +13,31 @@ function Register() {
     password: '',
     confirmPassword: '',
   });
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
+
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setLocalError('Profile picture must be less than 5MB');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setLocalError('Please select a valid image file');
+        return;
+      }
+      setProfilePicture(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setLocalError('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +57,7 @@ function Register() {
     }
 
     try {
-      await register(formData.email, formData.username, formData.password);
+      await register(formData.email, formData.username, formData.password, profilePicture);
       navigate('/');
     } catch (err) {
       setLocalError(err.message || 'Registration failed');
@@ -133,6 +156,49 @@ function Register() {
                   placeholder="••••••••"
                   required
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-text-primary mb-2">
+                Profile Picture <span className="text-text-muted text-xs font-normal">(Optional)</span>
+              </label>
+              <div className="flex items-center gap-4">
+                {profilePicturePreview ? (
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-accent-teal">
+                    <img
+                      src={profilePicturePreview}
+                      alt="Profile preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfilePicture(null);
+                        setProfilePicturePreview(null);
+                      }}
+                      className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      <span className="text-white text-xs">Remove</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-dark-surface border-2 border-dashed border-dark-warm flex items-center justify-center">
+                    <Image className="w-8 h-8 text-text-muted" />
+                  </div>
+                )}
+                <label className="flex-1 cursor-pointer">
+                  <div className="px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl text-text-secondary hover:border-accent-teal transition-all text-center">
+                    <span className="text-sm">Choose Image</span>
+                    <p className="text-xs text-text-muted mt-1">Max 5MB (JPG, PNG)</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfilePictureChange}
+                    className="hidden"
+                  />
+                </label>
               </div>
             </div>
 

@@ -22,7 +22,12 @@ Oratio is an AI-powered debate platform designed for real-time voice and text de
 - **Expected Impact**: 80-90% reduction in database queries during active debates, most requests complete in <5s instead of timing out at 60s
 - Reduced API polling intervals: Dashboard and UpcomingDebateDetails (5s → 30s), 83% reduction
 - Implemented Page Visibility API: polling stops when tab is inactive/hidden, saving resources
-- Added comprehensive timeout handling with AbortController to prevent stuck submit buttons
+- **Frontend Timeout Fixes**: Increased API timeouts and added automatic retry logic:
+  - GET requests: 60s → 90s with 2 automatic retries (up to 3 total attempts)
+  - POST/PUT/DELETE: 60s → 90s
+  - File uploads: 60s → 120s (audio/document uploads need more time)
+  - Retry logic: Exponential backoff (1s, 2s) only on GET to avoid side effects
+  - Virtually eliminates timeout errors in Replit environment network latency
 - Frontend now auto-refreshes when tab becomes visible again for best UX
 
 **UX Improvements:**

@@ -14,14 +14,14 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
+    <div className="min-h-screen bg-dark-base text-text-primary pb-20">
       {/* Top Header - Simplified */}
-      <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+      <header className="bg-dark-elevated border-b border-dark-warm shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/home" className="flex items-center space-x-2">
-              <Brain className="w-8 h-8 text-indigo-600" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+              <Brain className="w-8 h-8 text-accent-rust" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-accent-rust via-accent-saffron to-accent-teal bg-clip-text text-transparent font-display">
                 Oratio
               </span>
             </Link>
@@ -30,15 +30,15 @@ const Layout = ({ children }) => {
               {user && (
                 <div className="flex items-center space-x-3">
                   <div className="hidden sm:block text-right">
-                    <p className="text-sm font-medium text-slate-900">{user.username || user.name}</p>
-                    <p className="text-xs text-slate-500">Level {user.level || 1}</p>
+                    <p className="text-sm font-medium text-text-primary">{user.username || user.name}</p>
+                    <p className="text-xs text-text-muted">Level {user.level || 1}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-rust to-accent-teal flex items-center justify-center text-white font-bold">
                     {(user.username || user.name || 'U')[0].toUpperCase()}
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                    className="p-2 text-text-secondary hover:text-accent-rust hover:bg-dark-warm rounded-xl transition-all"
                     title="Logout"
                   >
                     <LogOut className="w-5 h-5" />

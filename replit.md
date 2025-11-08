@@ -6,6 +6,18 @@ Oratio is an AI-powered debate platform that enables real-time voice and text de
 
 # Recent Changes
 
+**November 8, 2025 (Latest)** - Complete App Flow Update
+- ✅ Implemented comprehensive Frontend Page Flow with all required pages
+- ✅ Created Dashboard page (`/home`) with Ongoing/Upcoming/Past debates sections
+- ✅ Created AddDebate page (`/add`) with full debate creation form
+- ✅ Created Profile page with user stats, badges, and achievements
+- ✅ Created Settings page with theme toggle and preferences
+- ✅ Created About and 404 NotFound pages
+- ✅ Built shared Layout component with navigation bar (Home/Add/Learn/Profile/Settings)
+- ✅ Updated routing with complete navigation flow matching Frontend Page Flow spec
+- ✅ Enhanced OpenAI retry logic with exponential backoff (3 attempts: 0.5s, 1s, 2s delays)
+- ✅ All pages follow consistent design system (Indigo/Blue gradient, rounded-2xl cards, Lucide icons)
+
 **November 8, 2025** - AI Resilience Enhancement
 - ✅ Implemented OpenAI GPT-4o mini as fallback AI provider
 - ✅ Added AI provider cascade: Replit AI → OpenAI → Static fallback
@@ -148,18 +160,28 @@ Preferred communication style: Simple, everyday language.
 - **Spacing**: Generous whitespace, clean layouts, organized sections
 
 **Project Structure**:
-- `pages/` - Route components
-  - `Home.jsx` - Hero landing page with features and CTAs
-  - `Host.jsx` - Create debate room with topic/settings form
-  - `Join.jsx` - Enter room code to join debate
-  - `Debate.jsx` - Live debate arena with scoreboard and turn submission
-  - `Spectate.jsx` - Watch debates with reactions and viewer stats
-  - `Trainer.jsx` - AI training mode with challenges and progress tracking
-  - `Results.jsx` - Final scores and debate statistics
-- `components/` - Reusable UI components (ScoreBoard, TurnDisplay, VoiceInput, RewardPanel)
+- `pages/` - Route components (complete Frontend Page Flow implementation)
+  - `Home.jsx` - Hero landing page with features and CTAs (route: `/`)
+  - `Dashboard.jsx` - Main hub with Ongoing/Upcoming/Past debates sections (route: `/home`)
+  - `AddDebate.jsx` - Create debate room with full settings form (route: `/add`)
+  - `Debate.jsx` - Live debate arena with role-based UI (host/debater/spectator) (route: `/debate/:roomCode`)
+  - `Results.jsx` - Final scores, LCR charts, and detailed analytics (route: `/results/:roomCode`)
+  - `Trainer.jsx` - AI training mode with challenges and progress tracking (route: `/learn`)
+  - `Profile.jsx` - User stats, badges, achievements, and XP progress (route: `/profile`)
+  - `Settings.jsx` - Theme toggle, notifications, and user preferences (route: `/settings`)
+  - `About.jsx` - About Oratio, mission, and contact info (route: `/about`)
+  - `NotFound.jsx` - 404 page with navigation back to home (route: `*`)
+  - `Login.jsx` - Authentication page
+  - `Register.jsx` - User registration page
+- `components/` - Reusable UI components
+  - `Layout.jsx` - Shared layout with navbar and footer for authenticated pages
+  - `ProtectedRoute.jsx` - Authentication wrapper for protected routes
+  - `ScoreBoard.jsx`, `TurnDisplay.jsx`, `VoiceInput.jsx`, `RewardPanel.jsx` - Debate-specific components
 - `services/` - API and WebSocket service layers
 - `hooks/` - Custom React hooks (useWebSocket)
 - `utils/` - Helper functions and constants
+- `context/` - React context providers (AuthContext)
+- `routes/` - Centralized routing configuration
 
 ## Configuration Management
 

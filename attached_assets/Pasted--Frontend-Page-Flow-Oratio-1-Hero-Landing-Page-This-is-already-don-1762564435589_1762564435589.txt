@@ -1,0 +1,298 @@
+# ⚙️ **Frontend Page Flow — Oratio**
+
+---
+
+## 🏠 **1. Hero / Landing Page** (This is already done)
+
+**Purpose:** Entry and authentication.
+
+### Visible Elements:
+
+* App name & tagline — “Oratio: Where arguments meet intelligence.”
+* Login / Signup buttons (Replit Auth / Google OAuth)
+* Optional Explore (view public debates without login)
+* Footer: About • Contact • Terms
+
+### Actions → Navigation:
+
+* **Login / Signup →** `/home`
+* **Explore (guest) →** `/home` (view-only limited mode)
+
+---
+
+## 🗂️ **2. Home Page (Main Dashboard)**
+
+**Purpose:** Central hub with all debates and feature tabs.
+
+### Layout:
+
+**Header / Navbar:**
+
+* Logo (redirect to Home)
+* Tabs: Home • Add Debate • Learn • Profile • Settings
+* User avatar dropdown (Logout)
+
+**Main Content:**
+Divided into three collapsible or scrollable panes:
+
+### A. **Ongoing Debates Section**
+
+* Live debate cards showing:
+
+  * Title/topic
+  * Host name
+  * Participants (avatars)
+  * Current round/time elapsed
+  * Number of spectators
+  * Debate mode (voice/text)
+  * “Join Live” button
+
+**On Click:** Opens **Debate Arena**
+
+---
+
+### B. **Upcoming Debates Section**
+
+* Cards showing:
+
+  * Debate title, host
+  * Time left until start
+  * Mode (team/individual)
+  * Participants joined vs total slots
+  * “Details” button
+
+**On Click:** Opens **Debate Details Page**
+
+Inside Debate Details:
+
+* Title, description, host info
+* Debate mode (audio/text), type (team/individual)
+* Resources (expandable list of PDFs, links, etc.)
+* Participants list (joined + slots remaining)
+* Buttons:
+
+  * **Join Debate** → If open seats → Choose team (For/Against)
+  * **Set Reminder** → Schedule notification
+* Back button → `/home`
+
+---
+
+### C. **Past Debates Section**
+
+* Cards showing:
+
+  * Debate title, host, winner
+  * Mode (text/audio)
+  * “View Results” button
+
+**On Click:** Opens **Debate Replay Page**
+
+Inside Replay:
+
+* Transcript + audio playback
+* AI-generated verdict (Logic/Credibility/Rhetoric scores)
+* Individual feedback summaries
+* Fact-check and source links
+* “Download Report” button
+
+---
+
+## ➕ **3. Add Debate Page** (`/add`)
+
+**Purpose:** Create new debates.
+
+### Visible Fields:
+
+* Title / Description
+* Date & Time
+* Duration
+* Debate Mode: Text / Audio / Both
+* Format: Individual / Team
+* Visibility: Public / Private
+* Upload Resources: PDF, URL, Audio
+* Max Participants
+* Number of Rounds
+* “Create Debate” button
+
+**On Success →** Redirects back to home under “Upcoming Debates.”
+
+---
+
+## 🧑‍⚖️ **4. Live Debate Arena**
+
+**Purpose:** Real-time debate experience for host, participants, spectators (one shared view, dynamic role-based UI).
+
+### Common Layout:
+
+* Top bar:
+
+  * Debate title
+  * Timer / round indicator
+  * Spectator count
+* Split-screen center:
+
+  * Left: Team For (color-coded)
+  * Right: Team Against (color-coded)
+  * Live transcripts appearing with speaker names and small icons
+* Reactions bar at bottom:
+
+  * 👏 🔥 ❤️ (for spectators)
+  * Live support meter updates in corner
+* Audio waveform / text box area (depending on mode)
+
+### Conditional Elements:
+
+#### 👑 **Host View**
+
+* “End Debate” button
+* Participant list (status: speaking / idle)
+* Mini AI feedback lines under transcripts
+* Mute/unmute control buttons
+
+#### 🗣️ **Debater View**
+
+* Own input controls:
+
+  * 🎙️ Voice record & send (Whisper)
+  * 💬 Text input & send
+* View teammates & opponent transcripts
+* Inline short AI feedback for their own team’s lines
+* See live spectator reactions and support bar
+
+#### 👀 **Spectator View**
+
+* Watch transcript + audio in real time
+* React to individual players only (no team-level)
+* No AI feedback visible
+* After debate → AI final result visible
+
+### After Debate Ends:
+
+* Page transforms to **Result State**:
+
+  * Winner (team/player)
+  * AI analysis summary
+  * LCR score breakdown (bar/radar charts)
+  * Individual feedback cards
+  * “Return to Home” or “View Full Report” button
+
+---
+
+## 📊 **5. Learn / Trainer Page**
+
+**Purpose:** Personalized AI training & improvement system.
+
+### Layout:
+
+* “Your Progress” header (charts for Logic, Credibility, Rhetoric trends)
+* Tabs:
+
+  * **Overview** — General improvement summary
+  * **Debate History** — List of past debates (with quick links)
+  * **Challenges** — AI-generated exercises
+
+### Each Challenge Card:
+
+* “Refute this argument in 30 seconds.”
+* “Make this statement factual.”
+* Text/Voice input field
+* Submit → AI feedback returned
+* XP + Badges earned
+
+---
+
+## 🧍‍♂️ **6. Profile Page**
+
+**Purpose:** Personal stats and achievements.
+
+### Visible Sections:
+
+* Avatar, name, bio
+* XP progress bar
+* Badges (e.g., “Fact Finder”, “Rhetoric Master”)
+* Total debates joined / hosted
+* Win rate
+* Quick links to Learn Page and History
+
+---
+
+## ⚙️ **7. Settings Page**
+
+**Purpose:** Customization & preferences.
+
+### Options:
+
+* Theme toggle (Light/Dark)
+* Notification preferences
+* Speech mode defaults (auto-transcribe toggle)
+* Privacy: Make debates public/private by default
+* Logout button
+
+---
+
+## 🧾 **8. Result / Report Page**
+
+Accessible after a debate or via Past Debates section.
+
+### Sections:
+
+1. **Overall Result:**
+
+   * Winner + short summary
+2. **AI Analytics:**
+
+   * LCR radar chart
+   * Spectator sentiment bar
+3. **Team Results:**
+
+   * Strengths/Weaknesses list
+4. **Player Results:**
+
+   * Grammar, logic, pacing, tone
+5. **Fact-check Summary**
+6. **Download Report** (PDF)
+7. “Return Home” or “Train on This Debate” (redirect to Learn)
+
+---
+
+## 🔍 **9. Misc Pages**
+
+### `/about`
+
+* About Oratio (mission, team)
+* Contact links
+* Footer with policies
+
+### `/404`
+
+* Minimal “Debate not found” with home redirect
+
+---
+
+# 🔁 **Page Flow (Navigation Order)**
+
+```
+[Hero Page]
+   ↓ (Login)
+[Home Dashboard]
+   ├── Ongoing → [Debate Arena]
+   ├── Upcoming → [Debate Details]
+   │                 ├── Join Debate → [Countdown → Debate Arena]
+   │                 └── Set Reminder → [Notification Saved]
+   ├── Past → [Replay / Result Page]
+   ├── + Add Debate → [Add Debate Form → Back to Home]
+   ├── Learn → [Trainer Dashboard]
+   ├── Profile → [User Profile Stats]
+   └── Settings → [User Preferences]
+```
+
+---
+
+# 🎯 **Frontend Dev Notes**
+
+* Use **React Router** for page transitions (`/`, `/home`, `/debate/:id`, `/learn`, `/add`, etc.).
+* Maintain **role awareness** (host, debater, spectator) in global state/context; same components, different UI visibility.
+* Home Dashboard dynamically filters debates based on time.
+* WebSocket listeners on `/ws/debate/{room_id}` update transcripts and reactions.
+* Use **lazy loading** for Debate Arena and Replay pages (heavy AI data).
+* Keep **responsive layout** (works on desktop + tablet).

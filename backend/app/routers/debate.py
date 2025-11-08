@@ -92,6 +92,11 @@ async def generate_debate_results(room_id: str):
                     "Focus on providing more evidence to support your claims",
                     "Strengthen your logical structure and transitions",
                     "Enhance your rhetorical techniques for greater persuasion"
+                ][:3],
+                "alternative_arguments": [
+                    "Consider citing peer-reviewed studies or expert testimony to support your position",
+                    "Use analogy or real-world examples to make your argument more relatable",
+                    "Address counter-arguments proactively to strengthen your overall stance"
                 ][:3]
             }
 
@@ -141,7 +146,8 @@ async def generate_debate_results(room_id: str):
             participant_feedback[participant["id"]] = {
                 "strengths": ["Participated in the debate"],
                 "weaknesses": ["Submit more turns to get detailed feedback"],
-                "improvements": ["Engage more actively in future debates"]
+                "improvements": ["Engage more actively in future debates"],
+                "alternative_arguments": ["Prepare stronger evidence-based arguments for future debates"]
             }
 
     # Create result record (use 'scores' and 'feedback' to match frontend expectations)

@@ -138,22 +138,46 @@ const Dashboard = () => {
     );
   };
 
-  const Section = ({ title, icon: Icon, children, count }) => (
-    <div className="mb-12">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-accent-rust/20 rounded-xl">
-          <Icon className="w-6 h-6 text-accent-rust" />
+  const Section = ({ title, icon: Icon, children, count, type }) => {
+    const [showAll, setShowAll] = useState(false);
+    const childrenArray = React.Children.toArray(children);
+    const displayedChildren = showAll ? childrenArray : childrenArray.slice(0, 3);
+    const hasMore = childrenArray.length > 3;
+
+    return (
+      <div className="mb-12">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-accent-rust/20 rounded-xl">
+              <Icon className="w-6 h-6 text-accent-rust" />
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
+            <span className="px-3 py-1 bg-dark-surface text-text-secondary rounded-full text-sm font-medium">
+              {count}
+            </span>
+          </div>
+          {hasMore && (
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="px-4 py-2 bg-accent-rust/20 hover:bg-accent-rust/30 text-accent-rust rounded-xl font-medium transition-colors flex items-center gap-2"
+            >
+              {showAll ? 'Show Less' : 'View All'}
+              <ChevronRight className={`w-4 h-4 transition-transform ${showAll ? 'rotate-90' : ''}`} />
+            </button>
+          )}
         </div>
-        <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
-        <span className="px-3 py-1 bg-dark-surface text-text-secondary rounded-full text-sm font-medium">
-          {count}
-        </span>
+        <div className="relative">
+          <div className={`${showAll ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-accent-rust scrollbar-track-dark-surface'}`}>
+            {displayedChildren.map((child, index) => (
+              <div key={index} className={showAll ? '' : 'flex-shrink-0 w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] snap-center'}>
+                {child}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {children}
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (

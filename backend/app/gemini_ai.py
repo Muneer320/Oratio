@@ -29,7 +29,7 @@ class GeminiAI:
     @staticmethod
     async def chat_completion(
         messages: List[Dict[str, str]],
-        model: str = "gemini-2.0-flash",
+        model: str = "gemini-2.5-pro",
         temperature: float = 0.7,
         max_tokens: int = 1000
     ) -> str:
@@ -77,6 +77,9 @@ class GeminiAI:
             )
             
             result = response.text
+            if result is None:
+                raise ValueError("Gemini returned empty response")
+            
             print(f"✅ Using Gemini AI ({model})")
             return result
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Home, TrendingUp, MessageSquare, BarChart, Volume2, FileText, Users, Target, Award, CheckCircle, XCircle, AlertCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Trophy, Home, TrendingUp, MessageSquare, BarChart, Volume2, FileText, Users, Target, Award, CheckCircle, XCircle, AlertCircle, ThumbsUp, ThumbsDown, Lightbulb, ArrowRight, TrendingDown } from 'lucide-react';
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -544,34 +544,52 @@ function Results() {
               {feedback.weaknesses && feedback.weaknesses.length > 0 && (
                 <div className="bg-red-900/20 border border-red-700/30 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-red-400 mb-4 flex items-center gap-2">
-                    <XCircle className="w-5 h-5" />
-                    Areas to Improve
+                    <TrendingDown className="w-5 h-5" />
+                    Areas of Improvement
                   </h3>
-                  <ul className="space-y-2">
-                    {feedback.weaknesses.map((weakness, i) => (
-                      <li key={i} className="text-text-secondary flex items-start gap-2">
-                        <span className="text-red-500 mt-1">•</span>
-                        <span>{weakness}</span>
-                      </li>
+                  <p className="text-xs text-text-muted mb-4 italic">Key points to focus on for better performance</p>
+                  <div className="space-y-3">
+                    {feedback.weaknesses.slice(0, 5).map((weakness, i) => (
+                      <div key={i} className="flex items-start gap-3 bg-red-900/10 rounded-lg p-3 border border-red-700/20">
+                        <div className="flex-shrink-0 w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center">
+                          <span className="text-red-400 font-bold text-xs">{i + 1}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-text-secondary text-sm leading-relaxed">{weakness}</p>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
               {feedback.improvements && feedback.improvements.length > 0 && (
-                <div className="bg-accent-saffron/20 border border-accent-saffron/30 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-accent-saffron mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5" />
-                    Recommendations for Next Time
+                <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-blue-400 mb-4 flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5" />
+                    Better Alternative Arguments
                   </h3>
-                  <ul className="space-y-2">
+                  <p className="text-xs text-text-muted mb-4 italic">AI-suggested approaches that could have strengthened your position</p>
+                  <div className="space-y-4">
                     {feedback.improvements.map((improvement, i) => (
-                      <li key={i} className="text-text-secondary flex items-start gap-2">
-                        <span className="text-accent-saffron mt-1">→</span>
-                        <span>{improvement}</span>
-                      </li>
+                      <div key={i} className="bg-blue-900/10 rounded-lg p-4 border border-blue-700/20">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            <ArrowRight className="w-5 h-5 text-blue-400 mt-0.5" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-text-secondary text-sm leading-relaxed">{improvement}</p>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-blue-700/20">
+                    <p className="text-xs text-blue-300 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      Consider these alternatives to enhance logic, credibility, and rhetorical impact in future debates
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

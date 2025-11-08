@@ -655,19 +655,35 @@ function Debate() {
                   t => String(t.speaker_id) === String(myParticipant.id) && t.round_number === currentRound
                 );
                 
-                const isInputDisabled = !isParticipant || hasSubmittedThisRound;
+                // Check if all seats are filled (PRIORITY 1)
+                const maxParticipants = room?.type === 'team' ? 4 : 2;
+                const currentDebaters = participants.filter(p => p.role === 'debater').length;
+                const allSeatsFilled = currentDebaters >= maxParticipants;
+                
+                const isInputDisabled = !isParticipant || hasSubmittedThisRound || !allSeatsFilled;
                 const placeholderText = !isParticipant 
                   ? "Join as a participant to submit arguments"
+                  : !allSeatsFilled
+                  ? `Waiting for all debaters to join... (${currentDebaters}/${maxParticipants} seats filled)`
                   : hasSubmittedThisRound
                   ? "Waiting for other participants to submit their arguments..."
                   : "Type your argument here. The AI will evaluate it based on logic, credibility, and rhetoric...";
 
                 return (
                   <>
-                    {hasSubmittedThisRound && isParticipant && (
+                    {!allSeatsFilled && isParticipant && (
+                      <div className="mb-4 p-4 bg-amber-900/20 border border-amber-700/50 rounded-xl">
+                        <p className="text-sm text-amber-400 flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4" />
+                          Waiting for all debaters to join... ({currentDebaters}/{maxParticipants} seats filled)
+                        </p>
+                      </div>
+                    )}
+                    
+                    {hasSubmittedThisRound && isParticipant && allSeatsFilled && (
                       <div className="mb-4 p-4 bg-accent-teal/20 border border-accent-teal/50 rounded-xl">
                         <p className="text-sm text-accent-teal">
-                          ✓ You've submitted your argument for this round. Waiting for others...
+                          ✓ You've submitted your argument for Round {currentRound}
                         </p>
                       </div>
                     )}
@@ -743,19 +759,26 @@ function Debate() {
                   t => String(t.speaker_id) === String(myParticipant.id) && t.round_number === currentRound
                 );
                 
+                // Check if all seats are filled (PRIORITY 1)
+                const maxParticipants = room?.type === 'team' ? 4 : 2;
+                const currentDebaters = participants.filter(p => p.role === 'debater').length;
+                const allSeatsFilled = currentDebaters >= maxParticipants;
+                
+                const isButtonDisabled = !isParticipant || hasSubmittedThisRound || !allSeatsFilled;
+                
                 return (
                   <div className="flex gap-3">
                     {(room?.mode === 'audio' || room?.mode === 'both') && (
                       <motion.button
                         onClick={isRecording ? stopRecording : startRecording}
-                        disabled={!isParticipant || hasSubmittedThisRound}
+                        disabled={isButtonDisabled}
                         className={`px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                           isRecording 
                             ? 'bg-red-600 text-white' 
                             : 'bg-accent-teal text-white'
                         }`}
-                        whileHover={{ scale: isRecording || !isParticipant || hasSubmittedThisRound ? 1 : 1.02 }}
-                        whileTap={{ scale: isRecording || !isParticipant || hasSubmittedThisRound ? 1 : 0.98 }}
+                        whileHover={{ scale: isRecording || isButtonDisabled ? 1 : 1.02 }}
+                        whileTap={{ scale: isRecording || isButtonDisabled ? 1 : 0.98 }}
                       >
                         {isRecording ? (
                           <>
@@ -773,10 +796,10 @@ function Debate() {
                     
                     <motion.button
                       onClick={handleSubmitTurn}
-                      disabled={isSubmitting || (!argument.trim() && !audioBlob) || !isParticipant || hasSubmittedThisRound}
+                      disabled={isSubmitting || (!argument.trim() && !audioBlob) || isButtonDisabled}
                       className="flex-1 bg-accent-rust px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-saffron transition-colors"
-                      whileHover={{ scale: isSubmitting || hasSubmittedThisRound ? 1 : 1.02 }}
-                      whileTap={{ scale: isSubmitting || hasSubmittedThisRound ? 1 : 0.98 }}
+                      whileHover={{ scale: isSubmitting || isButtonDisabled ? 1 : 1.02 }}
+                      whileTap={{ scale: isSubmitting || isButtonDisabled ? 1 : 0.98 }}
                     >
                       <Send className="w-5 h-5" />
                       {isSubmitting ? 'Submitting...' : audioBlob ? 'Submit Audio' : 'Submit Argument'}

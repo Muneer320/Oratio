@@ -137,8 +137,15 @@ function Debate() {
 
       setRoom(foundRoom);
 
-      try {
-        const debateStatus = await api.get(`/api/debate/${foundRoom.id}/status`, true);
+      // PERFORMANCE FIX: Fetch status and transcript in parallel instead of sequentially
+      const [statusResult, transcriptResult] = await Promise.allSettled([
+        api.get(`/api/debate/${foundRoom.id}/status`, true),
+        api.get(`/api/debate/${foundRoom.id}/transcript`, true)
+      ]);
+
+      // Process status data
+      if (statusResult.status === 'fulfilled') {
+        const debateStatus = statusResult.value;
         const participantsList = debateStatus.participants || [];
         setParticipants(participantsList);
         
@@ -153,19 +160,15 @@ function Debate() {
         
         setCurrentRound(Math.min(calculatedRound, foundRoom.rounds));
         setCurrentTurn(calculatedTurn);
-      } catch (statusErr) {
-        if (statusErr.status !== 401 && statusErr.status !== 403) {
-          console.log('Debate status not available yet:', statusErr.message);
-        }
+      } else if (statusResult.reason?.status !== 401 && statusResult.reason?.status !== 403) {
+        console.log('Debate status not available yet:', statusResult.reason?.message);
       }
 
-      try {
-        const transcript = await api.get(`/api/debate/${foundRoom.id}/transcript`, true);
-        setTurns(transcript);
-      } catch (transcriptErr) {
-        if (transcriptErr.status !== 401 && transcriptErr.status !== 403) {
-          console.log('Transcript not available yet:', transcriptErr.message);
-        }
+      // Process transcript data
+      if (transcriptResult.status === 'fulfilled') {
+        setTurns(transcriptResult.value);
+      } else if (transcriptResult.reason?.status !== 401 && transcriptResult.reason?.status !== 403) {
+        console.log('Transcript not available yet:', transcriptResult.reason?.message);
       }
 
       setLoading(false);
@@ -253,6 +256,16 @@ function Debate() {
       return;
     }
 
+    // CRITICAL: Block submissions if final round is already complete
+    const totalRounds = room?.rounds || 3;
+    const debaterCount = participants.filter(p => p.role === 'debater').length || 2;
+    const turnsInFinalRound = turns.filter(t => t.round_number === totalRounds).length;
+    
+    if (currentRound >= totalRounds && turnsInFinalRound >= debaterCount) {
+      setError('All rounds complete. Debate has ended.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -293,46 +306,48 @@ function Debate() {
         );
       }
 
-      // AI analysis will happen in batch after round completion
+      // PERFORMANCE FIX: Optimistically update UI immediately instead of refetching everything
       newTurn.ai_feedback = newTurn.ai_feedback || null;
       setTurns([...turns, newTurn]);
       setArgument('');
 
-      // Check if this completes a round (all participants have submitted)
+      // Update turn/round state for next submission
       const debaterCount = participants.filter(p => p.role === 'debater').length || 2;
       const turnsInCurrentRound = [...turns, newTurn].filter(
         t => t.round_number === currentRound
       ).length;
       
       if (turnsInCurrentRound >= debaterCount) {
-        // Round complete - show AI analyzing indicator
-        setIsAnalyzing(true);
+        // Round complete - check if this was the final round
+        const totalRounds = room?.rounds || 3;
         
-        // Poll for AI feedback to appear
-        const checkAIFeedback = setInterval(async () => {
-          try {
-            const updatedTranscript = await api.get(`/api/debate/${room.id}/transcript`, true);
-            const roundTurns = updatedTranscript.filter(t => t.round_number === currentRound);
-            const allHaveFeedback = roundTurns.every(t => t.ai_feedback !== null);
-            
-            if (allHaveFeedback) {
-              setIsAnalyzing(false);
-              setTurns(updatedTranscript);
-              clearInterval(checkAIFeedback);
-            }
-          } catch (err) {
-            console.error('Error polling for AI feedback:', err);
-          }
-        }, 2000);
-        
-        // Stop polling after 30 seconds
-        setTimeout(() => {
-          setIsAnalyzing(false);
-          clearInterval(checkAIFeedback);
-        }, 30000);
+        if (currentRound >= totalRounds) {
+          // Final round complete - debate will auto-end, don't advance state
+          setIsAnalyzing(true);
+          setTimeout(() => setIsAnalyzing(false), 10000);
+        } else {
+          // Advance to next round (clamp to max rounds)
+          setCurrentRound(Math.min(currentRound + 1, totalRounds));
+          setCurrentTurn(1);
+          
+          // AI analysis happens in background
+          setIsAnalyzing(true);
+          setTimeout(() => setIsAnalyzing(false), 10000);
+        }
+      } else {
+        // Round in progress - advance to next turn
+        setCurrentTurn(currentTurn + 1);
       }
-
-      await loadRoomData();
+      
+      // Lightweight sync after submit to keep state fresh (only status, no full refetch)
+      setTimeout(async () => {
+        try {
+          const debateStatus = await api.get(`/api/debate/${room.id}/status`, true);
+          setParticipants(debateStatus.participants || []);
+        } catch (err) {
+          // Silent fail - regular polling will catch up
+        }
+      }, 1000);
     } catch (err) {
       setError(err.message || 'Failed to submit turn');
     } finally {

@@ -14,7 +14,8 @@ class WebSocketService {
 
   connect(endpoint, onMessage) {
     const WS_BASE_URL = getWsUrl();
-    this.ws = new WebSocket(`${WS_BASE_URL}/ws${endpoint}`);
+    // Endpoint should already start with /ws/
+    this.ws = new WebSocket(`${WS_BASE_URL}${endpoint}`);
 
     this.ws.onopen = () => {
       console.log("WebSocket connected");

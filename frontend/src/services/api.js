@@ -60,7 +60,7 @@ class ApiService {
     return response.json();
   }
 
-  async get(endpoint, requiresAuth = false, timeout = 30000) {
+  async get(endpoint, requiresAuth = false, timeout = 60000) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -85,7 +85,7 @@ class ApiService {
     }
   }
 
-  async post(endpoint, data, requiresAuth = false, timeout = 30000) {
+  async post(endpoint, data, requiresAuth = false, timeout = 60000) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -111,7 +111,7 @@ class ApiService {
     }
   }
 
-  async put(endpoint, data, requiresAuth = false, timeout = 30000) {
+  async put(endpoint, data, requiresAuth = false, timeout = 60000) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -137,7 +137,7 @@ class ApiService {
     }
   }
 
-  async delete(endpoint, requiresAuth = false, timeout = 30000) {
+  async delete(endpoint, requiresAuth = false, timeout = 60000) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -203,7 +203,7 @@ class ApiService {
     }
   }
 
-  async postFormData(endpoint, formData, requiresAuth = true, timeout = 30000) {
+  async postFormData(endpoint, formData, requiresAuth = true, timeout = 60000) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);

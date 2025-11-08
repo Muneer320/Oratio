@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from app.config import settings
-from app.supabase_db import SUPABASE_AVAILABLE, REPLIT_DB_AVAILABLE
+from app.replit_db import REPLIT_DB_AVAILABLE
 from app.gemini_ai import GEMINI_AVAILABLE, REPLIT_AI_AVAILABLE
 from app.replit_auth import REPLIT_AUTH_AVAILABLE
 import os
@@ -56,8 +56,7 @@ async def startup():
 
     # Check features availability
     features = {
-        "Database": "✅ Supabase (Primary)" if SUPABASE_AVAILABLE else
-        ("✅ Replit DB (Fallback)" if REPLIT_DB_AVAILABLE else "⚠️  In-memory"),
+        "Database": "✅ Replit DB" if REPLIT_DB_AVAILABLE else "⚠️  In-memory",
         "AI Provider": "✅ Gemini AI (Primary)" if GEMINI_AVAILABLE else
         ("✅ Replit AI (Fallback)" if REPLIT_AI_AVAILABLE else "⚠️  Static responses"),
         "Backend": "✅ Render (Production)" if is_render else "✅ Replit (Dev)",

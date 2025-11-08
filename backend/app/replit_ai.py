@@ -1,8 +1,10 @@
 """
 Replit AI integration for Oratio
 Uses Replit's built-in AI API for debate judging and analysis
+Falls back to OpenAI GPT-4o mini if Replit AI unavailable
 """
 import httpx
+import json
 from typing import Optional, Dict, Any, List
 from app.config import settings
 
@@ -14,6 +16,21 @@ try:
 except ImportError:
     REPLIT_AI_AVAILABLE = False
     print("⚠️  Replit AI not available, will use fallback")
+
+# Try to import OpenAI
+try:
+    from openai import AsyncOpenAI
+    OPENAI_AVAILABLE = bool(settings.OPENAI_API_KEY)
+    if OPENAI_AVAILABLE:
+        openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        print("✅ OpenAI fallback available")
+    else:
+        openai_client = None
+        print("⚠️  OpenAI API key not configured")
+except ImportError:
+    OPENAI_AVAILABLE = False
+    openai_client = None
+    print("⚠️  OpenAI package not installed")
 
 
 class ReplitAI:
@@ -27,10 +44,13 @@ class ReplitAI:
         max_tokens: int = 1000
     ) -> str:
         """
-        Generate chat completion using Replit AI
-        Falls back to simple responses if Replit AI unavailable
+        Generate chat completion using AI cascade:
+        1. Try Replit AI first (primary)
+        2. Fall back to OpenAI GPT-4o mini (secondary)
+        3. Fall back to static response (last resort)
         """
 
+        # Strategy 1: Try Replit AI
         if REPLIT_AI_AVAILABLE:
             try:
                 # Use Replit AI ChatModel
@@ -56,15 +76,33 @@ class ReplitAI:
                 )
                 
                 # Extract response content
-                return response.responses[0].candidates[0].message.content
+                result = response.responses[0].candidates[0].message.content
+                print("✅ Using Replit AI")
+                return result
 
             except Exception as e:
-                print(f"❌ Replit AI error: {e}")
-                return ReplitAI._fallback_response(messages[-1]["content"])
+                print(f"⚠️  Replit AI failed: {e}, trying OpenAI...")
 
-        else:
-            # Fallback response
-            return ReplitAI._fallback_response(messages[-1]["content"])
+        # Strategy 2: Try OpenAI
+        if OPENAI_AVAILABLE and openai_client:
+            try:
+                response = await openai_client.chat.completions.create(
+                    model=settings.OPENAI_MODEL,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    response_format={"type": "json_object"} if any("JSON" in msg.get("content", "") for msg in messages) else None
+                )
+                result = response.choices[0].message.content
+                print("✅ Using OpenAI fallback")
+                return result
+
+            except Exception as e:
+                print(f"⚠️  OpenAI failed: {e}, using static fallback...")
+
+        # Strategy 3: Static fallback (last resort)
+        print("⚠️  All AI providers unavailable, using static fallback")
+        return ReplitAI._fallback_response(messages[-1]["content"])
 
     @staticmethod
     def _fallback_response(prompt: str) -> str:

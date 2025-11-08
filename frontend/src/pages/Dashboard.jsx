@@ -17,8 +17,8 @@ const Dashboard = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await api.get('/rooms/list');
-      setRooms(response.data);
+      const response = await api.get('/api/rooms/list');
+      setRooms(response || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching rooms:', error);

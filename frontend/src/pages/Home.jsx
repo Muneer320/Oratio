@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring } from 'framer-motion';
-import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap, LogIn, UserPlus, Home as HomeIcon, Plus } from 'lucide-react';
+import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap, LogIn, UserPlus, Home as HomeIcon, Plus, DoorOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 function AnimatedCounter({ value, suffix = '', duration = 2 }) {
@@ -147,24 +147,19 @@ function Home() {
                 Dashboard
               </span>
             </motion.button>
-            
+
             <motion.button
-              onClick={() => navigate('/add')}
-              className="group relative px-5 py-2.5 bg-gradient-to-br from-accent-saffron to-accent-saffron/80 text-dark-base rounded-xl font-medium text-sm overflow-hidden"
+              onClick={() => navigate('/profile')}
+              className="group relative px-5 py-2.5 bg-dark-elevated/90 backdrop-blur-sm border border-dark-warm hover:border-accent-saffron/50 text-text-primary rounded-xl font-medium text-sm overflow-hidden"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-rust/0 to-accent-rust/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span className="relative flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Host Debate
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                {user?.username || user?.email}
               </span>
             </motion.button>
-
-            <div className="flex items-center gap-3 bg-dark-elevated/90 backdrop-blur-sm border border-dark-warm px-4 py-2 rounded-xl">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-text-primary">{user?.username || user?.email}</span>
-            </div>
           </>
         ) : (
           <>

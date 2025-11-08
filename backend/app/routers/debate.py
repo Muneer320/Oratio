@@ -533,24 +533,26 @@ async def submit_audio(
 async def get_transcript(room_id: str):
     """
     Get full debate transcript with caching
+    PERFORMANCE: 120s cache + strict limit to handle slow ReplitDB
     """
-    # Try cache first (15 second TTL for transcript)
+    # Try cache first (120 second TTL for transcript)
     cache_key = f"transcript_{room_id}"
     cached_transcript = room_cache.get(cache_key)
     if cached_transcript:
         return cached_transcript
 
-    # Fetch from database
+    # Fetch from database with strict limit (ReplitDB is slow - 12s for 37 records)
     room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=1000)
+    # PERFORMANCE: Limit to 50 turns max (3 rounds × 4 debaters × 4 turns = 48 max typical)
+    turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=50)
     sorted_turns = sorted(turns, key=lambda x: (
         x["round_number"], x["turn_number"]))
 
-    # Cache for 60 seconds (aggressive caching to reduce DB load)
-    room_cache.set(cache_key, sorted_turns, ttl_seconds=60)
+    # Cache for 120 seconds (ultra-aggressive caching due to ReplitDB slowness)
+    room_cache.set(cache_key, sorted_turns, ttl_seconds=120)
 
     return sorted_turns
 
@@ -625,20 +627,22 @@ async def end_debate(
 async def get_debate_status(room_id: str):
     """
     Get current debate status with caching and optimized payload
+    PERFORMANCE: 120s cache + strict limits to handle slow ReplitDB (12s per query)
     """
-    # Try cache first (60 second TTL for debate status)
+    # Try cache first (120 second TTL for debate status)
     cache_key = f"debate_status_{room_id}"
     cached_status = room_cache.get(cache_key)
     if cached_status:
         return cached_status
 
-    # Fetch from database
+    # Fetch from database with strict limits (ReplitDB is slow)
     room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
-    turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
+    # PERFORMANCE: Limit queries to reduce slow DB scans (12s per query on ReplitDB)
+    participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]}, limit=20)
+    turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=50)
 
     # Batch fetch all unique users (single DB query per unique user, using cache)
     user_ids = list(set(p["user_id"] for p in participants))
@@ -686,7 +690,7 @@ async def get_debate_status(room_id: str):
         "status": room["status"]
     }
 
-    # Cache for 60 seconds (aggressive caching to reduce DB load)
-    room_cache.set(cache_key, status_response, ttl_seconds=60)
+    # Cache for 120 seconds (ultra-aggressive caching due to ReplitDB slowness: 12s per query)
+    room_cache.set(cache_key, status_response, ttl_seconds=120)
 
     return status_response

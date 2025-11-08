@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { DoorOpen, Loader2 } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function JoinRoomByCode({ className = '' }) {
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleJoinRoom = async (e) => {
     e.preventDefault();
@@ -28,12 +30,27 @@ export default function JoinRoomByCode({ className = '' }) {
         return;
       }
 
-      if (room.status === 'upcoming') {
-        navigate(`/upcoming/${roomCode.trim().toUpperCase()}`);
-      } else if (room.status === 'ongoing') {
+      // Check if user is already a participant
+      let isParticipant = false;
+      try {
+        const debateStatus = await api.get(`/api/debate/${room.id}/status`, true);
+        const participantsList = debateStatus.participants || [];
+        isParticipant = participantsList.some(
+          p => String(p.user_id) === String(user?.id)
+        );
+      } catch (statusErr) {
+        console.log('Could not check participant status');
+      }
+
+      // Always go to upcoming page if not already a participant (even if ongoing)
+      // This forces users to join before they can participate
+      if (room.status === 'completed') {
+        navigate(`/results/${roomCode.trim().toUpperCase()}`);
+      } else if (room.status === 'ongoing' && isParticipant) {
         navigate(`/debate/${roomCode.trim().toUpperCase()}`);
       } else {
-        setError('This debate has ended');
+        // Upcoming or (ongoing but not a participant)
+        navigate(`/upcoming/${roomCode.trim().toUpperCase()}`);
       }
     } catch (err) {
       setError(err.message || 'Failed to join room');

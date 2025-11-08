@@ -9,6 +9,7 @@ Oratio is an AI-powered debate platform designed for real-time voice and text de
 - Fixed "Room Full" bug by checking if current user is already a participant before showing capacity limits
 - Fixed "Everyone Joining as Spectator" bug by implementing confirmation polling that waits up to 10 seconds to verify user appears in participant list with role='debater' before navigation
 - Fixed request timeout issues by increasing default API timeout from 30s to 60s across all methods (GET, POST, PUT, DELETE, uploadFile, postFormData)
+- **Fixed "Joining as Spectator" bug**: JoinRoomByCode now checks if user is already a participant before navigating; non-participants are always directed to upcoming page to join first (prevents spectator-only access)
 
 **Performance Optimizations (November 8, 2025):**
 - **Backend API Caching**: Added aggressive caching to reduce database load:

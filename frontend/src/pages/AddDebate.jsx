@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Calendar, Clock, Users, FileText, Lock, Unlock } from 'lucide-react';
+import { PlusCircle, Calendar, Clock, Users, FileText, Lock, Unlock, MessageSquare, Mic, Repeat } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 
@@ -40,7 +40,7 @@ const AddDebate = () => {
         ? new Date(`${formData.date}T${formData.time}`).toISOString()
         : new Date().toISOString();
 
-      const response = await api.post('/rooms/create', {
+      const response = await api.post('/api/rooms/create', {
         topic: formData.topic,
         description: formData.description,
         scheduled_time: scheduledTime,
@@ -50,9 +50,9 @@ const AddDebate = () => {
         visibility: formData.visibility,
         rounds: parseInt(formData.total_rounds),
         resources: resourceLinks,
-      });
+      }, true);
 
-      navigate(`/debate/${response.data.room_code}`);
+      navigate(`/debate/${response.room_code}`);
     } catch (error) {
       console.error('Error creating debate:', error);
       alert('Failed to create debate. Please try again.');
@@ -163,13 +163,13 @@ const AddDebate = () => {
               <label className="block text-sm font-medium text-text-primary mb-2">Debate Format</label>
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { value: 'text', label: '💬 Text', icon: '💬' },
-                  { value: 'audio', label: '🎙️ Audio', icon: '🎙️' },
-                  { value: 'both', label: '🔀 Both', icon: '🔀' }
+                  { value: 'text', label: 'Text', Icon: MessageSquare },
+                  { value: 'audio', label: 'Audio', Icon: Mic },
+                  { value: 'both', label: 'Both', Icon: Repeat }
                 ].map(mode => (
                   <label
                     key={mode.value}
-                    className={`flex items-center justify-center px-4 py-3 border-2 rounded-xl cursor-pointer transition-all ${
+                    className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-xl cursor-pointer transition-all ${
                       formData.mode === mode.value
                         ? 'border-accent-rust bg-accent-rust/20 text-accent-rust'
                         : 'border-dark-warm hover:border-accent-rust/50 text-text-secondary'
@@ -183,6 +183,7 @@ const AddDebate = () => {
                       onChange={handleChange}
                       className="sr-only"
                     />
+                    <mode.Icon className="w-4 h-4" />
                     <span className="font-medium">{mode.label}</span>
                   </label>
                 ))}

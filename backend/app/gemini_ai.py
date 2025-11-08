@@ -310,15 +310,11 @@ Provide a final verdict in JSON:
             if not audio_file or not hasattr(audio_file, 'name'):
                 raise ValueError("File upload failed")
 
-            # Wait for file to be ready (non-blocking)
-            while hasattr(audio_file, 'state') and audio_file.state == "PROCESSING":
-                await asyncio.sleep(1)
-                audio_file = gemini_client.files.get(name=audio_file.name)
+            # Simple wait for processing (Gemini processes most audio files quickly)
+            # Don't poll file state as it can cause API errors
+            await asyncio.sleep(2)
 
-            if hasattr(audio_file, 'state') and audio_file.state == "FAILED":
-                raise ValueError("Audio file processing failed")
-
-            # Generate transcription
+            # Generate transcription using the uploaded file
             prompt = "Please transcribe this audio file accurately. Provide only the transcription without any additional commentary."
 
             # Build contents manually to avoid type issues

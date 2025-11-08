@@ -12,11 +12,13 @@ class Settings(BaseSettings):
     REPL_SLUG: str = os.getenv("REPL_SLUG", "oratio")
     REPL_OWNER: str = os.getenv("REPL_OWNER", "")
 
-    # Database URL (fallback for SQLAlchemy models)
+    # Database - Supabase (primary), Replit DB (fallback)
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+
+    # Fallback database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./oratio.db")
-    
-    # Use Replit Database (no need for DATABASE_URL)
-    USE_REPLIT_DB: bool = True
+    USE_REPLIT_DB: bool = False  # Only if Supabase is unavailable
 
     # Use Gemini AI exclusively
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")

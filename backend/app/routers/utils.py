@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from datetime import datetime
 from app.schemas import HealthResponse, LeaderboardEntry, FeedbackSubmit
-from app.replit_db import ReplitDB, Collections
+from app.supabase_db import DatabaseWrapper as DB, Collections
 from app.config import settings
 
 router = APIRouter(prefix="/api/utils", tags=["Utilities"])
@@ -32,16 +32,17 @@ async def submit_feedback(feedback: FeedbackSubmit):
     Submit user feedback
     """
     if len(feedback.message) > 5000:
-        raise HTTPException(status_code=400, detail="Feedback message too long (max 5000 characters)")
-    
+        raise HTTPException(
+            status_code=400, detail="Feedback message too long (max 5000 characters)")
+
     feedback_record = {
         "message": feedback.message,
         "category": feedback.category or "general",
         "timestamp": datetime.utcnow().isoformat()
     }
-    
-    saved_feedback = ReplitDB.insert(Collections.FEEDBACK, feedback_record)
-    
+
+    saved_feedback = DB.insert(Collections.FEEDBACK, feedback_record)
+
     return {
         "message": "Feedback received and saved",
         "status": "success",
@@ -54,25 +55,25 @@ async def get_leaderboard(limit: int = 10):
     """
     Get global leaderboard
     """
-    users = ReplitDB.find(Collections.USERS, limit=1000)
-    
+    users = DB.find(Collections.USERS, limit=1000)
+
     leaderboard = []
     for user in users:
-        participations = ReplitDB.find(
+        participations = DB.find(
             Collections.PARTICIPANTS,
             {"user_id": user["id"], "role": "debater"}
         )
-        
-        results = ReplitDB.find(Collections.RESULTS, limit=1000)
-        
+
+        results = DB.find(Collections.RESULTS, limit=1000)
+
         wins = 0
         total_score = 0
         count = 0
-        
+
         for result in results:
             if result.get("winner_id") and str(result["winner_id"]) in [str(p["id"]) for p in participations]:
                 wins += 1
-            
+
             for participant in participations:
                 score = participant.get("score", {})
                 if score:
@@ -83,9 +84,9 @@ async def get_leaderboard(limit: int = 10):
                     )
                     total_score += weighted
                     count += 1
-        
+
         avg_score = (total_score / count) if count > 0 else 0
-        
+
         leaderboard.append({
             "user_id": user["id"],
             "username": user.get("username", "Unknown"),
@@ -94,9 +95,9 @@ async def get_leaderboard(limit: int = 10):
             "debates_won": wins,
             "avg_score": round(avg_score, 2)
         })
-    
+
     leaderboard.sort(key=lambda x: x["xp"], reverse=True)
-    
+
     return leaderboard[:limit]
 
 
@@ -105,17 +106,17 @@ async def search_topics(query: str = "", limit: int = 10):
     """
     Search debate topics
     """
-    rooms = ReplitDB.find(Collections.ROOMS, limit=1000)
-    
+    rooms = DB.find(Collections.ROOMS, limit=1000)
+
     if query:
         filtered_rooms = [
             r for r in rooms
             if query.lower() in r.get("topic", "").lower() or
-               query.lower() in r.get("description", "").lower()
+            query.lower() in r.get("description", "").lower()
         ]
     else:
         filtered_rooms = rooms
-    
+
     topics = []
     for room in filtered_rooms[:limit]:
         topics.append({
@@ -125,5 +126,5 @@ async def search_topics(query: str = "", limit: int = 10):
             "status": room.get("status"),
             "scheduled_time": room.get("scheduled_time")
         })
-    
+
     return {"topics": topics, "total": len(filtered_rooms)}

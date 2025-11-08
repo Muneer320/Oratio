@@ -43,40 +43,40 @@ class ReplitDB:
     def insert(collection: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Insert document into collection"""
         if "id" not in data:
-            data["id"] = ReplitDB._generate_id(collection)
+            data["id"] = DB._generate_id(collection)
 
         if "created_at" not in data:
             data["created_at"] = datetime.utcnow().isoformat()
 
-        key = ReplitDB._make_key(collection, str(data["id"]))
+        key = DB._make_key(collection, str(data["id"]))
         db[key] = json.dumps(data)
         return data
 
     @staticmethod
     def get(collection: str, id: str) -> Optional[Dict[str, Any]]:
         """Get document by ID"""
-        key = ReplitDB._make_key(collection, id)
+        key = DB._make_key(collection, id)
         value = db.get(key)
         return json.loads(value) if value else None
 
     @staticmethod
     def update(collection: str, id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update document"""
-        existing = ReplitDB.get(collection, id)
+        existing = DB.get(collection, id)
         if not existing:
             return None
 
         existing.update(data)
         existing["updated_at"] = datetime.utcnow().isoformat()
 
-        key = ReplitDB._make_key(collection, id)
+        key = DB._make_key(collection, id)
         db[key] = json.dumps(existing)
         return existing
 
     @staticmethod
     def delete(collection: str, id: str) -> bool:
         """Delete document"""
-        key = ReplitDB._make_key(collection, id)
+        key = DB._make_key(collection, id)
         if key in db:
             del db[key]
             return True
@@ -109,13 +109,13 @@ class ReplitDB:
     @staticmethod
     def find_one(collection: str, filter: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Find single document"""
-        results = ReplitDB.find(collection, filter, limit=1000)
+        results = DB.find(collection, filter, limit=1000)
         return results[0] if results else None
 
     @staticmethod
     def count(collection: str, filter: Optional[Dict[str, Any]] = None) -> int:
         """Count documents"""
-        return len(ReplitDB.find(collection, filter))
+        return len(DB.find(collection, filter))
 
     @staticmethod
     def clear_collection(collection: str):

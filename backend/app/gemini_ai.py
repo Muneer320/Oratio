@@ -7,20 +7,29 @@ import json
 from typing import Optional, Dict, Any, List
 from app.config import settings
 
-# Import Gemini
+# Import Gemini (Primary AI)
 try:
     from google import genai
     GEMINI_AVAILABLE = bool(settings.GEMINI_API_KEY)
     if GEMINI_AVAILABLE:
         gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        print("✅ Gemini AI available")
+        print("✅ Gemini AI available (Primary)")
     else:
         gemini_client = None
-        print("⚠️  Gemini API key not configured")
+        print("⚠️  Gemini API key not configured, will use Replit AI fallback")
 except ImportError:
     GEMINI_AVAILABLE = False
     gemini_client = None
-    print("⚠️  Gemini package not installed")
+    print("⚠️  Gemini package not installed, will use Replit AI fallback")
+
+# Import Replit AI (Fallback)
+try:
+    from replit.ai.modelfarm import ChatModel, ChatSession, ChatMessage
+    REPLIT_AI_AVAILABLE = True
+    print("✅ Replit AI available (Fallback)")
+except ImportError:
+    REPLIT_AI_AVAILABLE = False
+    print("⚠️  Replit AI not available")
 
 
 class GeminiAI:
@@ -38,15 +47,19 @@ class GeminiAI:
         """
 
         if not GEMINI_AVAILABLE or not gemini_client:
-            print("⚠️  Gemini AI unavailable, using static fallback")
-            return GeminiAI._fallback_response(messages[-1]["content"])
+            print("⚠️  Gemini AI unavailable, trying Replit AI fallback")
+            if REPLIT_AI_AVAILABLE:
+                return await GeminiAI._replit_ai_fallback(messages, temperature, max_tokens)
+            else:
+                print("⚠️  Replit AI also unavailable, using static fallback")
+                return GeminiAI._fallback_response(messages[-1]["content"])
 
         try:
             # Convert messages to Gemini format
             # Combine system and user messages for Gemini
             system_instruction = None
             user_content = []
-            
+
             for msg in messages:
                 if msg["role"] == "system":
                     system_instruction = msg["content"]
@@ -55,31 +68,31 @@ class GeminiAI:
                 elif msg["role"] == "assistant":
                     # Skip assistant messages for now (can be added for multi-turn)
                     pass
-            
+
             # Combine all user messages
             combined_content = "\n\n".join(user_content)
-            
+
             # Generate content with Gemini
             from google.genai import types
-            
+
             config = types.GenerateContentConfig(
                 temperature=temperature,
                 max_output_tokens=max_tokens,
             )
-            
+
             if system_instruction:
                 config.system_instruction = system_instruction
-            
+
             response = gemini_client.models.generate_content(
                 model=model,
                 contents=combined_content,
                 config=config
             )
-            
+
             # Better error handling for Gemini responses
             if not response:
                 raise ValueError("Gemini returned no response object")
-            
+
             # Check if response has text
             result = None
             try:
@@ -92,13 +105,13 @@ class GeminiAI:
                     if hasattr(candidate, 'content') and candidate.content:
                         if hasattr(candidate.content, 'parts') and candidate.content.parts:
                             result = candidate.content.parts[0].text
-            
+
             if not result or result.strip() == "":
                 print(f"⚠️  Gemini response details: {response}")
                 if hasattr(response, 'prompt_feedback'):
                     print(f"⚠️  Prompt feedback: {response.prompt_feedback}")
                 raise ValueError("Gemini returned empty response")
-            
+
             print(f"✅ Using Gemini AI ({model})")
             return result
 
@@ -125,6 +138,43 @@ class GeminiAI:
             return "Unable to verify this claim without AI connection."
         else:
             return "AI analysis temporarily unavailable. Running in demo mode."
+
+    @staticmethod
+    async def _replit_ai_fallback(
+        messages: List[Dict[str, str]],
+        temperature: float = 0.7,
+        max_tokens: int = 4000
+    ) -> str:
+        """
+        Fallback to Replit AI when Gemini is unavailable
+        """
+        try:
+            from replit.ai.modelfarm import ChatModel, ChatSession
+
+            # Create chat model
+            model = ChatModel("chat-bison")
+
+            # Combine messages into a single prompt for Replit AI
+            system_prompt = ""
+            user_prompt = ""
+
+            for msg in messages:
+                if msg["role"] == "system":
+                    system_prompt += msg["content"] + "\n\n"
+                elif msg["role"] == "user":
+                    user_prompt += msg["content"] + "\n\n"
+
+            # Create prompt
+            full_prompt = system_prompt + user_prompt if system_prompt else user_prompt
+
+            # Generate response
+            response = model.chat(full_prompt)
+
+            return response if response else "Replit AI returned empty response"
+
+        except Exception as e:
+            print(f"⚠️  Replit AI fallback failed: {e}")
+            return GeminiAI._fallback_response(messages[-1]["content"])
 
     @staticmethod
     async def analyze_debate_turn(
@@ -252,53 +302,56 @@ Provide a final verdict in JSON:
         try:
             import pathlib
             import asyncio
-            
+
             # Upload the audio file
-            audio_file = gemini_client.files.upload(file=pathlib.Path(audio_path))
-            
+            audio_file = gemini_client.files.upload(
+                file=pathlib.Path(audio_path))
+
             if not audio_file or not hasattr(audio_file, 'name'):
                 raise ValueError("File upload failed")
-            
+
             # Wait for file to be ready (non-blocking)
             while hasattr(audio_file, 'state') and audio_file.state == "PROCESSING":
                 await asyncio.sleep(1)
                 audio_file = gemini_client.files.get(name=audio_file.name)
-            
+
             if hasattr(audio_file, 'state') and audio_file.state == "FAILED":
                 raise ValueError("Audio file processing failed")
-            
+
             # Generate transcription
             prompt = "Please transcribe this audio file accurately. Provide only the transcription without any additional commentary."
-            
+
             # Build contents manually to avoid type issues
             file_uri = getattr(audio_file, 'uri', None)
             mime_type = getattr(audio_file, 'mime_type', None)
-            
+
             if not file_uri:
                 raise ValueError("No file URI available")
-            
+
             from google.genai import types
-            file_part = types.Part.from_uri(file_uri=file_uri, mime_type=mime_type or "audio/webm")
-            
+            file_part = types.Part.from_uri(
+                file_uri=file_uri, mime_type=mime_type or "audio/webm")
+
             response = gemini_client.models.generate_content(
                 model="gemini-2.5-pro",
                 contents=[file_part, prompt]
             )
-            
+
             # Clean up the uploaded file
             if hasattr(audio_file, 'name') and audio_file.name:
                 try:
                     gemini_client.files.delete(name=audio_file.name)
                 except:
                     pass  # Ignore cleanup errors
-            
+
             # Extract transcription
             transcription = getattr(response, 'text', None)
             if not transcription:
                 raise ValueError("No transcription returned")
-            
+
             transcription = transcription.strip()
-            print(f"✅ Audio transcribed successfully: {len(transcription)} characters")
+            print(
+                f"✅ Audio transcribed successfully: {len(transcription)} characters")
             return transcription
 
         except Exception as e:

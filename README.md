@@ -507,7 +507,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For questions or feedback:
 
 - **GitHub Issues**: [github.com/muneer320/oratio/issues](https://github.com/muneer320/oratio/issues)
-- **Email**: your.email@example.com
+- **Email**: muneer.alam320@gmail.com
 
 ---
 

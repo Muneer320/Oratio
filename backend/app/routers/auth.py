@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from app.schemas import UserCreate, UserLogin, UserResponse, UserUpdate, Token
 from app.replit_auth import ReplitAuth, get_current_user, REPLIT_AUTH_AVAILABLE
-from app.replit_db import ReplitDB, Collections
+from app.supabase_db import DatabaseWrapper as DB, Collections
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -59,14 +59,14 @@ async def update_user(
     Update current user's profile
     """
     user_id = str(current_user["id"])
-    
+
     update_data = user_update.model_dump(exclude_unset=True)
-    
-    updated_user = ReplitDB.update(Collections.USERS, user_id, update_data)
-    
+
+    updated_user = DB.update(Collections.USERS, user_id, update_data)
+
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     return updated_user
 
 

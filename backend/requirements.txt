@@ -4,17 +4,27 @@ uvicorn[standard]>=0.20.0
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 
+# Database
+supabase>=2.0.0
+postgrest>=0.10.0
+sqlalchemy>=2.0.0
+databases>=0.8.0
+
 # File handling
 python-multipart>=0.0.5
 aiofiles>=23.0.0
 
 # Environment & Security
 python-dotenv>=1.0.0
+email-validator>=2.0.0
 
-# Replit-specific packages
+# Replit-specific packages (fallback)
 replit>=3.0.0
-replit-ai>=0.1.0
+replit-ai>=0.0.11
 Flask>=2.3.0
+
+# AI Providers
+google-generativeai>=0.3.0
 
 # WebSockets
 websockets>=12.0
@@ -27,5 +37,3 @@ requests>=2.31.0
 # Utilities
 python-dateutil>=2.8.2
 httpx>=0.25.0
-
-

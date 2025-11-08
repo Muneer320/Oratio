@@ -3,7 +3,7 @@ modules = ["python-3.12", "nodejs-20", "web"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["freetype", "gumbo", "harfbuzz", "jbig2dec", "libjpeg_turbo", "libxcrypt", "mupdf", "openjpeg", "swig", "xcbuild"]
+packages = ["freetype", "gumbo", "harfbuzz", "jbig2dec", "libiconv", "libjpeg_turbo", "libxcrypt", "mupdf", "openjpeg", "swig", "xcbuild"]
 
 [deployment]
 run = ["bash", "-c", "cd backend && uvicorn app.main:app --host 0.0.0.0 --port 5000 & cd frontend && npx serve -s dist -l 5000"]
@@ -25,10 +25,6 @@ externalPort = 3002
 [[ports]]
 localPort = 8000
 externalPort = 8000
-
-[[ports]]
-localPort = 39195
-externalPort = 3003
 
 [[ports]]
 localPort = 43531
@@ -57,13 +53,13 @@ args = "Frontend Server"
 name = "Backend Server"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-waitForPort = 8000
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --timeout-keep-alive 75 --backlog 2048 --limit-concurrency 1000 --no-access-log"
+waitForPort = 8000
 
 [[workflows.workflow]]
 name = "Frontend Server"

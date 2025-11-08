@@ -30,6 +30,7 @@ Preferred communication style: Simple, everyday language.
 6. Added 9 achievement badges total (Profile page)
 7. Added tooltips to bottom navigation bar
 8. Backend: New `/api/user` endpoints for stats and history aggregation
+9. **Functional Training Feature:** Start Training button now creates real debate rooms with selected topics
 
 ## System Architecture
 

@@ -8,11 +8,11 @@ router = APIRouter(prefix="/api/user", tags=["User"])
 
 
 @router.get("/stats")
-async def get_user_stats(current_user: User = Depends(get_current_user)):
+async def get_user_stats(current_user: Dict = Depends(get_current_user)):
     """
     Get comprehensive user statistics including debates joined, hosted, win rate, etc.
     """
-    user_id = str(current_user.id)
+    user_id = str(current_user.get("id"))
     
     # Get all rooms where user participated
     all_participants = DB.find(Collections.PARTICIPANTS, {"user_id": user_id})
@@ -113,7 +113,7 @@ async def get_user_stats(current_user: User = Depends(get_current_user)):
     
     return {
         "user_id": user_id,
-        "username": current_user.username or current_user.name,
+        "username": current_user.get("username") or current_user.get("name"),
         "level": level,
         "xp": total_xp,
         "xp_progress": xp_progress,
@@ -132,11 +132,11 @@ async def get_user_stats(current_user: User = Depends(get_current_user)):
 
 
 @router.get("/history")
-async def get_user_history(current_user: User = Depends(get_current_user)):
+async def get_user_history(current_user: Dict = Depends(get_current_user)):
     """
     Get user's debate history with detailed information
     """
-    user_id = str(current_user.id)
+    user_id = str(current_user.get("id"))
     
     # Get all participations
     all_participants = DB.find(Collections.PARTICIPANTS, {"user_id": user_id})

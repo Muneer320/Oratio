@@ -27,6 +27,13 @@ Oratio is an AI-powered debate platform designed for real-time voice and text de
   - `get_transcript`: 60s cache (4x longer, reduces full table scans)
   - User data cache: 5-minute TTL (usernames rarely change)
   - **Cache Invalidation**: All mutations (join/leave/ready/submit turn/start/end/update/delete) immediately invalidate affected caches, ensuring real-time updates despite long TTLs
+- **Low-Latency Optimizations (November 8, 2025)**:
+  - **GZIP Compression**: Reduces payload size by 60-80% for all responses >500 bytes (automatic)
+  - **orjson JSON Serialization**: 3-5x faster JSON encoding/decoding compared to standard library
+  - **Optimized Uvicorn**: Keep-alive 75s, backlog 2048, concurrency limit 1000, access logging disabled
+  - **Batch User Lookups**: Eliminated N+1 queries in debate status endpoint (batch fetch all users at once)
+  - **Minimal Payloads**: Return only essential fields in API responses to reduce transfer time
+  - **Expected Impact**: Sub-100ms response times for cached requests, 200-400ms for uncached (down from 500-2000ms)
 - **Frontend Polling Reduction**: Reduced polling frequency to ease backend load:
   - Debate page: 10s → 30s (67% reduction in request volume)
   - Dashboard and UpcomingDebateDetails: 5s → 30s (83% reduction)

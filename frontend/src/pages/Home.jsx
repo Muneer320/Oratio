@@ -149,12 +149,38 @@ function Home() {
             </motion.button>
 
             <motion.button
-              onClick={() => navigate('/profile')}
-              className="group relative px-5 py-2.5 bg-dark-elevated/90 backdrop-blur-sm border border-dark-warm hover:border-accent-saffron/50 text-text-primary rounded-xl font-medium text-sm overflow-hidden"
+              onClick={() => navigate('/add')}
+              className="group relative px-5 py-2.5 bg-gradient-to-br from-accent-rust to-accent-rust/80 text-white rounded-xl font-medium text-sm overflow-hidden"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Host Debate
+              </span>
+            </motion.button>
+
+            <motion.button
+              onClick={() => navigate('/home')}
+              className="group relative px-5 py-2.5 bg-dark-elevated border border-accent-saffron/40 text-accent-saffron rounded-xl font-medium text-sm overflow-hidden backdrop-blur-sm"
+              whileHover={{ scale: 1.05, borderColor: 'rgba(240, 198, 116, 0.8)' }}
+              whileTap={{ scale: 0.95 }}
+            >
               <div className="absolute inset-0 bg-gradient-to-br from-accent-saffron/0 to-accent-saffron/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative flex items-center gap-2">
+                <DoorOpen className="w-4 h-4" />
+                Join Room
+              </span>
+            </motion.button>
+
+            <motion.button
+              onClick={() => navigate('/profile')}
+              className="group relative px-5 py-2.5 bg-dark-elevated/90 backdrop-blur-sm border border-dark-warm hover:border-accent-teal/50 text-text-primary rounded-xl font-medium text-sm overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/0 to-accent-teal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span className="relative flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 {user?.username || user?.email}

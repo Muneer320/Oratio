@@ -2,6 +2,23 @@
 
 Oratio is an AI-powered debate platform designed for real-time voice and text debates. It features AI-based judging, structured debate rooms, spectating capabilities, and personalized training feedback. The platform utilizes the LCR (Logic, Credibility, Rhetoric) model for debate evaluation and incorporates gamified elements like XP and badges to enhance the learning experience. The project aims to provide a comprehensive and engaging environment for improving debate skills.
 
+# Recent Changes (November 2025)
+
+**Critical Bug Fixes:**
+- Fixed "Host Anonymous" bug by implementing host name enrichment across all room endpoints (create/list/get)
+- Fixed "Room Full" bug by checking if current user is already a participant before showing capacity limits
+- Fixed "Everyone Joining as Spectator" bug by implementing confirmation polling that waits up to 10 seconds to verify user appears in participant list with role='debater' before navigation
+- Fixed request timeout issues by increasing default API timeout from 30s to 60s across all methods (GET, POST, PUT, DELETE, uploadFile, postFormData)
+
+**Performance Optimizations:**
+- Reduced API polling intervals from 5s to 15s on Dashboard and UpcomingDebateDetails pages (66% reduction in API load)
+- Added comprehensive timeout handling with AbortController to prevent stuck submit buttons
+
+**Join Flow Improvements:**
+- Join operation now waits for backend confirmation before navigating to debate page
+- If confirmation fails after 10 retries, user sees clear error message and can retry
+- Navigation is strictly gated on confirmed debater status, preventing spectator mode entry
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

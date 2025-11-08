@@ -45,6 +45,7 @@ async def create_room(
     Create a new debate room
     """
     room_code = generate_room_code()
+    is_training = room_data.topic.startswith("AI Training:")
 
     new_room = {
         "topic": room_data.topic,
@@ -58,10 +59,27 @@ async def create_room(
         "status": DebateStatus.UPCOMING.value,
         "host_id": current_user["id"],
         "resources": room_data.resources or [],
-        "room_code": room_code
+        "room_code": room_code,
+        "is_training": is_training
     }
 
     room = DB.insert(Collections.ROOMS, new_room)
+    
+    # If this is a training room, create an AI opponent participant
+    if is_training:
+        ai_participant = {
+            "room_id": room["id"],
+            "user_id": "ai_opponent",
+            "username": "AI Opponent",
+            "role": "debater",
+            "team": None,
+            "position": 1,
+            "is_ready": True,
+            "is_ai": True,
+            "joined_at": datetime.utcnow().isoformat()
+        }
+        DB.insert(Collections.PARTICIPANTS, ai_participant)
+    
     return enrich_room_with_host(room)
 
 

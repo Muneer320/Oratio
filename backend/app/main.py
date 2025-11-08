@@ -10,7 +10,8 @@ from app.replit_auth import REPLIT_AUTH_AVAILABLE
 import os
 
 from app.routers import auth, rooms, participants, spectators, debate, ai, trainer, uploads, utils, user
-from app.websockets import debate as ws_debate, spectator as ws_spectator, trainer as ws_trainer
+from app.socketio_app import sio
+import socketio
 
 # Create FastAPI app with orjson for 3-5x faster JSON serialization
 app = FastAPI(
@@ -19,6 +20,9 @@ app = FastAPI(
     version="1.0.0",
     default_response_class=ORJSONResponse  # Use orjson for all responses (3-5x faster)
 )
+
+# Mount Socket.IO
+socket_app = socketio.ASGIApp(sio, app)
 
 # Performance Middlewares (order matters - GZIP should be first)
 # GZIP Compression - reduces payload size by 60-80% for responses >500 bytes
@@ -44,11 +48,6 @@ app.include_router(trainer.router)
 app.include_router(uploads.router)
 app.include_router(utils.router)
 app.include_router(user.router)
-
-# Include WebSocket routers
-app.include_router(ws_debate.router)
-app.include_router(ws_spectator.router)
-app.include_router(ws_trainer.router)
 
 
 # Startup and shutdown events

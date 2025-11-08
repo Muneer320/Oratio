@@ -7,7 +7,7 @@ from app.replit_db import DB, Collections
 from app.gemini_ai import GeminiAI
 from app.models import DebateStatus
 from app.cache import user_cache, room_cache
-from app.websockets import manager
+from app.socketio_app import broadcast_to_room
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
 
@@ -207,14 +207,13 @@ Generate a compelling debate argument (2-3 paragraphs). Be persuasive, use logic
         new_turn = DB.insert(Collections.TURNS, ai_turn)
         print(f"🤖 AI Opponent submitted turn {turn_number} in round {round_number}")
         
-        # Broadcast WebSocket notification
-        await manager.broadcast({
-            "type": "new_turn",
+        # Broadcast Socket.IO notification
+        await broadcast_to_room(room["id"], "new_turn", {
             "turn": new_turn,
             "speaker_id": ai_participant["id"],
             "speaker_name": "AI Opponent",
             "timestamp": new_turn.get("submitted_at")
-        }, room["id"])
+        })
         
     except Exception as e:
         print(f"⚠️  AI turn generation failed: {e}")
@@ -441,17 +440,16 @@ async def submit_turn(
     room_cache.delete(f"debate_status_{room_id}")
     room_cache.delete(f"transcript_{room_id}")
     
-    # Broadcast WebSocket notification for real-time updates
+    # Broadcast Socket.IO notification for real-time updates
     try:
-        await manager.broadcast({
-            "type": "new_turn",
+        await broadcast_to_room(room["id"], "new_turn", {
             "turn": turn,
             "speaker_id": participant["id"],
             "speaker_name": current_user.get("username", "Anonymous"),
             "timestamp": turn.get("timestamp")
-        }, room["id"])
+        })
     except Exception as ws_error:
-        print(f"⚠️  WebSocket broadcast failed: {ws_error}")
+        print(f"⚠️  Socket.IO broadcast failed: {ws_error}")
 
     # Check if round is complete and trigger batch analysis
     await check_and_analyze_round(room, turn_data.round_number)

@@ -35,11 +35,12 @@ Preferred communication style: Simple, everyday language.
     - AI generates contextual arguments in response to human debater
     - AI auto-responds after each human turn
     - AI scored using same LCR model as humans
-11. **Real-Time Chat System:** Debate rooms now use WebSocket connections for instant updates
-    - Removed 30-second polling in favor of real-time WebSocket broadcasts
+11. **Real-Time Chat System:** Debate rooms now use Socket.IO for instant updates
+    - Removed 30-second polling in favor of real-time Socket.IO broadcasts
     - All debate turns (human and AI) broadcast instantly to all participants
     - WhatsApp-style auto-scroll to latest messages
-    - Backend broadcasts events: `new_turn`, `participant_update`, `debate_status`
+    - Automatic reconnection and fallback support (websocket → polling)
+    - Backend broadcasts events: `new_turn` to room participants
 
 ## System Architecture
 
@@ -121,19 +122,19 @@ Preferred communication style: Simple, everyday language.
 - Challenge generation based on detected weaknesses
 - XP and badge system for gamification
 
-### WebSocket Architecture
+### Real-Time Communication (Socket.IO)
 
 **Connection Management:**
-- Room-based connection pooling (one pool per debate room)
-- Separate channels for debaters (`/ws/debate/{room_id}`), spectators (`/ws/spectator/{room_id}`), and trainer (`/ws/trainer/{user_id}`)
-- Broadcast pattern for real-time updates to all connected clients in a room
+- Socket.IO with automatic reconnection and fallback (websocket → polling)
+- Room-based broadcast system using `socket.emit(event, data, room=room_id)`
+- Clients join/leave rooms dynamically via `join_room` and `leave_room` events
+- Persistent connections with heartbeat monitoring
 
 **Event Types:**
-- Debate events: `turn_submitted`, `participant_joined`, `participant_ready`, `debate_started`
-- Spectator events: `reaction`, `support_update`
-- Trainer events: `progress_update`, `new_recommendation`, `challenge_completed`
+- Debate events: `new_turn` - broadcasts when any participant submits an argument
+- Room events: `joined` - confirms room join, `disconnect` - handles client disconnection
 
-**Design Tradeoff:** Simple broadcast model without message persistence (clients must handle reconnection and state recovery)
+**Design Tradeoff:** Simple broadcast model without message persistence (clients reload data on reconnection for data consistency)
 
 ### File Upload System
 
@@ -211,6 +212,10 @@ Preferred communication style: Simple, everyday language.
 - `beautifulsoup4>=4.12.0` - HTML parsing
 - `httpx>=0.25.0` - Async HTTP client
 
+**Real-Time:**
+- `python-socketio>=5.14.0` - Socket.IO server for real-time updates
+- `python-engineio>=4.12.0` - Engine.IO protocol (Socket.IO dependency)
+
 ### JavaScript Packages
 
 **Core Framework:**
@@ -224,6 +229,9 @@ Preferred communication style: Simple, everyday language.
 - `gsap@3.13.0` - Advanced animation toolkit
 - `lucide-react@0.553.0` - Icon library
 - `recharts@3.3.0` - Chart/visualization library
+
+**Real-Time:**
+- `socket.io-client` - Socket.IO client for real-time updates
 
 ### Environment Configuration
 

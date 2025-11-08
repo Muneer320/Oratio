@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 from app.schemas import TurnSubmit, TurnResponse
 from app.replit_auth import get_current_user
 from app.replit_db import ReplitDB, Collections
-from app.replit_ai import ReplitAI
+from app.gemini_ai import GeminiAI
 from app.models import DebateStatus
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
@@ -36,7 +36,7 @@ async def submit_turn(
     if not participant:
         raise HTTPException(status_code=403, detail="Not a participant in this debate")
     
-    ai_feedback = await ReplitAI.analyze_debate_turn(
+    ai_feedback = await GeminiAI.analyze_debate_turn(
         turn_content=turn_data.content,
         context=room.get("topic")
     )
@@ -137,7 +137,7 @@ async def end_debate(
         if participant["role"] == "debater":
             participant_scores[participant["id"]] = participant.get("score", {})
     
-    final_verdict = await ReplitAI.generate_final_verdict(
+    final_verdict = await GeminiAI.generate_final_verdict(
         room_data=room,
         all_turns=turns,
         participant_scores=participant_scores

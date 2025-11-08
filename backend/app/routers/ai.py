@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
 from app.schemas import AIAnalyzeTurn, AIFactCheck, AIFinalScore
 from app.replit_db import ReplitDB, Collections
-from app.replit_ai import ReplitAI
+from app.gemini_ai import GeminiAI
 
 router = APIRouter(prefix="/api/ai", tags=["AI Judging"])
 
@@ -26,7 +26,7 @@ async def analyze_turn(data: AIAnalyzeTurn):
         limit=10
     )
     
-    analysis = await ReplitAI.analyze_debate_turn(
+    analysis = await GeminiAI.analyze_debate_turn(
         turn_content=turn["content"],
         context=room.get("topic"),
         previous_turns=[t["content"] for t in previous_turns]
@@ -42,7 +42,7 @@ async def fact_check(data: AIFactCheck):
     """
     Fact-check a statement using web search
     """
-    result = await ReplitAI.fact_check(
+    result = await GeminiAI.fact_check(
         statement=data.statement,
         context=data.context
     )

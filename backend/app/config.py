@@ -18,14 +18,10 @@ class Settings(BaseSettings):
     # Use Replit Database (no need for DATABASE_URL)
     USE_REPLIT_DB: bool = True
 
-    # Use Replit AI instead of OpenAI
-    USE_REPLIT_AI: bool = True
-    REPLIT_AI_API_KEY: str = os.getenv("REPLIT_AI_API_KEY", "")
-
-    # Fallback to OpenAI if needed
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL: str = "gpt-4o-mini"  # Cost-effective model for debate analysis
-    OPENAI_TEMPERATURE: float = 0.7
+    # Use Gemini AI exclusively
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_TEMPERATURE: float = 0.7
 
     # Fact-Checking (Serper is free tier friendly)
     SERPER_API_KEY: str = os.getenv("SERPER_API_KEY", "")

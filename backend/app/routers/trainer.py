@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 from app.schemas import TrainerAnalyze, TrainerProgress, ChallengeStart, ChallengeSubmit, TrainerRecommendation
 from app.replit_auth import get_current_user
 from app.replit_db import ReplitDB, Collections
-from app.replit_ai import ReplitAI
+from app.gemini_ai import GeminiAI
 import secrets
 
 router = APIRouter(prefix="/api/trainer", tags=["AI Trainer"])
@@ -188,7 +188,7 @@ async def submit_challenge(
     """
     Submit response to a training challenge
     """
-    analysis = await ReplitAI.analyze_debate_turn(
+    analysis = await GeminiAI.analyze_debate_turn(
         turn_content=data.response,
         context=f"Training exercise: {data.challenge_id}"
     )

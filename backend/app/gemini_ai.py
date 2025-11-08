@@ -1,127 +1,93 @@
 """
-Replit AI integration for Oratio
-Uses Replit's built-in AI API for debate judging and analysis
-Falls back to OpenAI GPT-4o mini if Replit AI unavailable
+Gemini AI integration for Oratio
+Uses Google Gemini AI exclusively for debate judging and analysis
 """
 import httpx
 import json
 from typing import Optional, Dict, Any, List
 from app.config import settings
 
-# Try to import Replit AI
+# Import Gemini
 try:
-    from replit.ai.modelfarm import CompletionModel, ChatModel, ChatExample, ChatMessage, ChatSession
-    REPLIT_AI_AVAILABLE = True
-    print("✅ Replit AI available")
-except ImportError:
-    REPLIT_AI_AVAILABLE = False
-    print("⚠️  Replit AI not available, will use fallback")
-
-# Try to import OpenAI
-try:
-    from openai import AsyncOpenAI
-    OPENAI_AVAILABLE = bool(settings.OPENAI_API_KEY)
-    if OPENAI_AVAILABLE:
-        openai_client = AsyncOpenAI(
-            api_key=settings.OPENAI_API_KEY,
-            timeout=60.0,  # 60 second timeout for requests
-            max_retries=2   # Retry failed requests twice
-        )
-        print("✅ OpenAI fallback available")
+    from google import genai
+    GEMINI_AVAILABLE = bool(settings.GEMINI_API_KEY)
+    if GEMINI_AVAILABLE:
+        gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        print("✅ Gemini AI available")
     else:
-        openai_client = None
-        print("⚠️  OpenAI API key not configured")
+        gemini_client = None
+        print("⚠️  Gemini API key not configured")
 except ImportError:
-    OPENAI_AVAILABLE = False
-    openai_client = None
-    print("⚠️  OpenAI package not installed")
+    GEMINI_AVAILABLE = False
+    gemini_client = None
+    print("⚠️  Gemini package not installed")
 
 
-class ReplitAI:
-    """Wrapper for Replit AI API"""
+class GeminiAI:
+    """Wrapper for Gemini AI API"""
 
     @staticmethod
     async def chat_completion(
         messages: List[Dict[str, str]],
-        model: str = "chat-bison",
+        model: str = "gemini-2.0-flash",
         temperature: float = 0.7,
         max_tokens: int = 1000
     ) -> str:
         """
-        Generate chat completion using AI cascade:
-        1. Try Replit AI first (primary)
-        2. Fall back to OpenAI GPT-4o mini (secondary)
-        3. Fall back to static response (last resort)
+        Generate chat completion using Gemini AI
         """
 
-        # Strategy 1: Try Replit AI
-        if REPLIT_AI_AVAILABLE:
-            try:
-                # Use Replit AI ChatModel
-                model_instance = ChatModel(model)
+        if not GEMINI_AVAILABLE or not gemini_client:
+            print("⚠️  Gemini AI unavailable, using static fallback")
+            return GeminiAI._fallback_response(messages[-1]["content"])
 
-                # Convert messages to ChatMessage format
-                chat_messages = [
-                    ChatMessage(
-                        author="USER" if msg["role"] == "user" else "ASSISTANT",
-                        content=msg["content"]
-                    )
-                    for msg in messages
-                ]
-
-                # Call chat method with ChatSession
-                response = model_instance.chat(
-                    [ChatSession(
-                        context="You are an expert debate judge analyzing arguments.",
-                        examples=[],
-                        messages=chat_messages
-                    )],
-                    temperature=temperature
-                )
-                
-                # Extract response content
-                result = response.responses[0].candidates[0].message.content
-                print("✅ Using Replit AI")
-                return result
-
-            except Exception as e:
-                print(f"⚠️  Replit AI failed: {e}, trying OpenAI...")
-
-        # Strategy 2: Try OpenAI with retry logic
-        if OPENAI_AVAILABLE and openai_client:
-            import asyncio
+        try:
+            # Convert messages to Gemini format
+            # Combine system and user messages for Gemini
+            system_instruction = None
+            user_content = []
             
-            # Try up to 3 times with exponential backoff
-            for attempt in range(3):
-                try:
-                    response = await openai_client.chat.completions.create(
-                        model=settings.OPENAI_MODEL,
-                        messages=messages,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        response_format={"type": "json_object"} if any("JSON" in msg.get("content", "") for msg in messages) else None
-                    )
-                    result = response.choices[0].message.content
-                    print(f"✅ Using OpenAI fallback (attempt {attempt + 1})")
-                    return result
+            for msg in messages:
+                if msg["role"] == "system":
+                    system_instruction = msg["content"]
+                elif msg["role"] == "user":
+                    user_content.append(msg["content"])
+                elif msg["role"] == "assistant":
+                    # Skip assistant messages for now (can be added for multi-turn)
+                    pass
+            
+            # Combine all user messages
+            combined_content = "\n\n".join(user_content)
+            
+            # Generate content with Gemini
+            from google.genai import types
+            
+            config = types.GenerateContentConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+            )
+            
+            if system_instruction:
+                config.system_instruction = system_instruction
+            
+            response = gemini_client.models.generate_content(
+                model=model,
+                contents=combined_content,
+                config=config
+            )
+            
+            result = response.text
+            print(f"✅ Using Gemini AI ({model})")
+            return result
 
-                except Exception as e:
-                    error_type = type(e).__name__
-                    if attempt < 2:  # Don't wait after the last attempt
-                        wait_time = (2 ** attempt) * 0.5  # 0.5s, 1s, 2s
-                        print(f"⚠️  OpenAI attempt {attempt + 1} failed ({error_type}), retrying in {wait_time}s...")
-                        await asyncio.sleep(wait_time)
-                    else:
-                        print(f"⚠️  OpenAI failed after 3 attempts ({error_type}): {str(e)}")
-                        print("⚠️  Using static fallback...")
-
-        # Strategy 3: Static fallback (last resort)
-        print("⚠️  All AI providers unavailable, using static fallback")
-        return ReplitAI._fallback_response(messages[-1]["content"])
+        except Exception as e:
+            print(f"⚠️  Gemini AI failed: {e}")
+            print("⚠️  Using static fallback...")
+            return GeminiAI._fallback_response(messages[-1]["content"])
 
     @staticmethod
     def _fallback_response(prompt: str) -> str:
-        """Simple fallback when Replit AI is unavailable"""
+        """Simple fallback when Gemini AI is unavailable"""
         if "judge" in prompt.lower() or "score" in prompt.lower():
             return """
             {
@@ -129,7 +95,8 @@ class ReplitAI:
                 "credibility": 7,
                 "rhetoric": 7,
                 "feedback": "Good argument structure. Consider adding more evidence.",
-                "winner": "A"
+                "strengths": ["Clear presentation"],
+                "weaknesses": ["Needs more supporting evidence"]
             }
             """
         elif "fact" in prompt.lower():
@@ -171,15 +138,14 @@ Provide scores (0-10) and brief feedback in JSON format:
 """
 
         messages = [
-            {"role": "system", "content": "You are a professional debate judge using the LCR evaluation model."},
+            {"role": "system", "content": "You are a professional debate judge using the LCR evaluation model. Always respond with valid JSON."},
             {"role": "user", "content": prompt}
         ]
 
-        response = await ReplitAI.chat_completion(messages, temperature=0.3, max_tokens=500)
+        response = await GeminiAI.chat_completion(messages, temperature=0.3, max_tokens=500)
 
         try:
             # Try to parse JSON response
-            import json
             # Extract JSON from response
             start = response.find('{')
             end = response.rfind('}') + 1
@@ -229,14 +195,13 @@ Provide a final verdict in JSON:
 """
 
         messages = [
-            {"role": "system", "content": "You are a professional debate judge."},
+            {"role": "system", "content": "You are a professional debate judge. Always respond with valid JSON."},
             {"role": "user", "content": prompt}
         ]
 
-        response = await ReplitAI.chat_completion(messages, temperature=0.5, max_tokens=800)
+        response = await GeminiAI.chat_completion(messages, temperature=0.5, max_tokens=800)
 
         try:
-            import json
             start = response.find('{')
             end = response.rfind('}') + 1
             if start != -1 and end > start:
@@ -300,4 +265,4 @@ Provide a final verdict in JSON:
 
 
 # Export
-__all__ = ["ReplitAI", "REPLIT_AI_AVAILABLE"]
+__all__ = ["GeminiAI", "GEMINI_AVAILABLE"]

@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from app.config import settings
 from app.replit_db import connect_db, disconnect_db, REPLIT_DB_AVAILABLE
-from app.replit_ai import REPLIT_AI_AVAILABLE
+from app.gemini_ai import GEMINI_AVAILABLE
 from app.replit_auth import REPLIT_AUTH_AVAILABLE
 
 from app.routers import auth, rooms, participants, spectators, debate, ai, trainer, uploads, utils
@@ -12,9 +12,9 @@ from app.websockets import debate as ws_debate, spectator as ws_spectator, train
 
 # Create FastAPI app
 app = FastAPI(
-    title="Oratio - AI Debate Platform (Replit Edition)",
-    description="Backend API for Oratio debate platform with Replit AI judging",
-    version="1.0.0-replit")
+    title="Oratio - AI Debate Platform",
+    description="Backend API for Oratio debate platform with Google Gemini AI judging",
+    version="1.0.0")
 
 # CORS Middleware
 app.add_middleware(
@@ -47,7 +47,7 @@ app.include_router(ws_trainer.router)
 async def startup():
     """Run on application startup"""
     print("=" * 60)
-    print("🚀 Oratio API (Replit Edition) Starting...")
+    print("🚀 Oratio API Starting...")
     print("=" * 60)
 
     # Connect to Replit Database
@@ -57,7 +57,7 @@ async def startup():
     features = {
         "Replit Database":
         "✅" if REPLIT_DB_AVAILABLE else "⚠️  (using fallback)",
-        "Replit AI": "✅" if REPLIT_AI_AVAILABLE else "⚠️  (using fallback)",
+        "Gemini AI": "✅" if GEMINI_AVAILABLE else "⚠️  (using fallback)",
         "Replit Auth":
         "✅" if REPLIT_AUTH_AVAILABLE else "⚠️  (using simple auth)",
         "Environment": settings.API_ENV,
@@ -84,12 +84,12 @@ async def shutdown():
 async def health():
     return JSONResponse({
         "status": "ok",
-        "message": "Oratio backend is healthy (Replit Edition)",
+        "message": "Oratio backend is healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "environment": settings.API_ENV,
         "replit_features": {
             "database": REPLIT_DB_AVAILABLE,
-            "ai": REPLIT_AI_AVAILABLE,
+            "gemini_ai": GEMINI_AVAILABLE,
             "auth": REPLIT_AUTH_AVAILABLE
         },
         "repl_info": {
@@ -103,8 +103,8 @@ async def health():
 @app.get("/")
 async def root():
     return {
-        "message": "Oratio API (Replit Edition)",
-        "version": "1.0.0-replit",
+        "message": "Oratio API - Powered by Google Gemini AI",
+        "version": "1.0.0",
         "docs": "/docs",
         "health": "/api/utils/health"
     }

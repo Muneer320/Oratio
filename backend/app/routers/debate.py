@@ -169,7 +169,7 @@ async def end_debate(
 @router.get("/{room_id}/status")
 async def get_debate_status(room_id: str):
     """
-    Get current debate status
+    Get current debate status with participant usernames
     """
     room = ReplitDB.get(Collections.ROOMS, room_id)
     if not room:
@@ -178,9 +178,18 @@ async def get_debate_status(room_id: str):
     participants = ReplitDB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
     turns = ReplitDB.find(Collections.TURNS, {"room_id": room["id"]})
     
+    # Enrich participants with user information (username)
+    enriched_participants = []
+    for participant in participants:
+        user = ReplitDB.get(Collections.USERS, participant["user_id"])
+        if user:
+            participant["username"] = user.get("username", "Unknown")
+            participant["name"] = user.get("full_name") or user.get("username", "Unknown")
+        enriched_participants.append(participant)
+    
     return {
         "room": room,
-        "participants": participants,
+        "participants": enriched_participants,
         "turn_count": len(turns),
         "status": room["status"]
     }

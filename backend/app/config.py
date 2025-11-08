@@ -24,6 +24,8 @@ class Settings(BaseSettings):
 
     # Fallback to OpenAI if needed
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_MODEL: str = "gpt-4o-mini"  # Cost-effective model for debate analysis
+    OPENAI_TEMPERATURE: float = 0.7
 
     # Fact-Checking (Serper is free tier friendly)
     SERPER_API_KEY: str = os.getenv("SERPER_API_KEY", "")

@@ -11,9 +11,9 @@ function Host() {
     description: '',
     scheduled_time: new Date(Date.now() + 60000).toISOString().slice(0, 16),
     duration_minutes: 30,
-    mode: 'TEXT',
-    type: 'INDIVIDUAL',
-    visibility: 'PUBLIC',
+    mode: 'text',
+    type: 'individual',
+    visibility: 'public',
     rounds: 3,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -165,9 +165,9 @@ function Host() {
                     onChange={(e) => setFormData({...formData, mode: e.target.value})}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
                   >
-                    <option value="TEXT">Text</option>
-                    <option value="VOICE">Voice</option>
-                    <option value="HYBRID">Hybrid</option>
+                    <option value="text">Text</option>
+                    <option value="audio">Audio</option>
+                    <option value="both">Both</option>
                   </select>
                 </div>
 
@@ -180,8 +180,8 @@ function Host() {
                     onChange={(e) => setFormData({...formData, type: e.target.value})}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
                   >
-                    <option value="INDIVIDUAL">1v1</option>
-                    <option value="TEAM">Team</option>
+                    <option value="individual">1v1</option>
+                    <option value="team">Team</option>
                   </select>
                 </div>
               </div>

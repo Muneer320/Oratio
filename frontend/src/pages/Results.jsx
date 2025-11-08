@@ -101,7 +101,28 @@ function Results() {
           className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xl shadow-slate-200/50 mb-6"
         >
           <h2 className="text-2xl font-bold text-slate-900 mb-4">Topic</h2>
-          <p className="text-lg text-slate-700">{room?.topic}</p>
+          <p className="text-lg text-slate-700 mb-4">{room?.topic}</p>
+          {room?.description && (
+            <p className="text-slate-600 mb-4">{room.description}</p>
+          )}
+          {room?.resources && room.resources.length > 0 && (
+            <div className="pt-4 border-t border-slate-200">
+              <p className="text-sm font-medium text-slate-700 mb-2">Reference Materials:</p>
+              <div className="space-y-1">
+                {room.resources.map((resource, i) => (
+                  <a
+                    key={i}
+                    href={resource}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-sm text-indigo-600 hover:text-indigo-700 hover:underline"
+                  >
+                    📎 {resource}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {result?.summary && (

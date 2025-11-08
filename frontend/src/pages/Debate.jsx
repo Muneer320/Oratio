@@ -318,6 +318,25 @@ function Debate() {
                     ))}
                   </div>
                 </div>
+
+                {room?.resources && room.resources.length > 0 && (
+                  <div className="pt-4 border-t border-slate-200">
+                    <p className="text-xs text-slate-500 mb-2">Reference Materials:</p>
+                    <div className="space-y-2">
+                      {room.resources.map((resource, i) => (
+                        <a
+                          key={i}
+                          href={resource}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-xs text-indigo-600 hover:text-indigo-700 hover:underline truncate"
+                        >
+                          📎 {resource}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

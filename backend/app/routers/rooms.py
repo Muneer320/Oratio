@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import secrets
 from datetime import datetime
 from app.schemas import RoomCreate, RoomUpdate, RoomResponse
@@ -50,7 +50,7 @@ async def create_room(
 
 @router.get("/list", response_model=List[RoomResponse])
 async def list_rooms(
-    status: str = None,
+    status: Optional[str] = None,
     limit: int = 100
 ):
     """

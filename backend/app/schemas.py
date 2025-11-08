@@ -75,13 +75,21 @@ class RoomUpdate(BaseModel):
     status: Optional[DebateStatus] = None
 
 
-class RoomResponse(RoomBase):
+class RoomResponse(BaseModel):
     id: int
-    status: DebateStatus
+    topic: str
+    description: Optional[str] = None
+    scheduled_time: str
+    duration_minutes: int
+    mode: str
+    type: str
+    visibility: str
+    rounds: int
+    status: str
     host_id: int
     room_code: str
-    resources: List[Dict[str, Any]]
-    created_at: datetime
+    resources: List[str]
+    created_at: str
 
     class Config:
         from_attributes = True

@@ -67,13 +67,6 @@ app.include_router(uploads.router)
 app.include_router(utils.router)
 app.include_router(user.router)
 
-# Serve static files from frontend/dist in production
-frontend_dist = Path(__file__).parent.parent.parent / "frontend" / "dist"
-if frontend_dist.exists():
-    print(f"📁 Serving static frontend from: {frontend_dist}")
-    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="static")
-else:
-    print("⚠️  Frontend dist folder not found - API only mode")
 
 # Startup and shutdown events
 @app.on_event("startup")

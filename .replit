@@ -18,9 +18,9 @@ packages = [
 ]
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "vm"
 build = ["bash", "build_frontend.sh"]
-run = ["uvicorn", "app.main:socket_app", "--host", "0.0.0.0", "--port", "5000", "--app-dir", "backend"]
+run = ["bash", "-c", "cd backend && uvicorn app.main:socket_app --host 0.0.0.0 --port 8000 & cd frontend && npx serve -s dist -l 5000"]
 
 [[ports]]
 localPort = 5000

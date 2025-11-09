@@ -30,7 +30,8 @@ app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=6)
 
 # CORS Middleware - Production & Development origins
 allowed_origins = [
-    "https://orat-io.replit.app",  # Production
+    "https://orat-io.replit.app",  # Production frontend
+    "https://orat-io.replit.app:8000",  # Production backend
     "http://localhost:5000",  # Local dev
     "http://127.0.0.1:5000",  # Local dev alternative
 ]

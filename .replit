@@ -19,15 +19,8 @@ packages = [
 
 [deployment]
 deploymentTarget = "autoscale"
-# Build the frontend before deployment
 build = ["bash", "build_frontend.sh"]
-
-# Run both servers, with frontend exposed on port 5000 (required for autoscale health check)
-run = [
-  "bash",
-  "-c",
-  "cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 & cd frontend && npx serve -s dist -l 5000",
-]
+run = ["bash", "-c", "cd backend && uvicorn app.main:socket_app --host 0.0.0.0 --port 8000 & cd frontend && npx serve -s dist -l 5000"]
 
 [[ports]]
 localPort = 5000

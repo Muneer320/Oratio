@@ -2,12 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
+from fastapi.staticfiles import StaticFiles
 from datetime import datetime
 from app.config import settings
 from app.replit_db import REPLIT_DB_AVAILABLE
 from app.gemini_ai import GEMINI_AVAILABLE, REPLIT_AI_AVAILABLE
 from app.replit_auth import REPLIT_AUTH_AVAILABLE
 import os
+from pathlib import Path
 
 from app.routers import auth, rooms, participants, spectators, debate, ai, trainer, uploads, utils, user
 from app.socketio_app import sio
@@ -65,6 +67,13 @@ app.include_router(uploads.router)
 app.include_router(utils.router)
 app.include_router(user.router)
 
+# Serve static files from frontend/dist in production
+frontend_dist = Path(__file__).parent.parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    print(f"📁 Serving static frontend from: {frontend_dist}")
+    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="static")
+else:
+    print("⚠️  Frontend dist folder not found - API only mode")
 
 # Startup and shutdown events
 @app.on_event("startup")

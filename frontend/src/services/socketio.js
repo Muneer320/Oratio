@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 
+// Use production API URL or fall back to current origin
 const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
 
 class SocketService {

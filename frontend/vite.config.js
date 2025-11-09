@@ -11,6 +11,7 @@ export default defineConfig({
     strictPort: false,
     allowedHosts: [
       "all",
+      "orat-io.replit.app",
       "1b30c50e-5d45-4d93-a9ab-7423c61d9c21-00-1f0hhy6mf29d9.sisko.replit.dev",
     ],
     proxy: {

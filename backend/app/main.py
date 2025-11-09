@@ -28,10 +28,25 @@ socket_app = socketio.ASGIApp(sio, app)
 # GZIP Compression - reduces payload size by 60-80% for responses >500 bytes
 app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=6)
 
-# CORS Middleware
+# CORS Middleware - Production & Development origins
+allowed_origins = [
+    "https://orat-io.replit.app",  # Production
+    "http://localhost:5000",  # Local dev
+    "http://127.0.0.1:5000",  # Local dev alternative
+]
+
+# Add Replit dev domains if available
+replit_domains = os.getenv("REPLIT_DOMAINS", "").split(",")
+for domain in replit_domains:
+    if domain.strip():
+        allowed_origins.append(f"https://{domain.strip()}")
+        allowed_origins.append(f"http://{domain.strip()}")
+
+print(f"🔗 Allowed CORS origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

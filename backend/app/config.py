@@ -51,9 +51,13 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    # pydantic v2 settings - use model_config to control env parsing
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True,
+        # Ignore extra environment variables (e.g., SUPABASE_* left in .env)
+        "extra": "ignore",
+    }
 
 
 settings = Settings()

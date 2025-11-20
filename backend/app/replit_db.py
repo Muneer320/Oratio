@@ -10,11 +10,20 @@ import os
 # Try to import Replit DB, fallback to dict for local development
 try:
     from replit import db
-    REPLIT_DB_AVAILABLE = True
-    print("✅ Using Replit Database")
+    # The `replit` package may be installed but not provide a usable `db`
+    # (it can be None or an uninitialized backend). Verify it exposes the
+    # dict-like API we expect; otherwise fall back to in-memory storage.
+    if db is None or not hasattr(db, "keys") or not hasattr(db, "get"):
+        _db = {}
+        REPLIT_DB_AVAILABLE = False
+        print("⚠️  Replit DB detected but not initialized; using in-memory storage")
+    else:
+        _db = db
+        REPLIT_DB_AVAILABLE = True
+        print("✅ Using Replit Database")
 except ImportError:
     # Fallback to in-memory dict for local development
-    db = {}
+    _db = {}
     REPLIT_DB_AVAILABLE = False
     print("⚠️  Replit DB not available, using in-memory storage (data will not persist)")
 
@@ -29,9 +38,9 @@ class ReplitDB:
     def _generate_id(collection: str) -> str:
         """Generate unique ID for a collection"""
         counter_key = f"_{collection}_counter"
-        current = db.get(counter_key, 0)
+        current = _db.get(counter_key, 0)
         new_id = current + 1
-        db[counter_key] = new_id
+        _db[counter_key] = new_id
         return str(new_id)
 
     @staticmethod
@@ -49,14 +58,14 @@ class ReplitDB:
             data["created_at"] = datetime.utcnow().isoformat()
 
         key = ReplitDB._make_key(collection, str(data["id"]))
-        db[key] = json.dumps(data)
+        _db[key] = json.dumps(data)
         return data
 
     @staticmethod
     def get(collection: str, id: str) -> Optional[Dict[str, Any]]:
         """Get document by ID"""
         key = ReplitDB._make_key(collection, id)
-        value = db.get(key)
+        value = _db.get(key)
         return json.loads(value) if value else None
 
     @staticmethod
@@ -70,15 +79,15 @@ class ReplitDB:
         existing["updated_at"] = datetime.utcnow().isoformat()
 
         key = ReplitDB._make_key(collection, id)
-        db[key] = json.dumps(existing)
+        _db[key] = json.dumps(existing)
         return existing
 
     @staticmethod
     def delete(collection: str, id: str) -> bool:
         """Delete document"""
         key = DB._make_key(collection, id)
-        if key in db:
-            del db[key]
+        if key in _db:
+            del _db[key]
             return True
         return False
 
@@ -89,10 +98,18 @@ class ReplitDB:
         prefix = f"{collection}:"
 
         # Get all keys for this collection
-        keys = [k for k in db.keys() if k.startswith(prefix)]
+        # When using the real Replit DB, the `.keys()` call may not behave
+        # exactly like a dict; we already guarded above so `_db` is
+        # dict-like. This comprehension is safe on both memory and
+        # replit-backed dicts that implement `.keys()`.
+        try:
+            keys = [k for k in _db.keys() if k.startswith(prefix)]
+        except Exception:
+            # As a fallback, treat as empty
+            keys = []
 
         for key in keys[:limit]:
-            value = db.get(key)
+            value = _db.get(key)
             if value:
                 doc = json.loads(value)
 
@@ -121,9 +138,12 @@ class ReplitDB:
     def clear_collection(collection: str):
         """Clear all documents in collection"""
         prefix = f"{collection}:"
-        keys_to_delete = [k for k in db.keys() if k.startswith(prefix)]
+        try:
+            keys_to_delete = [k for k in _db.keys() if k.startswith(prefix)]
+        except Exception:
+            keys_to_delete = []
         for key in keys_to_delete:
-            del db[key]
+            del _db[key]
 
 
 # Collection names
@@ -158,4 +178,5 @@ async def disconnect_db():
 DB = ReplitDB
 
 # Export the database instance
-__all__ = ["ReplitDB", "DB", "Collections", "connect_db", "disconnect_db", "db", "REPLIT_DB_AVAILABLE"]
+__all__ = ["ReplitDB", "DB", "Collections", "connect_db",
+           "disconnect_db", "db", "REPLIT_DB_AVAILABLE"]

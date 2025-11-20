@@ -10,7 +10,7 @@ Write-Host ""
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $backendDir = Join-Path $scriptDir "backend"
 $frontendDir = Join-Path $scriptDir "frontend"
-$venvDir = Join-Path $scriptDir "venv"
+$venvDir = Join-Path $backendDir "venv"
 
 # Function to check if command exists
 function Test-CommandExists {
@@ -83,20 +83,24 @@ if (-not (Test-Path $envFile)) {
     Write-Host "Creating template .env file..." -ForegroundColor Yellow
     
     @"
-# Supabase (Primary Database)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your_supabase_anon_key_here
-
-# Google Gemini AI (Primary AI)
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# API Configuration
+# Oratio - Local development .env
 API_ENV=development
 WS_PORT=8000
-CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
-
-# Render flag (leave false for local)
 RENDER=false
+
+# CORS - comma separated
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8000
+
+# Security
+SECRET_KEY=dev-secret-change-me-in-prod
+
+# AI - Leave empty for static/local fallback
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-pro
+GEMINI_TEMPERATURE=0.7
+
+# Local dev helper
+FORCE_LOCAL=true
 "@ | Out-File -FilePath $envFile -Encoding utf8
     
     Write-Host "✓ Template .env created at: $envFile" -ForegroundColor Green
@@ -134,9 +138,8 @@ Write-Host "✅ Setup Complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "1. Edit backend/.env with your credentials" -ForegroundColor White
-Write-Host "   - Get Supabase credentials from: https://supabase.com/dashboard" -ForegroundColor Gray
-Write-Host "   - Get Gemini API key from: https://aistudio.google.com/app/apikey" -ForegroundColor Gray
+Write-Host "1. Edit backend/.env if you want to add API keys (optional)" -ForegroundColor White
+Write-Host "   - GEMINI_API_KEY (optional) from: https://aistudio.google.com/app/apikey" -ForegroundColor Gray
 Write-Host ""
 Write-Host "2. Start the backend server:" -ForegroundColor White
 Write-Host "   cd backend" -ForegroundColor Gray

@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any, List
 from app.replit_auth import get_current_user
 from app.replit_db import DB, Collections
-from app.models import User
 
 router = APIRouter(prefix="/api/user", tags=["User"])
 
@@ -15,10 +14,10 @@ async def get_user_stats(current_user: Dict = Depends(get_current_user)):
     user_id = str(current_user.get("id"))
     
     # Get all rooms where user participated
-    all_participants = DB.find(Collections.PARTICIPANTS, {"user_id": user_id})
+    all_participants = DB.find(Collections.PARTICIPANTS, {"user_id": user_id}, limit=None)
     
     # Get all rooms
-    all_rooms = DB.find(Collections.ROOMS, {})
+    all_rooms = DB.find(Collections.ROOMS, {}, limit=None)
     rooms_map = {r["id"]: r for r in all_rooms}
     
     debates_joined = 0
@@ -72,7 +71,7 @@ async def get_user_stats(current_user: Dict = Depends(get_current_user)):
     all_turns = []
     for participant in all_participants:
         if participant.get("role") == "debater":
-            turns = DB.find(Collections.TURNS, {"speaker_id": participant["id"]})
+            turns = DB.find(Collections.TURNS, {"speaker_id": participant["id"]}, limit=None)
             all_turns.extend(turns)
     
     total_logic = 0
@@ -96,9 +95,9 @@ async def get_user_stats(current_user: Dict = Depends(get_current_user)):
     badges_earned = []
     if scored_turns >= 50:
         badges_earned.append("fact_finder")
-    if avg_rhetoric >= 90:
+    if avg_rhetoric >= 9:
         badges_earned.append("rhetoric_master")
-    if avg_logic >= 95:
+    if avg_logic >= 9.5:
         badges_earned.append("logic_legend")
     if debates_won >= 50:
         badges_earned.append("debate_champion")
@@ -106,7 +105,7 @@ async def get_user_stats(current_user: Dict = Depends(get_current_user)):
         badges_earned.append("marathon_debater")
     if level >= 10:
         badges_earned.append("rising_star")
-    if avg_credibility >= 95:
+    if avg_credibility >= 9.5:
         badges_earned.append("credibility_expert")
     if debates_won >= 10:
         badges_earned.append("quick_thinker")

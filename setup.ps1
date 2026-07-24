@@ -88,15 +88,11 @@ API_ENV=development
 WS_PORT=8000
 RENDER=false
 
-# CORS - comma separated
-CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8000
+# CORS origins can be set as a JSON list if needed
 
-# Security
-SECRET_KEY=dev-secret-change-me-in-prod
-
-# AI - Leave empty for static/local fallback
+# AI judging and training need a Gemini key
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.5-pro
+GEMINI_MODEL=gemini-3.5-flash
 GEMINI_TEMPERATURE=0.7
 
 # Local dev helper
@@ -144,7 +140,7 @@ Write-Host ""
 Write-Host "2. Start the backend server:" -ForegroundColor White
 Write-Host "   cd backend" -ForegroundColor Gray
 Write-Host "   .\venv\Scripts\Activate.ps1" -ForegroundColor Gray
-Write-Host "   uvicorn app.main:app --reload" -ForegroundColor Gray
+Write-Host "   uvicorn app.main:socket_app --reload" -ForegroundColor Gray
 Write-Host ""
 Write-Host "3. In a new terminal, start the frontend:" -ForegroundColor White
 Write-Host "   cd frontend" -ForegroundColor Gray

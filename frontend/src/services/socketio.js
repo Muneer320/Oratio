@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import api from './api';
 
 // Use production API URL or fall back to current origin
 const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
@@ -18,6 +19,7 @@ class SocketService {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      auth: (callback) => callback({ token: api.getToken() }),
     });
 
     this.socket.on('connect', () => {

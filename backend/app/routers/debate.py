@@ -1,15 +1,22 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import Dict, Any, List
 import asyncio
+from datetime import datetime, timezone
+from pathlib import Path
+from uuid import uuid4
+from fastapi.responses import FileResponse
 from app.schemas import TurnSubmit, TurnResponse
 from app.replit_auth import get_current_user
 from app.replit_db import DB, Collections
-from app.gemini_ai import GeminiAI
+from app.gemini_ai import GeminiAI, GEMINI_AVAILABLE
 from app.models import DebateStatus
 from app.cache import user_cache, room_cache
 from app.socketio_app import broadcast_to_room
+from app.scoring import aggregate_debate_scores, valid_feedback
+from app.room_access import require_room_access
 
 router = APIRouter(prefix="/api/debate", tags=["Debate"])
+AUDIO_DIR = Path(__file__).resolve().parents[2] / "uploads" / "audio"
 
 # Room-level locks to prevent concurrent submission races
 # (ReplitDB doesn't support atomic operations, so we use in-memory locks)
@@ -17,164 +24,53 @@ _room_locks: Dict[str, asyncio.Lock] = {}
 
 
 async def generate_debate_results(room_id: str):
-    """
-    Generate comprehensive AI results after debate completes
-    Calculates scores, determines winner, generates personalized feedback
-    """
-    room = DB.get(Collections.ROOMS, room_id)
+    """Store one result schema for both manual and automatic endings."""
+    room = DB.get(Collections.ROOMS, str(room_id))
     if not room:
         raise ValueError("Room not found")
+    participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]}, limit=None)
+    turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
+    scores, feedback, judged, winner_id = aggregate_debate_scores(participants, turns)
+    for participant_id, score in scores.items():
+        DB.update(Collections.PARTICIPANTS, participant_id, {"score": score})
 
-    # Get all participants and turns
-    participants = DB.find(Collections.PARTICIPANTS, {"room_id": room_id})
-    all_turns = DB.find(Collections.TURNS, {"room_id": room_id})
-    debaters = [p for p in participants if p.get("role") == "debater"]
+    verdict = await GeminiAI.generate_final_verdict(room, turns, scores) if judged else None
+    if verdict:
+        summary = verdict.get("summary", "Debate completed.")
+        for participant_id, insight in verdict.get("feedback", {}).items():
+            if str(participant_id) in feedback:
+                feedback[str(participant_id)]["ai_insights"] = insight
+    elif judged:
+        summary = "Debate completed. Scores are based on analyzed turns; summary unavailable."
+    else:
+        summary = "Debate completed without a full AI evaluation. No winner was selected."
 
-    # Calculate participant scores from turn feedback
-    participant_scores = {}
-    participant_feedback = {}
+    votes = DB.find(Collections.SPECTATOR_VOTES, {"room_id": room["id"]}, limit=None)
+    spectator_influence = {}
+    for vote in votes:
+        target = str(vote.get("target_id"))
+        spectator_influence[target] = spectator_influence.get(target, 0) + 1
 
-    for participant in debaters:
-        # Get all turns for this participant
-        participant_turns = [
-            t for t in all_turns if t["speaker_id"] == participant["id"]]
-
-        if not participant_turns:
-            continue
-
-        # Aggregate scores
-        total_logic = 0
-        total_credibility = 0
-        total_rhetoric = 0
-        count = 0
-        all_strengths = []
-        all_weaknesses = []
-
-        for turn in participant_turns:
-            feedback = turn.get("ai_feedback", {})
-            if feedback:
-                total_logic += feedback.get("logic", 0)
-                total_credibility += feedback.get("credibility", 0)
-                total_rhetoric += feedback.get("rhetoric", 0)
-                count += 1
-
-                if feedback.get("strengths"):
-                    all_strengths.extend(feedback["strengths"])
-                if feedback.get("weaknesses"):
-                    all_weaknesses.extend(feedback["weaknesses"])
-
-        if count > 0:
-            avg_scores = {
-                "logic": total_logic / count,
-                "credibility": total_credibility / count,
-                "rhetoric": total_rhetoric / count
-            }
-
-            # Calculate weighted total (Logic 40%, Credibility 35%, Rhetoric 25%)
-            weighted_total = (
-                avg_scores["logic"] * 0.4 +
-                avg_scores["credibility"] * 0.35 +
-                avg_scores["rhetoric"] * 0.25
-            )
-
-            participant_scores[participant["id"]] = {
-                **avg_scores,
-                "weighted_total": weighted_total,
-                "total": weighted_total  # Alias for compatibility
-            }
-
-            # Store individual feedback
-            participant_feedback[participant["id"]] = {
-                # Top 5 unique strengths
-                "strengths": list(set(all_strengths))[:5],
-                # Top 5 unique weaknesses
-                "weaknesses": list(set(all_weaknesses))[:5],
-                "improvements": [
-                    "Focus on providing more evidence to support your claims",
-                    "Strengthen your logical structure and transitions",
-                    "Enhance your rhetorical techniques for greater persuasion"
-                ][:3],
-                "alternative_arguments": [
-                    "Consider citing peer-reviewed studies or expert testimony to support your position",
-                    "Use analogy or real-world examples to make your argument more relatable",
-                    "Address counter-arguments proactively to strengthen your overall stance"
-                ][:3]
-            }
-
-            # Update participant with scores
-            DB.update(
-                Collections.PARTICIPANTS,
-                str(participant["id"]),
-                {"score": avg_scores}
-            )
-
-    # Determine winner (highest weighted score)
-    winner_id = None
-    if participant_scores:
-        winner_id = max(participant_scores.keys(
-        ), key=lambda pid: participant_scores[pid]["weighted_total"])
-
-    # Generate AI summary and verdict
-    try:
-        verdict = await GeminiAI.generate_final_verdict(
-            room_data=room,
-            all_turns=all_turns,
-            participant_scores=participant_scores
-        )
-
-        summary = verdict.get("summary", "Debate completed successfully.")
-        ai_feedback = verdict.get("feedback", {})
-
-        # Merge AI feedback with calculated feedback
-        for pid, ai_fb in ai_feedback.items():
-            if pid in participant_feedback:
-                participant_feedback[pid]["ai_insights"] = ai_fb
-    except Exception as e:
-        print(f"⚠️  AI verdict generation failed: {e}")
-        summary = f"Debate on '{room.get('topic')}' has concluded. Review individual scores below."
-
-    # Ensure ALL debaters have entries (even if they have no turns)
-    for participant in debaters:
-        if participant["id"] not in participant_scores:
-            participant_scores[participant["id"]] = {
-                "logic": 0,
-                "credibility": 0,
-                "rhetoric": 0,
-                "weighted_total": 0,
-                "total": 0
-            }
-        if participant["id"] not in participant_feedback:
-            participant_feedback[participant["id"]] = {
-                "strengths": ["Participated in the debate"],
-                "weaknesses": ["Submit more turns to get detailed feedback"],
-                "improvements": ["Engage more actively in future debates"],
-                "alternative_arguments": ["Prepare stronger evidence-based arguments for future debates"]
-            }
-
-    # Create result record (use 'scores' and 'feedback' to match frontend expectations)
-    from datetime import datetime
     result = {
-        "room_id": room_id,
+        "room_id": room["id"],
         "winner_id": winner_id,
+        "judged": judged,
+        "scores": scores,
+        "feedback": feedback,
         "summary": summary,
-        "scores": participant_scores,  # Changed from scores_json
-        "feedback": participant_feedback,  # Changed from feedback_json
-        "timestamp": datetime.utcnow().isoformat()
+        "spectator_influence": spectator_influence,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-
-    # Save result to database
-    DB.insert(Collections.RESULTS, result)
-
-    return result
-
+    existing = DB.find_one(Collections.RESULTS, {"room_id": room["id"]})
+    if existing:
+        return DB.update(Collections.RESULTS, str(existing["id"]), result)
+    return DB.insert(Collections.RESULTS, result)
 
 async def _generate_ai_turn(room: Dict[str, Any], ai_participant: Dict[str, Any], round_number: int, turn_number: int, previous_turns: List[Dict]):
     """
     Generate an AI opponent's turn using Gemini AI
     """
     try:
-        from datetime import datetime
-        
         # Get context from previous turns
         context = f"Topic: {room.get('topic')}\n\n"
         if previous_turns:
@@ -190,6 +86,8 @@ async def _generate_ai_turn(room: Dict[str, Any], ai_participant: Dict[str, Any]
 Generate a compelling debate argument (2-3 paragraphs). Be persuasive, use logic and evidence, and respond to previous points if any."""
         
         ai_content = await GeminiAI.generate_debate_argument(prompt)
+        if not ai_content:
+            return None
         
         # Create AI turn
         ai_turn = {
@@ -200,7 +98,7 @@ Generate a compelling debate argument (2-3 paragraphs). Be persuasive, use logic
             "turn_number": turn_number,
             "content": ai_content,
             "audio_url": None,
-            "submitted_at": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "is_ai": True
         }
         
@@ -208,15 +106,41 @@ Generate a compelling debate argument (2-3 paragraphs). Be persuasive, use logic
         print(f"🤖 AI Opponent submitted turn {turn_number} in round {round_number}")
         
         # Broadcast Socket.IO notification
-        await broadcast_to_room(room["id"], "new_turn", {
-            "turn": new_turn,
-            "speaker_id": ai_participant["id"],
-            "speaker_name": "AI Opponent",
-            "timestamp": new_turn.get("submitted_at")
-        })
-        
+        try:
+            await broadcast_to_room(room["id"], "new_turn", {
+                "turn": new_turn,
+                "speaker_id": ai_participant["id"],
+                "speaker_name": "AI Opponent",
+                "timestamp": new_turn.get("timestamp")
+            })
+        except Exception as error:
+            print(f"AI turn broadcast failed: {error}")
+        return new_turn
     except Exception as e:
         print(f"⚠️  AI turn generation failed: {e}")
+        return None
+
+
+async def respond_in_training(room: Dict[str, Any], round_number: int):
+    """Generate the AI response immediately after the human turn."""
+    if not room.get("is_training"):
+        return True
+    participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
+    ai_participant = next((p for p in participants if p.get("is_ai")), None)
+    if not ai_participant:
+        return False
+    turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
+    round_turns = [turn for turn in turns if turn.get("round_number") == round_number]
+    if any(str(turn.get("speaker_id")) == str(ai_participant["id"])
+           for turn in round_turns):
+        return True
+    generated = await _generate_ai_turn(room, ai_participant, round_number,
+                                        len(round_turns) + 1, turns)
+    if not generated:
+        await broadcast_to_room(room["id"], "ai_unavailable",
+                                {"message": "AI opponent could not respond"})
+        return False
+    return True
 
 
 async def _analyze_round_background(room: Dict[str, Any], round_number: int, round_turns: List[Dict], all_turns: List[Dict], debater_count: int):
@@ -224,64 +148,76 @@ async def _analyze_round_background(room: Dict[str, Any], round_number: int, rou
     Background task: Analyze all turns in a round in parallel
     PERFORMANCE FIX: Uses asyncio.gather() for parallel AI analysis
     """
-    print(f"🎯 Round {round_number} complete! Analyzing {len(round_turns)} turns in parallel...")
+    total_rounds = room.get("rounds", 3)
+    expected_total_turns = total_rounds * debater_count
+    is_final_round = len(all_turns) >= expected_total_turns
+    turns_to_analyze = all_turns if is_final_round else round_turns
+    print(f"🎯 Round {round_number} complete! Analyzing {len(turns_to_analyze)} turns in parallel...")
 
     # PERFORMANCE FIX: Analyze all turns in parallel using asyncio.gather()
     async def analyze_turn(turn):
         if turn.get("ai_feedback") is None:
             try:
+                earlier = [item.get("content", "") for item in all_turns
+                           if int(item["id"]) < int(turn["id"])]
                 ai_feedback = await GeminiAI.analyze_debate_turn(
                     turn_content=turn["content"],
-                    context=room.get("topic")
+                    context=room.get("topic"),
+                    previous_turns=earlier,
                 )
-                DB.update(
-                    Collections.TURNS,
-                    turn["id"],
-                    {"ai_feedback": ai_feedback}
-                )
-                print(f"✅ Analyzed turn {turn['id']}")
+                if valid_feedback(ai_feedback):
+                    DB.update(Collections.TURNS, turn["id"],
+                              {"ai_feedback": ai_feedback})
             except Exception as e:
                 print(f"⚠️  Failed to analyze turn {turn['id']}: {e}")
 
     # Analyze all turns in parallel
-    await asyncio.gather(*[analyze_turn(turn) for turn in round_turns])
+    await asyncio.gather(*[analyze_turn(turn) for turn in turns_to_analyze])
     print(f"✅ Round {round_number} analysis complete!")
+    analyzed = [DB.get(Collections.TURNS, str(turn["id"])) for turn in round_turns]
+    await broadcast_to_room(room["id"], "round_scored", {
+        "round_number": round_number,
+        "judged": all(turn and valid_feedback(turn.get("ai_feedback")) for turn in analyzed),
+    })
     
-    # If this is a training room with AI, generate AI's response for next turn
-    if room.get("is_training"):
-        participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
-        ai_participant = next((p for p in participants if p.get("is_ai")), None)
-        
-        if ai_participant:
-            # Check if it's AI's turn
-            current_round_turns = [t for t in all_turns if t["round_number"] == round_number]
-            human_participant = next((p for p in participants if not p.get("is_ai")), None)
-            
-            # If human just went and round is not complete, AI should respond
-            if human_participant and len(current_round_turns) < debater_count:
-                await _generate_ai_turn(room, ai_participant, round_number, len(current_round_turns) + 1, all_turns)
-
     # Check if ALL rounds are now complete and auto-end the debate
-    total_rounds = room.get("rounds", 3)
-    expected_total_turns = total_rounds * debater_count
-
-    if len(all_turns) >= expected_total_turns and room.get("status") == "ongoing":
+    current_room = DB.get(Collections.ROOMS, str(room["id"]))
+    if current_room and is_final_round and current_room.get("status") == "ongoing":
         print(f"🏁 All {total_rounds} rounds complete ({len(all_turns)}/{expected_total_turns} turns)! Auto-ending debate...")
-        DB.update(Collections.ROOMS, room["id"], {"status": "completed"})
-        
-        # Invalidate all caches for this room (auto-ended)
-        room_cache.delete(f"debate_status_{room['id']}")
-        room_cache.delete(f"transcript_{room['id']}")
-        room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
-        
-        print("✅ Debate automatically ended")
-
-        # Generate comprehensive AI results
         try:
-            await generate_debate_results(room["id"])
-            print("✅ AI results generated successfully")
+            result = await generate_debate_results(room["id"])
+            DB.update(Collections.ROOMS, str(room["id"]), {"status": "completed"})
+            room_cache.delete(f"debate_status_{room['id']}")
+            room_cache.delete(f"transcript_{room['id']}")
+            room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
+            await broadcast_to_room(room["id"], "debate_ended", {"result": result})
+            _room_locks.pop(str(room["id"]), None)
+            print("✅ Debate automatically ended with results")
         except Exception as e:
             print(f"⚠️  Failed to generate results: {e}")
+
+
+async def recover_pending_debates():
+    """Finish rounds interrupted by a server restart."""
+    for room in DB.find(Collections.ROOMS, {"status": "ongoing"}, limit=None):
+        participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]}, limit=None)
+        debater_count = sum(p.get("role") == "debater" for p in participants)
+        if debater_count < 2:
+            continue
+        turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
+        completed_rounds = [round_number for round_number in range(1, room.get("rounds", 3) + 1)
+                            if sum(t.get("round_number") == round_number for t in turns) >= debater_count]
+        if not completed_rounds:
+            continue
+        if len(turns) >= room.get("rounds", 3) * debater_count:
+            round_number = completed_rounds[-1]
+            round_turns = [t for t in turns if t.get("round_number") == round_number]
+            await _analyze_round_background(room, round_number, round_turns, turns, debater_count)
+        else:
+            for round_number in completed_rounds:
+                round_turns = [t for t in turns if t.get("round_number") == round_number]
+                if any(not valid_feedback(t.get("ai_feedback")) for t in round_turns):
+                    await _analyze_round_background(room, round_number, round_turns, turns, debater_count)
 
 
 async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
@@ -294,10 +230,10 @@ async def check_and_analyze_round(room: Dict[str, Any], round_number: int):
     debater_count = len([p for p in participants if p.get("role") == "debater"])
 
     if debater_count == 0:
-        debater_count = 2  # Default to 2 if no debaters found
+        return
 
     # Get all turns for this round
-    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
+    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
     round_turns = [t for t in all_turns if t["round_number"] == round_number]
 
     # Check if round is complete
@@ -323,6 +259,9 @@ async def submit_turn(
     room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
+
+    if room.get("is_training") and not GEMINI_AVAILABLE:
+        raise HTTPException(status_code=503, detail="AI opponent is unavailable")
 
     if room["status"] == DebateStatus.UPCOMING.value:
         DB.update(Collections.ROOMS, room_id, {
@@ -352,9 +291,11 @@ async def submit_turn(
     if not participant:
         raise HTTPException(
             status_code=403, detail="Not a participant in this debate")
+    if participant.get("role") != "debater":
+        raise HTTPException(status_code=403, detail="Only debaters may submit turns")
 
     # PERFORMANCE FIX: Only fetch last turn for enforcement (not all turns)
-    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
     
     # CRITICAL VALIDATION: Reject submissions when round already has enough turns
     participants_list = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
@@ -387,15 +328,15 @@ async def submit_turn(
                     detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
                 )
 
-    from datetime import datetime
-
     # CRITICAL: Acquire room lock to prevent concurrent submission races
     if room["id"] not in _room_locks:
         _room_locks[room["id"]] = asyncio.Lock()
     
     async with _room_locks[room["id"]]:
+        if DB.get(Collections.ROOMS, room_id).get("status") != DebateStatus.ONGOING.value:
+            raise HTTPException(status_code=409, detail="Debate has ended")
         # Re-validate ALL constraints immediately before insert (inside lock for atomicity)
-        all_turns_final = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+        all_turns_final = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
         round_turns_final = [t for t in all_turns_final if t.get("round_number") == turn_data.round_number]
         
         # Check round capacity
@@ -429,9 +370,9 @@ async def submit_turn(
             "content": turn_data.content,
             "audio_url": None,
             "round_number": turn_data.round_number,
-            "turn_number": turn_data.turn_number,
+            "turn_number": len(round_turns_final) + 1,
             "ai_feedback": None,  # Will be analyzed in batch after round completion
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         turn = DB.insert(Collections.TURNS, new_turn)
@@ -450,6 +391,12 @@ async def submit_turn(
         })
     except Exception as ws_error:
         print(f"⚠️  Socket.IO broadcast failed: {ws_error}")
+
+    if not await respond_in_training(room, turn_data.round_number):
+        DB.delete(Collections.TURNS, str(turn["id"]))
+        room_cache.delete(f"transcript_{room_id}")
+        await broadcast_to_room(room["id"], "turn_removed", {"turn_id": turn["id"]})
+        raise HTTPException(status_code=503, detail="AI opponent could not respond; retry your turn")
 
     # Check if round is complete and trigger batch analysis
     await check_and_analyze_round(room, turn_data.round_number)
@@ -472,6 +419,9 @@ async def submit_audio(
     room = DB.get(Collections.ROOMS, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
+
+    if room.get("is_training") and not GEMINI_AVAILABLE:
+        raise HTTPException(status_code=503, detail="AI opponent is unavailable")
 
     if room["status"] == DebateStatus.UPCOMING.value:
         DB.update(Collections.ROOMS, room_id, {
@@ -501,28 +451,31 @@ async def submit_audio(
     if not participant:
         raise HTTPException(
             status_code=403, detail="Not a participant in this debate")
+    if participant.get("role") != "debater":
+        raise HTTPException(status_code=403, detail="Only debaters may submit turns")
 
-    # Save audio file FIRST (before any validation that could race)
-    import os
-    os.makedirs("uploads/audio", exist_ok=True)
-    audio_path = f"uploads/audio/{room_id}_{participant['id']}_{turn_number}.webm"
-
-    # Read and save audio file (LONG OPERATION)
+    # Use an opaque filename so repeated turns cannot overwrite recordings.
+    AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+    audio_path = AUDIO_DIR / f"{uuid4().hex}.webm"
     audio_content = await audio.read()
-    with open(audio_path, "wb") as f:
-        f.write(audio_content)
+    if not audio_content or len(audio_content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Audio must be 1 byte to 50 MB")
+    audio_path.write_bytes(audio_content)
 
     # Transcribe audio using Gemini AI (LONG OPERATION)
-    transcription = await GeminiAI.transcribe_audio(audio_path)
+    transcription = await GeminiAI.transcribe_audio(str(audio_path))
 
     # Use transcription as content (or combine with provided text)
     final_content = content.strip() if content.strip() else transcription
-    if content.strip() and transcription and transcription not in ["[Audio transcription unavailable]", "[Audio transcription failed - please try again]"]:
+    if not final_content:
+        audio_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=503, detail="Audio transcription is unavailable")
+    if content.strip() and transcription:
         final_content = f"{content.strip()}\n\n[Transcription]: {transcription}"
 
     # CRITICAL: Validate IMMEDIATELY BEFORE INSERT to close race window
     # Re-fetch turns to get latest state after long audio operations
-    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+    all_turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
     participants_list = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
     debater_count = len([p for p in participants_list if p.get("role") == "debater"])
     round_turns = [t for t in all_turns if t.get("round_number") == round_number]
@@ -552,15 +505,15 @@ async def submit_audio(
                     detail="Your team cannot submit consecutive turns. Please wait for the other team to respond."
                 )
 
-    from datetime import datetime
-
     # CRITICAL: Acquire room lock to prevent concurrent submission races
     if room["id"] not in _room_locks:
         _room_locks[room["id"]] = asyncio.Lock()
     
     async with _room_locks[room["id"]]:
+        if DB.get(Collections.ROOMS, room_id).get("status") != DebateStatus.ONGOING.value:
+            raise HTTPException(status_code=409, detail="Debate has ended")
         # Re-validate ALL constraints immediately before insert (inside lock for atomicity)
-        all_turns_final = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=100)
+        all_turns_final = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
         round_turns_final = [t for t in all_turns_final if t.get("round_number") == round_number]
         
         # Check round capacity
@@ -593,18 +546,30 @@ async def submit_audio(
             "room_id": room["id"],
             "speaker_id": participant["id"],
             "content": final_content,
-            "audio_url": audio_path,
+            "audio_path": str(audio_path),
+            "audio_url": None,
             "round_number": round_number,
-            "turn_number": turn_number,
+            "turn_number": len(round_turns_final) + 1,
             "ai_feedback": None,  # Will be analyzed in batch after round completion
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         turn = DB.insert(Collections.TURNS, new_turn)
+        turn = DB.update(Collections.TURNS, str(turn["id"]), {
+            "audio_url": f"/api/debate/{room['id']}/audio/{turn['id']}"
+        })
 
     # Invalidate caches for this room (new data available)
     room_cache.delete(f"debate_status_{room_id}")
     room_cache.delete(f"transcript_{room_id}")
+
+    await broadcast_to_room(room["id"], "new_turn", {"turn": turn})
+    if not await respond_in_training(room, round_number):
+        DB.delete(Collections.TURNS, str(turn["id"]))
+        room_cache.delete(f"transcript_{room_id}")
+        audio_path.unlink(missing_ok=True)
+        await broadcast_to_room(room["id"], "turn_removed", {"turn_id": turn["id"]})
+        raise HTTPException(status_code=503, detail="AI opponent could not respond; retry your turn")
 
     # Check if round is complete and trigger batch analysis
     await check_and_analyze_round(room, round_number)
@@ -612,11 +577,25 @@ async def submit_audio(
     return turn
 
 
+@router.get("/{room_id}/audio/{turn_id}")
+async def get_turn_audio(room_id: str, turn_id: str,
+                         current_user: Dict[str, Any] = Depends(get_current_user)):
+    room = require_room_access(room_id, current_user["id"])
+    turn = DB.get(Collections.TURNS, turn_id)
+    if not turn or str(turn.get("room_id")) != str(room["id"]):
+        raise HTTPException(status_code=404, detail="Audio turn not found")
+    path = Path(turn.get("audio_path") or "")
+    if not path.is_file() or not path.resolve().is_relative_to(AUDIO_DIR.resolve()):
+        raise HTTPException(status_code=404, detail="Audio unavailable")
+    return FileResponse(path, media_type="audio/webm")
+
+
 @router.get("/{room_id}/transcript", response_model=List[TurnResponse])
-async def get_transcript(room_id: str):
+async def get_transcript(room_id: str, current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get full debate transcript with caching
     """
+    room = require_room_access(room_id, current_user["id"])
     # Try cache first (15 second TTL for transcript)
     cache_key = f"transcript_{room_id}"
     cached_transcript = room_cache.get(cache_key)
@@ -624,11 +603,7 @@ async def get_transcript(room_id: str):
         return cached_transcript
 
     # Fetch from database
-    room = DB.get(Collections.ROOMS, room_id)
-    if not room:
-        raise HTTPException(status_code=404, detail="Room not found")
-
-    turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=1000)
+    turns = DB.find(Collections.TURNS, {"room_id": room["id"]}, limit=None)
     sorted_turns = sorted(turns, key=lambda x: (
         x["round_number"], x["turn_number"]))
 
@@ -657,58 +632,30 @@ async def end_debate(
     if room["status"] != DebateStatus.ONGOING.value:
         raise HTTPException(status_code=400, detail="Debate is not ongoing")
 
-    DB.update(Collections.ROOMS, room_id, {
-              "status": DebateStatus.COMPLETED.value})
+    lock = _room_locks.setdefault(str(room["id"]), asyncio.Lock())
+    async with lock:
+        if DB.get(Collections.ROOMS, room_id).get("status") != DebateStatus.ONGOING.value:
+            raise HTTPException(status_code=409, detail="Debate has ended")
+        result = await generate_debate_results(room["id"])
+        DB.update(Collections.ROOMS, room_id, {
+                  "status": DebateStatus.COMPLETED.value})
 
     # Invalidate all caches for this room (status changed to completed)
     room_cache.delete(f"debate_status_{room_id}")
     room_cache.delete(f"transcript_{room_id}")
     room_cache.delete(f"room_code_{room.get('room_code', '').upper()}")
 
-    participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
-    turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
-
-    participant_scores = {}
-    for participant in participants:
-        if participant["role"] == "debater":
-            participant_scores[participant["id"]
-                               ] = participant.get("score", {})
-
-    final_verdict = await GeminiAI.generate_final_verdict(
-        room_data=room,
-        all_turns=turns,
-        participant_scores=participant_scores
-    )
-
-    spectator_votes = DB.find(Collections.SPECTATOR_VOTES, {
-                              "room_id": room["id"]})
-    spectator_influence = {}
-    for vote in spectator_votes:
-        target_id = str(vote["target_id"])
-        if target_id not in spectator_influence:
-            spectator_influence[target_id] = 0
-        spectator_influence[target_id] += 1
-
-    result = {
-        "room_id": room["id"],
-        "winner_id": final_verdict.get("winner_id"),
-        "scores_json": participant_scores,
-        "feedback_json": final_verdict.get("feedback", {}),
-        "summary": final_verdict.get("summary", "Debate concluded."),
-        "report_url": None,
-        "spectator_influence": spectator_influence
-    }
-
-    DB.insert(Collections.RESULTS, result)
-
+    _room_locks.pop(str(room["id"]), None)
+    await broadcast_to_room(room["id"], "debate_ended", {"result": result})
     return {"message": "Debate ended", "result": result}
 
 
 @router.get("/{room_id}/status")
-async def get_debate_status(room_id: str):
+async def get_debate_status(room_id: str, current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Get current debate status with caching and optimized payload
     """
+    room = require_room_access(room_id, current_user["id"])
     # Try cache first (60 second TTL for debate status)
     cache_key = f"debate_status_{room_id}"
     cached_status = room_cache.get(cache_key)
@@ -716,10 +663,6 @@ async def get_debate_status(room_id: str):
         return cached_status
 
     # Fetch from database
-    room = DB.get(Collections.ROOMS, room_id)
-    if not room:
-        raise HTTPException(status_code=404, detail="Room not found")
-
     participants = DB.find(Collections.PARTICIPANTS, {"room_id": room["id"]})
     turns = DB.find(Collections.TURNS, {"room_id": room["id"]})
 
@@ -744,8 +687,8 @@ async def get_debate_status(room_id: str):
         enriched_participants.append({
             "id": participant["id"],
             "user_id": participant["user_id"],
-            "username": user.get("username", "Unknown") if user else "Unknown",
-            "name": (user.get("full_name") or user.get("username", "Unknown")) if user else "Unknown",
+            "username": user.get("username", "Unknown") if user else participant.get("username", "Unknown"),
+            "name": (user.get("full_name") or user.get("username", "Unknown")) if user else participant.get("username", "Unknown"),
             "team": participant.get("team"),
             "role": participant["role"],
             "is_ready": participant.get("is_ready", False),

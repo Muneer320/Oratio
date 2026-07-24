@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any, List, Optional
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 from app.schemas import RoomCreate, RoomUpdate, RoomResponse
 from app.replit_auth import get_current_user
 from app.replit_db import DB, Collections
@@ -76,7 +76,7 @@ async def create_room(
             "position": 1,
             "is_ready": True,
             "is_ai": True,
-            "joined_at": datetime.utcnow().isoformat()
+            "joined_at": datetime.now(timezone.utc).isoformat()
         }
         DB.insert(Collections.PARTICIPANTS, ai_participant)
     

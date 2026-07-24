@@ -4,10 +4,6 @@ uvicorn[standard]>=0.20.0
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 
-# Database (SQLAlchemy kept for potential future use)
-sqlalchemy>=2.0.0
-databases>=0.8.0
-
 # File handling
 python-multipart>=0.0.5
 aiofiles>=23.0.0
@@ -18,23 +14,15 @@ email-validator>=2.0.0
 
 # Replit-specific packages (fallback)
 replit>=3.0.0
-replit-ai>=0.0.11
-Flask>=2.3.0
 
 # AI Providers
-google-generativeai>=0.3.0
+google-genai>=1.49.0
 
 # WebSockets
 websockets>=12.0
 python-socketio>=5.9.0
 
-# File processing
-PyMuPDF>=1.23.0
-beautifulsoup4>=4.12.0
-requests>=2.31.0
-
 # Utilities
-python-dateutil>=2.8.2
 httpx>=0.25.0
 
 # Performance

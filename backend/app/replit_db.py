@@ -1,31 +1,37 @@
-"""
-Replit Database wrapper for Oratio
-Uses Replit's built-in key-value database instead of SQL
-"""
+"""Key-value API backed by Replit DB or a local SQLite file."""
 import json
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import os
+from pathlib import Path
+from app.local_store import SQLiteStore
 
-# Try to import Replit DB, fallback to dict for local development
+# Try Replit DB, then use persistent SQLite locally.
+def local_backend():
+    path = os.getenv("ORATIO_DB_PATH", str(Path(__file__).resolve().parents[1] /
+                                          "data" / "oratio.sqlite3"))
+    if path == ":memory:":
+        return {}, "memory"
+    return SQLiteStore(path), "sqlite"
+
+
 try:
     from replit import db
     # The `replit` package may be installed but not provide a usable `db`
-    # (it can be None or an uninitialized backend). Verify it exposes the
-    # dict-like API we expect; otherwise fall back to in-memory storage.
+    # (it can be None or an uninitialized backend).
     if db is None or not hasattr(db, "keys") or not hasattr(db, "get"):
-        _db = {}
+        _db, STORAGE_BACKEND = local_backend()
         REPLIT_DB_AVAILABLE = False
-        print("⚠️  Replit DB detected but not initialized; using in-memory storage")
+        print(f"Using {STORAGE_BACKEND} storage")
     else:
         _db = db
+        STORAGE_BACKEND = "replit-db"
         REPLIT_DB_AVAILABLE = True
         print("✅ Using Replit Database")
 except ImportError:
-    # Fallback to in-memory dict for local development
-    _db = {}
+    _db, STORAGE_BACKEND = local_backend()
     REPLIT_DB_AVAILABLE = False
-    print("⚠️  Replit DB not available, using in-memory storage (data will not persist)")
+    print(f"Using {STORAGE_BACKEND} storage")
 
 
 class ReplitDB:
@@ -55,7 +61,7 @@ class ReplitDB:
             data["id"] = ReplitDB._generate_id(collection)
 
         if "created_at" not in data:
-            data["created_at"] = datetime.utcnow().isoformat()
+            data["created_at"] = datetime.now(timezone.utc).isoformat()
 
         key = ReplitDB._make_key(collection, str(data["id"]))
         _db[key] = json.dumps(data)
@@ -76,7 +82,7 @@ class ReplitDB:
             return None
 
         existing.update(data)
-        existing["updated_at"] = datetime.utcnow().isoformat()
+        existing["updated_at"] = datetime.now(timezone.utc).isoformat()
 
         key = ReplitDB._make_key(collection, id)
         _db[key] = json.dumps(existing)
@@ -92,9 +98,11 @@ class ReplitDB:
         return False
 
     @staticmethod
-    def find(collection: str, filter: Optional[Dict[str, Any]] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    def find(collection: str, filter: Optional[Dict[str, Any]] = None, limit: Optional[int] = 100) -> List[Dict[str, Any]]:
         """Find documents matching filter"""
         results = []
+        if limit is not None and limit <= 0:
+            return results
         prefix = f"{collection}:"
 
         # Get all keys for this collection
@@ -108,7 +116,7 @@ class ReplitDB:
             # As a fallback, treat as empty
             keys = []
 
-        for key in keys[:limit]:
+        for key in keys:
             value = _db.get(key)
             if value:
                 doc = json.loads(value)
@@ -121,18 +129,21 @@ class ReplitDB:
                 else:
                     results.append(doc)
 
+                if limit is not None and len(results) >= limit:
+                    break
+
         return results
 
     @staticmethod
     def find_one(collection: str, filter: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Find single document"""
-        results = ReplitDB.find(collection, filter, limit=1000)
+        results = ReplitDB.find(collection, filter, limit=1)
         return results[0] if results else None
 
     @staticmethod
     def count(collection: str, filter: Optional[Dict[str, Any]] = None) -> int:
         """Count documents"""
-        return len(ReplitDB.find(collection, filter))
+        return len(ReplitDB.find(collection, filter, limit=None))
 
     @staticmethod
     def clear_collection(collection: str):
@@ -162,11 +173,8 @@ class Collections:
 
 # Initialize database
 async def connect_db():
-    """Initialize Replit Database"""
-    if REPLIT_DB_AVAILABLE:
-        print("✅ Replit Database connected")
-    else:
-        print("⚠️  Running in local mode with in-memory storage")
+    """The selected key-value backend is ready at import time."""
+    print(f"Storage ready: {STORAGE_BACKEND}")
 
 
 async def disconnect_db():

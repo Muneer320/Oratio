@@ -67,12 +67,9 @@ RENDER=false
 # CORS - JSON array for pydantic parsing
 CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:8000"]
 
-# Security
-SECRET_KEY=dev-secret-change-me-in-prod
-
-# AI - Leave empty for static/local fallback
+# AI - Required for AI judging and training
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.5-pro
+GEMINI_MODEL=gemini-3.5-flash
 GEMINI_TEMPERATURE=0.7
 
 # Local dev helper
@@ -108,7 +105,7 @@ echo ""
 echo "Next steps (backend):"
 echo "  cd backend"
 echo "  source venv/bin/activate"
-echo "  uvicorn app.main:app --reload --host 127.0.0.1 --port 8000"
+echo "  uvicorn app.main:socket_app --reload --host 127.0.0.1 --port 8000"
 echo ""
 echo "Next steps (frontend - new terminal):"
 echo "  cd frontend"

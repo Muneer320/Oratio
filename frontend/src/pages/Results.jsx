@@ -27,8 +27,7 @@ function Results() {
 
   const loadResults = async () => {
     try {
-      const rooms = await api.get('/api/rooms/list', true);
-      const foundRoom = rooms.find(r => r.room_code === roomCode);
+      const foundRoom = await api.get(`/api/rooms/code/${roomCode}`, true);
       
       if (!foundRoom) {
         setError('Room not found');
@@ -144,12 +143,24 @@ function Results() {
   const TranscriptItem = ({ turn, index }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     
-    const playAudio = () => {
+    const playAudio = async () => {
       if (turn.audio_url) {
-        const audio = new Audio(turn.audio_url);
-        audio.play();
-        setIsPlaying(true);
-        audio.onended = () => setIsPlaying(false);
+        try {
+          const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+          const response = await fetch(new URL(turn.audio_url, baseUrl), {
+            headers: { Authorization: `Bearer ${api.getToken()}` }
+          });
+          if (!response.ok) throw new Error('Audio unavailable');
+          const objectUrl = URL.createObjectURL(await response.blob());
+          const audio = new Audio(objectUrl);
+          setIsPlaying(true);
+          audio.onended = () => { setIsPlaying(false); URL.revokeObjectURL(objectUrl); };
+          audio.onerror = () => { setIsPlaying(false); URL.revokeObjectURL(objectUrl); };
+          await audio.play();
+        } catch (error) {
+          setIsPlaying(false);
+          console.error('Unable to play audio:', error);
+        }
       }
     };
 
@@ -180,10 +191,10 @@ function Results() {
                 </button>
               )}
             </div>
-            {turn.text_content && (
-              <p className="text-text-secondary text-sm leading-relaxed">{turn.text_content}</p>
+            {turn.content && (
+              <p className="text-text-secondary text-sm leading-relaxed">{turn.content}</p>
             )}
-            {!turn.text_content && turn.audio_url && (
+            {!turn.content && turn.audio_url && (
               <p className="text-text-muted text-sm italic">Audio response - click play to listen</p>
             )}
           </div>
@@ -192,7 +203,7 @@ function Results() {
     );
   };
 
-  const ScoreBar = ({ label, value, maxValue = 100, color = 'accent-rust' }) => {
+  const ScoreBar = ({ label, value, maxValue = 10, color = 'accent-rust' }) => {
     const percentage = (value / maxValue) * 100;
     
     // Use predefined gradient classes for Tailwind JIT
@@ -242,7 +253,7 @@ function Results() {
         <div className="bg-gradient-to-br from-accent-rust/20 to-accent-saffron/20 rounded-2xl border border-accent-rust/50 p-8 shadow-lg mb-6">
           <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-accent-rust" />
-            AI Analysis Summary
+            Debate Summary
           </h2>
           <p className="text-text-secondary leading-relaxed text-lg">{result.summary}</p>
         </div>
@@ -256,7 +267,7 @@ function Results() {
             <div>
               <h2 className="text-2xl font-bold text-text-primary mb-1">Winner</h2>
               <p className="text-xl text-text-secondary">
-                {detailedReport.participants.find(p => p.participant_id === result.winner_id)?.username || 'Unknown'}
+                {detailedReport.participants.find(p => String(p.participant_id) === String(result.winner_id))?.username || 'Unknown'}
               </p>
             </div>
           </div>
@@ -386,7 +397,7 @@ function Results() {
               <div key={index} className="bg-dark-surface border border-dark-warm rounded-xl p-6">
                 <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-accent-saffron" />
-                  Participant {key}
+                  {detailedReport?.participants?.find(p => String(p.participant_id) === String(key))?.username || `Participant ${key}`}
                 </h3>
                 {value.strengths && (
                   <div className="mb-3">

@@ -1,7 +1,7 @@
 """
 Simple in-memory cache for frequently accessed data
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 
 
@@ -16,7 +16,7 @@ class SimpleCache:
         """Get value from cache if not expired"""
         if key in self.cache:
             entry = self.cache[key]
-            if datetime.utcnow() < entry['expires']:
+            if datetime.now(timezone.utc) < entry['expires']:
                 return entry['value']
             else:
                 del self.cache[key]
@@ -27,7 +27,7 @@ class SimpleCache:
         ttl = ttl_seconds if ttl_seconds is not None else self.ttl_seconds
         self.cache[key] = {
             'value': value,
-            'expires': datetime.utcnow() + timedelta(seconds=ttl)
+            'expires': datetime.now(timezone.utc) + timedelta(seconds=ttl)
         }
     
     def delete(self, key: str):

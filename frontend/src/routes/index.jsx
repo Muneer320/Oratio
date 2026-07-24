@@ -1,23 +1,25 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
-import Home from "../pages/Home";
-import Dashboard from "../pages/Dashboard";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
-import JoinRoom from "../pages/JoinRoom";
-import AddDebate from "../pages/AddDebate";
-import Debate from "../pages/Debate";
-import UpcomingDebateDetails from "../pages/UpcomingDebateDetails";
-import Results from "../pages/Results";
-import Trainer from "../pages/Trainer";
-import Profile from "../pages/Profile";
-import Settings from "../pages/Settings";
-import About from "../pages/About";
-import NotFound from "../pages/NotFound";
 import ProtectedRoute from "../components/ProtectedRoute";
+
+const Home = lazy(() => import("../pages/Home"));
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Login = lazy(() => import("../pages/Login"));
+const Register = lazy(() => import("../pages/Register"));
+const JoinRoom = lazy(() => import("../pages/JoinRoom"));
+const AddDebate = lazy(() => import("../pages/AddDebate"));
+const Debate = lazy(() => import("../pages/Debate"));
+const UpcomingDebateDetails = lazy(() => import("../pages/UpcomingDebateDetails"));
+const Results = lazy(() => import("../pages/Results"));
+const Trainer = lazy(() => import("../pages/Trainer"));
+const Profile = lazy(() => import("../pages/Profile"));
+const Settings = lazy(() => import("../pages/Settings"));
+const About = lazy(() => import("../pages/About"));
+const NotFound = lazy(() => import("../pages/NotFound"));
 
 function AppRoutes() {
   return (
+    <Suspense fallback={<div className="min-h-screen bg-dark-base" aria-label="Loading page" />}>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
@@ -36,6 +38,7 @@ function AppRoutes() {
       <Route path="/about" element={<About />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 }
 

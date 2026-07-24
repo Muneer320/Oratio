@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Calendar, Clock, Users, FileText, Lock, Unlock, MessageSquare, Mic, Repeat, User, Users2 } from 'lucide-react';
+import { PlusCircle, Calendar, Clock, FileText, Lock, Unlock, MessageSquare, Mic, Repeat, User, Users2 } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 
@@ -16,7 +16,6 @@ const AddDebate = () => {
     mode: 'text',
     format: 'individual',
     visibility: 'public',
-    max_participants: 2,
     total_rounds: 3,
     resources: '',
   });
@@ -52,7 +51,7 @@ const AddDebate = () => {
         resources: resourceLinks,
       }, true);
 
-      navigate(`/debate/${response.room_code}`);
+      navigate(`/upcoming/${response.room_code}`);
     } catch (error) {
       console.error('Error creating debate:', error);
       alert('Failed to create debate. Please try again.');
@@ -128,7 +127,7 @@ const AddDebate = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-2">Duration (minutes)</label>
                 <input
@@ -142,21 +141,6 @@ const AddDebate = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  <Users className="w-4 h-4 inline mr-2" />
-                  Max Participants
-                </label>
-                <input
-                  type="number"
-                  name="max_participants"
-                  value={formData.max_participants}
-                  onChange={handleChange}
-                  min="2"
-                  max="10"
-                  className="w-full px-4 py-3 bg-dark-surface border border-dark-warm rounded-xl focus:ring-2 focus:ring-accent-rust focus:border-accent-rust outline-none transition-all text-text-primary"
-                />
-              </div>
             </div>
 
             <div>

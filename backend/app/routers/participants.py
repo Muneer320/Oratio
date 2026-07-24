@@ -27,6 +27,22 @@ async def join_room(
     if existing:
         return existing
 
+    if room.get("status") in ("completed", "cancelled"):
+        raise HTTPException(status_code=409, detail="This debate is closed")
+    debaters = [participant for participant in DB.find(
+        Collections.PARTICIPANTS, {"room_id": room["id"]}, limit=None
+    ) if participant.get("role") == "debater"]
+    capacity = 4 if room.get("type") == "team" else 2
+    if len(debaters) >= capacity:
+        raise HTTPException(status_code=409, detail="This debate is full")
+    if room.get("type") == "team":
+        if join_data.team not in ("for", "against"):
+            raise HTTPException(status_code=400, detail="Choose the for or against team")
+        if sum(p.get("team") == join_data.team for p in debaters) >= 2:
+            raise HTTPException(status_code=409, detail="That team is full")
+    elif join_data.team:
+        raise HTTPException(status_code=400, detail="Individual debates have no teams")
+
     new_participant = {
         "user_id": current_user["id"],
         "room_id": room["id"],

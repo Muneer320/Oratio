@@ -4,6 +4,7 @@ from app.schemas import TrainerAnalyze, TrainerProgress, ChallengeStart, Challen
 from app.replit_auth import get_current_user
 from app.replit_db import DB, Collections
 from app.gemini_ai import GeminiAI
+from app.scoring import valid_feedback
 import secrets
 
 router = APIRouter(prefix="/api/trainer", tags=["AI Trainer"])
@@ -198,6 +199,8 @@ async def submit_challenge(
         turn_content=data.response,
         context=f"Training exercise: {data.challenge_id}"
     )
+    if not valid_feedback(analysis):
+        raise HTTPException(status_code=503, detail="AI training feedback is unavailable")
 
     xp_earned = int(analysis.get("logic", 0) +
                     analysis.get("credibility", 0) + analysis.get("rhetoric", 0))

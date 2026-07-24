@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import HTTPAuthorizationCredentials
 from typing import Dict, Any
 from app.schemas import UserCreate, UserLogin, UserResponse, UserUpdate, Token
-from app.replit_auth import ReplitAuth, get_current_user, REPLIT_AUTH_AVAILABLE
+from app.replit_auth import ReplitAuth, get_current_user, security
 from app.replit_db import DB, Collections
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -71,8 +72,11 @@ async def update_user(
 
 
 @router.delete("/logout")
-async def logout(current_user: Dict[str, Any] = Depends(get_current_user)):
+async def logout(current_user: Dict[str, Any] = Depends(get_current_user),
+                 credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
     Logout user (invalidate token)
     """
+    if credentials:
+        DB.delete(Collections.SESSIONS, credentials.credentials)
     return {"message": "Logged out successfully"}

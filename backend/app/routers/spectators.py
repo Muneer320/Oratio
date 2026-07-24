@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from app.schemas import SpectatorJoin, SpectatorReward, SpectatorStats, ParticipantResponse
-from app.replit_auth import get_current_user, get_current_user_optional
+from app.replit_auth import get_current_user
 from app.replit_db import DB, Collections
 from app.cache import room_cache
+from app.socketio_app import broadcast_to_room
 
 router = APIRouter(prefix="/api/spectators", tags=["Spectators"])
 
@@ -60,8 +61,13 @@ async def reward_participant(
         raise HTTPException(status_code=404, detail="Room not found")
 
     participant = DB.get(Collections.PARTICIPANTS, str(reward_data.target_id))
-    if not participant:
+    if not participant or str(participant.get("room_id")) != str(room["id"]) or participant.get("role") != "debater":
         raise HTTPException(status_code=404, detail="Participant not found")
+    spectator = DB.find_one(Collections.PARTICIPANTS, {
+        "room_id": room["id"], "user_id": current_user["id"], "role": "spectator"
+    })
+    if not spectator:
+        raise HTTPException(status_code=403, detail="Join as a spectator to reward debaters")
 
     vote = {
         "room_id": room["id"],
@@ -71,6 +77,7 @@ async def reward_participant(
     }
 
     vote_record = DB.insert(Collections.SPECTATOR_VOTES, vote)
+    await broadcast_to_room(room["id"], "reward", {"vote": vote_record})
     return {"message": "Reaction recorded", "vote": vote_record}
 
 

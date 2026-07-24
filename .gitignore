@@ -66,6 +66,7 @@ logs/
 /backend/__pycache__/
 /backend/*.db
 /backend/uploads/
+/backend/data/
 /backend/temp/
 
 # Replit

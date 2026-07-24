@@ -1,46 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, useScroll, useTransform, useInView, useMotionValue, useSpring } from 'framer-motion';
-import { Scale, Mic2, Trophy, Users, TrendingUp, ArrowRight, Zap, LogIn, Home as HomeIcon, Plus } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Scale, Mic2, TrendingUp, ArrowRight, Zap, LogIn, Home as HomeIcon, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import JoinRoomByCode from '../components/JoinRoomByCode';
-
-function AnimatedCounter({ value, suffix = '', duration = 2 }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const motionValue = useMotionValue(0);
-  const springValue = useSpring(motionValue, { duration: duration * 1000, bounce: 0 });
-  const [displayValue, setDisplayValue] = useState(0);
-
-  useEffect(() => {
-    if (isInView) {
-      motionValue.set(value);
-    }
-  }, [isInView, motionValue, value]);
-
-  useEffect(() => {
-    const unsubscribe = springValue.on("change", (latest) => {
-      setDisplayValue(latest);
-    });
-    return unsubscribe;
-  }, [springValue]);
-
-  const formatValue = (val) => {
-    if (suffix === '%') {
-      return val.toFixed(1);
-    }
-    if (suffix === 'K+') {
-      return Math.floor(val);
-    }
-    return Math.floor(val);
-  };
-
-  return (
-    <span ref={ref}>
-      {formatValue(displayValue)}{suffix}
-    </span>
-  );
-}
 
 function Home() {
   const canvasRef = useRef(null);
@@ -201,7 +164,7 @@ function Home() {
             >
               <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-gradient-to-r from-accent-rust/10 to-accent-teal/10 border border-accent-rust/20 rounded-full mb-10 backdrop-blur-sm">
                 <Scale className="w-4 h-4 text-accent-rust" />
-                <span className="text-sm font-medium text-text-secondary">AI-Powered Judging</span>
+                <span className="text-sm font-medium text-text-secondary">Gemini judging when configured</span>
               </div>
 
               <h1 className="mb-8 font-display leading-[0.9]">
@@ -214,7 +177,7 @@ function Home() {
               </h1>
 
               <p className="text-xl md:text-2xl text-text-secondary mb-14 max-w-2xl leading-relaxed font-light">
-                Master argumentation with real-time AI scoring across{' '}
+                Practice argumentation with optional AI scoring across{' '}
                 <span className="text-accent-saffron font-semibold">logic</span>,{' '}
                 <span className="text-accent-teal font-semibold">credibility</span>, and{' '}
                 <span className="text-accent-rust font-semibold">rhetoric</span>
@@ -272,12 +235,13 @@ function Home() {
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent-saffron rounded-full animate-pulse" />
                     </div>
                     
-                    {/* Live Scores */}
+                    {/* Illustrative scores */}
                     <div className="w-full space-y-5">
+                      <p className="text-xs text-text-muted">Example LCR scores out of 10</p>
                       {[
-                        { label: 'Logic', value: 85, color: '#F0C674', icon: TrendingUp },
-                        { label: 'Credibility', value: 92, color: '#4A9A9F', icon: Scale },
-                        { label: 'Rhetoric', value: 78, color: '#D67C56', icon: Zap }
+                        { label: 'Logic', value: 8.5, color: '#F0C674', icon: TrendingUp },
+                        { label: 'Credibility', value: 9.2, color: '#4A9A9F', icon: Scale },
+                        { label: 'Rhetoric', value: 7.8, color: '#D67C56', icon: Zap }
                       ].map((metric, i) => (
                         <div key={i} className="space-y-2.5">
                           <div className="flex justify-between items-center">
@@ -297,7 +261,7 @@ function Home() {
                                 boxShadow: `0 0 10px ${metric.color}80`
                               }}
                               initial={{ width: 0 }}
-                              animate={{ width: `${metric.value}%` }}
+                              animate={{ width: `${metric.value * 10}%` }}
                               transition={{ 
                                 duration: 1.2, 
                                 delay: 0.4 + i * 0.15, 
@@ -330,7 +294,7 @@ function Home() {
               </span>
             </h2>
             <p className="text-xl text-text-secondary font-light">
-              Advanced AI evaluates every argument across critical dimensions
+              When a Gemini key is configured, the judge evaluates completed rounds across three dimensions
             </p>
           </div>
 
@@ -349,7 +313,7 @@ function Home() {
               { 
                 icon: Scale, 
                 title: 'Credibility Check', 
-                desc: 'Real-time fact verification and source validation powered by web search',
+                desc: 'Scores evidence use; optional web search returns sources for manual review',
                 gradient: 'from-accent-teal/10 via-accent-teal/5 to-transparent',
                 iconBg: 'from-accent-teal/20 to-accent-teal/10',
                 iconColor: 'text-accent-teal',
@@ -398,39 +362,6 @@ function Home() {
         </motion.div>
       </section>
 
-      {/* Stats - Elevated Panel */}
-      <section className="relative px-6 lg:px-16 py-32 z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="relative bg-gradient-to-br from-dark-elevated via-dark-surface to-dark-elevated rounded-[2.5rem] p-12 md:p-20 shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-dark-warm overflow-hidden">
-            {/* Accent Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-accent-rust/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent-teal/10 rounded-full blur-3xl" />
-            
-            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
-              {[
-                { icon: Users, value: 50, suffix: 'K+', label: 'Active Debaters', color: 'accent-rust' },
-                { icon: Trophy, value: 200, suffix: 'K+', label: 'Debates Hosted', color: 'accent-saffron' },
-                { icon: Scale, value: 99.9, suffix: '%', label: 'AI Accuracy', color: 'accent-teal' }
-              ].map((stat, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <stat.icon className={`w-12 h-12 mx-auto mb-5 text-${stat.color}`} />
-                  <div className={`text-6xl md:text-7xl font-bold font-display text-${stat.color} mb-3`}>
-                    <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={2.5} />
-                  </div>
-                  <div className="text-text-secondary font-medium">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className="relative px-6 lg:px-16 py-40 z-10">
         <div className="max-w-5xl mx-auto text-center">
@@ -447,7 +378,7 @@ function Home() {
               </span>
             </h2>
             <p className="text-2xl text-text-secondary mb-14 max-w-2xl mx-auto font-light">
-              Join thousands mastering debate with instant AI feedback
+              Create a room, invite a debater, and review the full transcript together
             </p>
             <Link to="/add">
               <motion.button
@@ -466,5 +397,4 @@ function Home() {
     </div>
   );
 }
-
 export default Home;

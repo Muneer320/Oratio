@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 from app.schemas import HealthResponse, LeaderboardEntry, FeedbackSubmit
-from app.replit_db import DB, Collections
+from app.replit_db import DB, Collections, STORAGE_BACKEND
 from app.config import settings
+from app.gemini_ai import GEMINI_AVAILABLE
 
 router = APIRouter(prefix="/api/utils", tags=["Utilities"])
 
@@ -17,11 +18,11 @@ async def get_config():
         "max_file_size_mb": settings.MAX_FILE_SIZE_MB,
         "allowed_file_extensions": settings.ALLOWED_FILE_EXTENSIONS,
         "replit_features": {
-            "database": True,
-            "ai": True,
+            "database": STORAGE_BACKEND != "memory",
+            "ai": GEMINI_AVAILABLE,
             "auth": True
         },
-        "websocket_url": f"ws://{settings.WS_HOST}:{settings.WS_PORT}",
+        "socketio_path": "/socket.io/",
         "environment": settings.API_ENV
     }
 
@@ -38,7 +39,7 @@ async def submit_feedback(feedback: FeedbackSubmit):
     feedback_record = {
         "message": feedback.message,
         "category": feedback.category or "general",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
     saved_feedback = DB.insert(Collections.FEEDBACK, feedback_record)

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Use Gemini AI exclusively
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = "gemini-2.5-pro"
+    GEMINI_MODEL: str = "gemini-3.5-flash"
     GEMINI_TEMPERATURE: float = 0.7
 
     # Fact-Checking (Serper is free tier friendly)
@@ -33,13 +33,13 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
         "http://localhost:80",
         "http://localhost",
     ]
-
-    # Security
-    SECRET_KEY: str = os.getenv(
-        "SECRET_KEY", "replit-oratio-secret-key-change-in-prod")
 
     # File Upload - Use Replit Object Storage
     MAX_FILE_SIZE_MB: int = 50
@@ -71,3 +71,7 @@ if settings.REPLIT_URL:
     ]
     settings.CORS_ORIGINS.extend(replit_domains)
     print(f"🔗 Added Replit domains to CORS: {replit_domains}")
+
+for domain in os.getenv("REPLIT_DOMAINS", "").split(","):
+    if domain.strip():
+        settings.CORS_ORIGINS.append(f"https://{domain.strip()}")

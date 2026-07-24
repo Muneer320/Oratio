@@ -6,10 +6,12 @@ from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, Dict, Any
 import secrets
+import hashlib
+import hmac
+from datetime import datetime, timedelta, timezone
 
 try:
     from replit import web
-    from flask import Flask, request as flask_request
     REPLIT_AUTH_AVAILABLE = True
     print("✅ Replit Auth available")
 except ImportError:
@@ -20,6 +22,25 @@ except ImportError:
 from app.replit_db import DB, Collections
 
 security = HTTPBearer(auto_error=False)
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(password.encode("utf-8"), salt=salt,
+                            n=16384, r=8, p=1, dklen=32)
+    return f"scrypt$16384$8$1${salt.hex()}${digest.hex()}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    try:
+        algorithm, n, r, p, salt, expected = stored.split("$")
+        if algorithm != "scrypt" or (int(n), int(r), int(p)) != (16384, 8, 1):
+            return False
+        digest = hashlib.scrypt(password.encode("utf-8"), salt=bytes.fromhex(salt),
+                                n=int(n), r=int(r), p=int(p), dklen=32)
+        return hmac.compare_digest(digest, bytes.fromhex(expected))
+    except (ValueError, TypeError):
+        return False
 
 
 class ReplitAuth:
@@ -85,7 +106,7 @@ class ReplitAuth:
         session_data = {
             "id": token,
             "user_id": user_id,
-            "expires_at": None  # Sessions don't expire in demo
+            "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
         }
         DB.insert(Collections.SESSIONS, session_data)
         return token
@@ -97,6 +118,15 @@ class ReplitAuth:
         """
         session = DB.get(Collections.SESSIONS, token)
         if not session:
+            return None
+
+        try:
+            expires_at = datetime.fromisoformat(session["expires_at"])
+            if expires_at.tzinfo is None or expires_at <= datetime.now(timezone.utc):
+                DB.delete(Collections.SESSIONS, token)
+                return None
+        except (KeyError, TypeError, ValueError):
+            DB.delete(Collections.SESSIONS, token)
             return None
 
         user_id = session.get("user_id")
@@ -122,11 +152,10 @@ class ReplitAuth:
                 raise HTTPException(
                     status_code=400, detail="Username already taken")
 
-            # Create user (storing password hash in real app, but simplified for demo)
             new_user = {
                 "username": username,
                 "email": email,
-                "password_hash": password,  # In production, use proper hashing
+                "password_hash": hash_password(password),
                 "full_name": username,
                 "provider": "local",
                 "xp": 0,
@@ -156,10 +185,21 @@ class ReplitAuth:
         Simple login for local development
         """
         user = DB.find_one(Collections.USERS, {"email": email})
-        if not user or user.get("password_hash") != password:
+        if not user:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        token = ReplitAuth.create_session(user["id"])
+        stored = user.get("password_hash") or ""
+        valid = verify_password(password, stored)
+        if not valid and not stored.startswith("scrypt$"):
+            # Upgrade users created before passwords were hashed.
+            valid = hmac.compare_digest(stored, password)
+            if valid:
+                DB.update(Collections.USERS, str(user["id"]),
+                          {"password_hash": hash_password(password)})
+        if not valid:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        token = ReplitAuth.create_session(str(user["id"]))
         return {"user": user, "token": token}
 
 

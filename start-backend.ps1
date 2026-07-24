@@ -33,4 +33,5 @@ Write-Host "Press Ctrl+C to stop" -ForegroundColor Gray
 Write-Host ""
 
 # Start server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+$env:PYTHONUTF8 = '1'
+uvicorn app.main:socket_app --reload --host 0.0.0.0 --port 8000

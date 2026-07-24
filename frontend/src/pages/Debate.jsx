@@ -36,7 +36,11 @@ function Debate() {
   const transcriptEndRef = useRef(null);
   
   // Socket.IO for real-time updates
-  const { isConnected, newTurn } = useSocketIO(room?.id);
+  const { isConnected, newTurn, debateEnded } = useSocketIO(room?.id);
+
+  useEffect(() => {
+    if (debateEnded) navigate(`/results/${roomCode}`);
+  }, [debateEnded, navigate, roomCode]);
 
   const handleSpectatorReaction = async (participantId, reactionType) => {
     if (!room || isParticipant) return;
@@ -116,7 +120,10 @@ function Debate() {
     if (!room) return;
     try {
       const transcript = await api.get(`/api/debate/${room.id}/transcript`, true);
-      setTurns(transcript.turns || []);
+      setTurns(transcript || []);
+      const debaterCount = participants.filter(p => p.role === 'debater').length || 2;
+      setCurrentRound(Math.min(Math.floor(transcript.length / debaterCount) + 1, room.rounds));
+      setCurrentTurn((transcript.length % debaterCount) + 1);
     } catch (err) {
       console.error('Failed to load turns:', err);
     }
@@ -163,13 +170,14 @@ function Debate() {
         setParticipants(participantsList);
         
         const userIsParticipant = participantsList.some(
-          p => String(p.user_id) === String(user?.id)
+          p => p.role === 'debater' && String(p.user_id) === String(user?.id)
         );
         setIsParticipant(userIsParticipant);
         
         const totalTurns = debateStatus.turn_count || 0;
-        const calculatedRound = Math.floor(totalTurns / (participantsList.length || 2)) + 1;
-        const calculatedTurn = (totalTurns % (participantsList.length || 2)) + 1;
+        const debaterCount = participantsList.filter(p => p.role === 'debater').length || 2;
+        const calculatedRound = Math.floor(totalTurns / debaterCount) + 1;
+        const calculatedTurn = (totalTurns % debaterCount) + 1;
         
         setCurrentRound(Math.min(calculatedRound, foundRoom.rounds));
         setCurrentTurn(calculatedTurn);
@@ -319,6 +327,20 @@ function Debate() {
         );
       }
 
+      if (room?.is_training) {
+        const transcript = await api.get(`/api/debate/${room.id}/transcript`, true);
+        setTurns(transcript);
+        setArgument('');
+        const completedRounds = Math.floor(transcript.length / 2);
+        if (completedRounds < room.rounds) {
+          setCurrentRound(completedRounds + 1);
+          setCurrentTurn(1);
+        } else {
+          setIsAnalyzing(true);
+        }
+        return;
+      }
+
       // PERFORMANCE FIX: Optimistically update UI immediately instead of refetching everything
       newTurn.ai_feedback = newTurn.ai_feedback || null;
       setTurns([...turns, newTurn]);
@@ -371,8 +393,6 @@ function Debate() {
   const handleEndDebate = async () => {
     try {
       await api.post(`/api/debate/${room.id}/end`, {}, true);
-      
-      await api.post('/api/ai/final-score', { room_id: room.id }, true);
       
       navigate(`/results/${roomCode}`);
     } catch (err) {

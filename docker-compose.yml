@@ -1,24 +1,19 @@
-version: "3.8"
-
 services:
   oratio:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "80:80"
-      - "8000:8000"
+      - "8080:80"
+    env_file:
+      - path: ./backend/.env
+        required: false
     environment:
       - PYTHONUNBUFFERED=1
       - API_ENV=${API_ENV:-development}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-pro}
-      - SERPER_API_KEY=${SERPER_API_KEY}
-      - TAVILY_API_KEY=${TAVILY_API_KEY}
-      - SECRET_KEY=${SECRET_KEY:-auto-generated-secret-key-change-in-production}
     volumes:
-      - ./backend:/app/backend
-      - ./frontend/dist:/app/frontend/dist
+      - oratio-data:/app/backend/data
+      - oratio-uploads:/app/backend/uploads
     restart: unless-stopped
     networks:
       - oratio-network
@@ -26,3 +21,7 @@ services:
 networks:
   oratio-network:
     driver: bridge
+
+volumes:
+  oratio-data:
+  oratio-uploads:

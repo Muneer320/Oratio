@@ -36,7 +36,7 @@ class ApiService {
 
   async handleResponse(response) {
     if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         if (this.onUnauthorized) {
           this.onUnauthorized();
         }

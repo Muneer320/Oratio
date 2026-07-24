@@ -2,7 +2,7 @@
 
 See [README](README.md) for features and storage limits.
 
-1. Install Python 3.11+ and Node.js 22+.
+1. Install Python 3.11+ and Node.js 22.12+ (or Node.js 24).
 2. In `backend`, create a virtual environment and install `pip install -r requirements.txt`.
 3. Set `GEMINI_API_KEY` in `backend/.env` or your shell for judging, AI opponents, and transcription. Without it, normal text rooms still work but results stay unjudged.
 4. Start the backend with `uvicorn app.main:socket_app --reload --host 127.0.0.1 --port 8000` from `backend`.

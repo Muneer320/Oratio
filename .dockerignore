@@ -48,6 +48,11 @@ Thumbs.db
 .env
 .env.local
 **/.env
+**/.env.*
+
+# Runtime records and recordings belong in volumes, not image layers.
+backend/data/
+backend/uploads/
 
 # Logs
 *.log
